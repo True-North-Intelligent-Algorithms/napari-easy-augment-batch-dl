@@ -1,0 +1,30 @@
+name: napari-easy-augment-batch-dl
+display_name: Easy Augment Batch DL
+# use 'hidden' to remove plugin from napari hub search results
+visibility: public
+# see https://napari.org/stable/plugins/manifest.html for valid categories
+categories: ["Annotation", "Segmentation", "Acquisition"]
+contributions:
+  commands:
+    - id: napari-easy-augment-batch-dl.make_container_widget
+      python_name: napari_easy_augment_batch_dl:ImageThreshold
+      title: Make threshold Container widget
+    - id: napari-easy-augment-batch-dl.make_magic_widget
+      python_name: napari_easy_augment_batch_dl:threshold_magic_widget
+      title: Make threshold magic widget
+    - id: napari-easy-augment-batch-dl.make_function_widget
+      python_name: napari_easy_augment_batch_dl:threshold_autogenerate_widget
+      title: Make threshold function widget
+    - id: napari-easy-augment-batch-dl.make_qwidget
+      python_name: napari_easy_augment_batch_dl:ExampleQWidget
+      title: Make example QWidget
+  widgets:
+    - command: napari-easy-augment-batch-dl.make_container_widget
+      display_name: Container Threshold
+    - command: napari-easy-augment-batch-dl.make_magic_widget
+      display_name: Magic Threshold
+    - command: napari-easy-augment-batch-dl.make_function_widget
+      autogenerate: true
+      display_name: Autogenerate Threshold
+    - command: napari-easy-augment-batch-dl.make_qwidget
+      display_name: Example QWidget
