@@ -5,7 +5,7 @@ class BaseModel:
         self.num_classes = num_classes
         self.patch_path = patch_path
 
-    def train(self, updater=None):
+    def train(self, num_epochs, updater=None):
         pass
 
     def predict(self, image):

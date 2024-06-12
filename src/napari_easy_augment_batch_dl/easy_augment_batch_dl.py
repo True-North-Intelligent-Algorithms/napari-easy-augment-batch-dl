@@ -1,10 +1,20 @@
 
 from turtle import update
 from numpy import append
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
-from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
+try:
+    from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
+except ImportError:
+    PytorchSemanticModel = None
+try:
+    from napari_easy_augment_batch_dl.stardist_instance_model import StardistInstanceModel
+except ImportError:
+    StardistInstanceModel = None
+
+from napari_easy_augment_batch_dl.widgets import LabeledSpinner
+
 import numpy as np
 import os
 
@@ -14,6 +24,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         super().__init__()
 
         self.viewer = viewer
+
+        self.deep_learning_project = None
+        self.model = None
 
         self.init_ui()
 
@@ -115,8 +128,40 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         # add train network group
         self.train_network_group = QGroupBox("3. Train network")
-        
         self.train_layout = QVBoxLayout()
+        
+        # add network architecture drop down
+        self.network_architecture_drop_down = QComboBox()
+        self.network_architecture_drop_down.addItem("U-Net")
+        self.network_architecture_drop_down.addItem("Stardist")
+        self.train_layout.addWidget(self.network_architecture_drop_down)
+
+        def on_index_changed(index):
+            self.stacked_model_params_layout.setCurrentIndex(index)
+
+        self.network_architecture_drop_down.currentIndexChanged.connect(on_index_changed)
+
+        self.stacked_model_params_layout = QStackedWidget()
+        
+        self.pytorch_semantic_params_layout = QVBoxLayout()
+        self.widgetGroup1 = QWidget()
+        self.pytorch_semantic_threshold = LabeledSpinner("Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
+        self.pytorch_semantic_params_layout.addWidget(self.pytorch_semantic_threshold)
+        self.widgetGroup1.setLayout(self.pytorch_semantic_params_layout)
+
+        self.stardist_params_layout = QVBoxLayout()
+        self.widgetGroup2 = QWidget()
+        self.prob_thresh = LabeledSpinner("Prob. Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
+        self.nms_thresh = LabeledSpinner("NMS Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
+        self.stardist_params_layout.addWidget(self.prob_thresh)
+        self.stardist_params_layout.addWidget(self.nms_thresh)
+        self.widgetGroup2.setLayout(self.stardist_params_layout)
+
+        self.stacked_model_params_layout.addWidget(self.widgetGroup1)
+        self.stacked_model_params_layout.addWidget(self.widgetGroup2)
+
+        self.train_layout.addWidget(self.stacked_model_params_layout)
+        
         self.train_network_group.setLayout(self.train_layout)
         
         # add load pretrained model button 
@@ -124,11 +169,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.load_pretrained_model_button.clicked.connect(self.load_pretrained_model)
         self.train_layout.addWidget(self.load_pretrained_model_button)
 
-        # add network architecture drop down
-        self.network_architecture_drop_down = QComboBox()
-        self.network_architecture_drop_down.addItem("U-Net")
-        self.network_architecture_drop_down.addItem("Stardist")
-        self.train_layout.addWidget(self.network_architecture_drop_down)
 
         # add network name text box
         self.network_name_text_box = QLineEdit()
@@ -211,8 +251,11 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.viewer.add_image(self.deep_learning_project.images, name='images')
 
+        self.labels = []
+
         for c in range(num_classes):
             self.viewer.add_labels(self.deep_learning_project.label_list[c], name='labels_'+str(c))
+            self.labels.append(self.viewer.layers['labels_'+str(c)])
 
         boxes_layer = self.viewer.add_shapes(
             ndim=3,
@@ -228,23 +271,20 @@ class NapariEasyAugmentBatchDL(QWidget):
     def load_pretrained_model(self):
          # Open a file dialog to select a file or directory
         options = QFileDialog.Options()
-        file_or_directory, _ = QFileDialog.getOpenFileName(self, "Select Model File or Directory", "", "All Files (*)", options=options)
 
-        if file_or_directory:
-            # Determine if it's a file or directory
-            if os.path.isfile(file_or_directory):
-                if file_or_directory.lower().endswith('.pth'):
-                    #self.load_pytorch_model(file_or_directory)
-                    self.textBrowser_log.append("Loading Pytorch model...")
-                else:
-                    self.textBrowser_log.append("Selected file is not a .pth file.")
-            elif os.path.isdir(file_or_directory):
-                # Assuming it's a StarDist model
-                #self.load_stardist_model(file_or_directory)
-                self.textBrowser_log.append("Loading StarDist model...")
+        if self.network_architecture_drop_down.currentText() == "U-Net":
+            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File or Directory", "", "All Files (*)", options=options)
+
+            if file_.lower().endswith('.pth'):
+                #self.load_pytorch_model(file_or_directory)
+                self.textBrowser_log.append("Loading Pytorch model...")
             else:
-                self.textBrowser_log.append("Selected item is neither a file nor a directory.")
-        pass
+                self.textBrowser_log.append("Selected file is not a .pth file.")
+        elif self.network_architecture_drop_down.currentText() == "Stardist":
+            self.textBrowser_log.append("Loading StarDist model...")
+            directory_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
+            # Assuming it's a StarDist model
+            self.model = StardistInstanceModel(None, self.deep_learning_project.model_path, self.deep_learning_project.num_classes, directory_)
 
     def save_results(self):
         self.textBrowser_log.append("Saving results...")
@@ -262,26 +302,34 @@ class NapariEasyAugmentBatchDL(QWidget):
     def perform_training(self):
         self.textBrowser_log.append("Training network...")
 
+        num_epochs = self.number_epochs_spin_box.value()
+
         if self.network_architecture_drop_down.currentText() == "U-Net":
             self.textBrowser_log.append("Using U-Net architecture...")
 
             self.model = PytorchSemanticModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-            self.model.train(self.update)
+            self.model.train(num_epochs, self.update)
 
         elif self.network_architecture_drop_down.currentText() == "Stardist":
             self.textBrowser_log.append("Using Stardist architecture...")
+
+            self.model = StardistInstanceModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
+            self.model.train(num_epochs, self.update)
+            #if self.model is None:
 
     def predict_current_image(self):
         self.textBrowser_log.append("Predicting current image...")  
 
         predictions = []
         for z in range(self.viewer.layers['images'].data.shape[0]):
-            prediction = self.model.predict(self.viewer.layers['images'].data[z,])
+            image = self.deep_learning_project.image_list[z]
+            prediction = self.model.predict(image)
             predictions.append(prediction)
 
-        predictions = np.array(predictions)
+        predictions = self.deep_learning_project.pad_to_largest(predictions)
 
-        self.viewer.add_labels(predictions, name='predictions')
+        #self.viewer.add_labels(predictions, name='predictions')
+        self.labels[0].data = predictions
 
     def predict_all_images(self):
         self.textBrowser_log.append("Predicting all images...")

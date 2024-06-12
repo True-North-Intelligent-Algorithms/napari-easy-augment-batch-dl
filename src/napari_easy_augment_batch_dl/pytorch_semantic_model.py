@@ -12,7 +12,7 @@ from torchvision.transforms import v2
 
 class PytorchSemanticModel(BaseModel):
     
-    def train(self, updater=None):
+    def train(self, num_epochs, updater=None):
         updater('Training Pytorch Semantic model', 0)
 
         cuda_present = torch.cuda.is_available()
@@ -86,7 +86,6 @@ class PytorchSemanticModel(BaseModel):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-3)
         init_params = list(self.model.parameters())[0].clone().detach()
 
-        max_nepochs = 200
         log_interval = 20
         self.model.train(True)
 
@@ -95,7 +94,7 @@ class PytorchSemanticModel(BaseModel):
         # B x C x W x D
         loss_function = torch.nn.BCEWithLogitsLoss(reduction="mean")
 
-        for epoch in range(1, max_nepochs + 1):
+        for epoch in range(1, num_epochs + 1):
             for batch_idx, (X, y) in enumerate(train_loader):
                 # the inputs and labels have to be on the same device as the model
                 X, y = X.to(device), y.to(device)

@@ -21,6 +21,11 @@ class DeepLearningProject:
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
 
+        if not os.path.exists(self.patch_path):
+            os.mkdir(self.patch_path)
+        if not os.path.exists(self.model_path):
+            os.mkdir(self.model_path)
+
         self.num_classes = num_classes
         
         self.files = list(self.image_path.glob('*.jpg'))
@@ -30,6 +35,13 @@ class DeepLearningProject:
 
         #self.image_files = self.load_image_files()
         if self.napari_path.exists():
+            self.image_list = []
+            for index in range(len(self.files)):
+
+                im = imread(self.files[index])
+                print(im.shape)
+                self.image_list.append(im)
+
             self.images = np.load(self.napari_path / 'images.npy')
 
             self.label_list = []
@@ -37,6 +49,8 @@ class DeepLearningProject:
                 self.label_list.append(np.load(os.path.join(self.napari_path, 'labels_'+str(c)+'.npy')))
 
             self.boxes = np.load(self.napari_path / 'Label Box.npy')
+            
+          
         else:
             self.initialize_napari_project()
 
@@ -52,24 +66,54 @@ class DeepLearningProject:
             self.label_list.append([])
 
         for index in range(len(self.files)):
-            splitter = self.files[index].name.split('.')
-            name = splitter[0]
 
             im = imread(self.files[index])
             print(im.shape)
             self.image_list.append(im)
 
-            labels = []
-
             for c in range(self.num_classes): 
                 self.label_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
 
-        self.images = np.array(self.image_list)
+        self.images = self.pad_to_largest(self.image_list) #np.array(self.image_list)
+        #self.images = np.array(self.image_list)
 
         for c in range(self.num_classes):
-            self.label_list[c] = np.array(self.label_list[c])
+            self.label_list[c] =  self.pad_to_largest(self.label_list[c])#np.array(self.label_list[c])
+            #self.label_list[c] = np.array(self.label_list[c])
 
         self.boxes = None
+
+    def pad_to_largest(self, images):
+        # Find the maximum dimensions
+        max_rows = max(image.shape[0] for image in images)
+        max_cols = max(image.shape[1] for image in images)
+        
+        # Create a list to hold the padded images
+        padded_images = []
+        
+        for image in images:
+            # Calculate the padding for each dimension
+            pad_rows = max_rows - image.shape[0]
+            pad_cols = max_cols - image.shape[1]
+            
+            if len(image.shape) == 3:
+                # Pad the array
+                padded_image = np.pad(image, 
+                                    ((0, pad_rows), (0, pad_cols), (0,0)), 
+                                    mode='constant', 
+                                    constant_values=0)
+            else:
+                padded_image = np.pad(image, 
+                                    ((0, pad_rows), (0, pad_cols)), 
+                                    mode='constant', 
+                                    constant_values=0)
+            
+            padded_images.append(padded_image)
+        
+        # Stack the padded images along a new third dimension
+        result = np.array(padded_images)
+        
+        return result
 
     def save_project(self, boxes, layers=None):
         
