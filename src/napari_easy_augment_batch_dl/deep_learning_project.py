@@ -7,11 +7,22 @@ import json
 from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter
 from tnia.deeplearning.dl_helper import quantile_normalization
+from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, xyxy_to_normalized_xywh
 
 class DeepLearningProject:
-    def __init__(self, parent_path, num_classes):
+    def __init__(self, parent_path, num_classes=1):
 
         self.parent_path = Path(parent_path)
+
+        # check if json.info exists
+        json_name = parent_path / 'info.json'
+        if os.path.exists(json_name):
+            with open(json_name, 'r') as f:
+                json_ = json.load(f)
+                self.num_classes = json_['num_classes']
+        else:    
+            self.num_classes = num_classes
+
         self.image_folder = Path(parent_path)
 
         self.image_path = Path(parent_path)
@@ -21,55 +32,53 @@ class DeepLearningProject:
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
 
+        self.yolo_label_path = Path(parent_path / r'yolo_labels')
+        self.yolo_patch_path = Path(parent_path / r'yolo_patches')
+
         if not os.path.exists(self.patch_path):
             os.mkdir(self.patch_path)
         if not os.path.exists(self.model_path):
             os.mkdir(self.model_path)
-
-        self.num_classes = num_classes
+        if not os.path.exists(self.yolo_label_path):
+            os.mkdir(self.yolo_label_path)
+        if not os.path.exists(self.yolo_patch_path):
+            os.mkdir(self.yolo_patch_path)
         
         self.files = list(self.image_path.glob('*.jpg'))
         self.files = self.files+list(self.image_path.glob('*.tif'))
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
+    
+        self.image_list = []
+        for index in range(len(self.files)):
+            im = imread(self.files[index])
+            print(im.shape)
+            self.image_list.append(im)
 
         #self.image_files = self.load_image_files()
         if self.napari_path.exists():
-            self.image_list = []
-            for index in range(len(self.files)):
-
-                im = imread(self.files[index])
-                print(im.shape)
-                self.image_list.append(im)
-
             self.images = np.load(self.napari_path / 'images.npy')
 
             self.label_list = []
-            for c in range(num_classes):
+            for c in range(self.num_classes):
                 self.label_list.append(np.load(os.path.join(self.napari_path, 'labels_'+str(c)+'.npy')))
 
-            self.boxes = np.load(self.napari_path / 'Label Box.npy')
+            self.boxes = np.load(self.napari_path / 'Label box.npy')
+
+            self.object_boxes = np.load(self.napari_path / 'Object box.npy')
             
-          
         else:
             self.initialize_napari_project()
 
     def initialize_napari_project(self):
         print('Napari directory does not exist, initializing project')
 
-
-
-        self.image_list = []
         self.label_list = []
 
         for c in range(self.num_classes):
             self.label_list.append([])
 
-        for index in range(len(self.files)):
-
-            im = imread(self.files[index])
-            print(im.shape)
-            self.image_list.append(im)
+        for im in self.image_list:
 
             for c in range(self.num_classes): 
                 self.label_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
@@ -115,15 +124,16 @@ class DeepLearningProject:
         
         return result
 
-    def save_project(self, boxes, layers=None):
-        
-        if not self.napari_path.exists():
-            os.makedirs(self.napari_path)
-        
-        if layers is not None:
-            for layer in layers:
-                np.save(os.path.join(self.napari_path, layer.name+'.npy'), layer.data)
+    def save_project(self, boxes):
 
+        # save json file with num_classes
+        json_name = os.path.join(self.parent_path, 'info.json')
+
+        with open(json_name, 'w') as f:
+            json_ = {}
+            json_['num_classes'] = self.num_classes
+            json.dump(json_, f)
+        
         for box in boxes:
             z = int(box[0,0])
 
@@ -175,7 +185,7 @@ class DeepLearningProject:
                 json_['bbox'] = [xstart, ystart, xend, yend]
                 json.dump(json_, f)
 
-    def perform_augmentation(self, boxes, num_patches = 100, patch_size=256):
+    def perform_augmentation(self, boxes, num_patches = 100, patch_size=256, updater = None):
 
         patch_path= self.parent_path / 'patches' 
 
@@ -207,5 +217,81 @@ class DeepLearningProject:
 
             im = quantile_normalization(im).astype(np.float32)
             uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_random_gamma=True, do_color_jitter = True)
+       
+    def perform_yolo_augmentation(self, boxes, objects, num_patches_per_image, patch_size, updater=None):
+        """ Yolo Bounding box augmentation is a little different than the pixel mask augmentation
+
+            Instead of cropping ROIs and corresponding masks, we mask the pixels outside the rois to the mean of the pixels inside the ROIs
+            This is done to preserve the scale of the objects with respect to the image size.  We then augment this masked image        
+
+            For Yolo we don't need a consistent patch size, because the image will be resized during training. 
         
+        Args:
+            boxes (_type_): bounding boxes for the rois
+            objects (_type_): bounding boxes for the objects
+            num_patches_per_roi (_type_): number of patches to make per image
+            updater (_type_, optional):  Update the GUI with status messages and progress. Defaults to None.
+        """
+
+        # unlike the pixel mask DL we don't need to create a separate ground truth folder for each class
+        # so when we make the label directores num_classes is 1
+        self.yolo_image_label_paths, self.yolo_mask_label_paths = make_label_directory(1, 1, self.yolo_label_path)
+        self.yolo_image_patch_paths, self.yolo_mask_patch_paths = make_label_directory(1, 1, self.yolo_patch_path)
+        
+        updater('Performing Yolo Augmentation', 0)
+
+        boxes = np.array(boxes)
+        objects = np.array(objects)
+
+        num_images = len(self.image_list)
+
+        for n in range(num_images):
+            
+            index_objects = np.all(objects[:,:,0]==n, axis=1)
+            filtered_objects = objects[index_objects]
+
+            index_boxes = np.all(boxes[:,:,0]==n, axis=1)
+            filtered_boxes = boxes[index_boxes]
+
+            print('number of boxes at',n,' is ', len(filtered_boxes))
+            print('number of objects at',n,' is ', len(filtered_objects))
+
+            # save the image to yolo label path
+            im = self.image_list[n]
+
+            image_height = im.shape[0]
+            image_width = im.shape[1]
+            
+            if len(filtered_boxes) > 0:
+                print(len(filtered_boxes), ' boxes for image ', n)
+                mask = np.zeros_like(im)
+                # use bounding box to create mask
+                for box in filtered_boxes:
+                    ystart = int(np.min(box[:,1]))
+                    yend = int(np.max(box[:,1]))
+                    xstart = int(np.min(box[:,2]))
+                    xend = int(np.max(box[:,2]))
+
+                    mask[ystart:yend, xstart:xend] = 1
+
+                im = np.where(mask>0, im, np.mean(im)).astype(im.dtype)
+            
+            imsave(os.path.join(self.yolo_image_label_paths[0], self.files[n].name), im)  
+
+            # create text file for image n
+            base_name = self.files[n].name.split('.')[0]
+            yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
+            with open(yolo_name, 'w') as f:
+                for object in filtered_objects:
+                    xywhn = xyxy_to_normalized_xywh(object[:,1:], image_width, image_height)
+                    f.write('0 ')
+                    xywhn = str(xywhn).replace('(','').replace(')','').replace(',','')
+                    f.write(xywhn)
+                    f.write('\n')
+        print()
+
+
+
+
+
        
