@@ -45,7 +45,9 @@ class DeepLearningProject:
             os.mkdir(self.yolo_patch_path)
         
         self.files = list(self.image_path.glob('*.jpg'))
+        self.files = self.files+list(self.image_path.glob('*.jpeg'))
         self.files = self.files+list(self.image_path.glob('*.tif'))
+        self.files = self.files+list(self.image_path.glob('*.png'))
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
     
