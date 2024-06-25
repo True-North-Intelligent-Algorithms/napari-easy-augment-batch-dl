@@ -2,26 +2,10 @@
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
-try:
-    from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
-except ImportError:
-    PytorchSemanticModel = None
-try:
-    from napari_easy_augment_batch_dl.stardist_instance_model import StardistInstanceModel
-except ImportError:
-    StardistInstanceModel = None
-try:
-    from napari_easy_augment_batch_dl.cellpose_instance_model import CellPoseInstanceModel
-except ImportError:
-    CellPoseInstanceModel = None
-try:
-    from napari_easy_augment_batch_dl.yolo_sam_model import YoloSAMModel
-except ImportError:
-    YoloSAMModel = None
-
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner
-
+from napari_easy_augment_batch_dl.deep_learning_project import DLModel
 import numpy as np
+import pandas as pd
 import os
 
 class NapariEasyAugmentBatchDL(QWidget):
@@ -138,10 +122,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         # add network architecture drop down
         self.network_architecture_drop_down = QComboBox()
-        self.network_architecture_drop_down.addItem("U-Net")
-        self.network_architecture_drop_down.addItem("Stardist")
-        self.network_architecture_drop_down.addItem("CellPose")
-        self.network_architecture_drop_down.addItem("Yolo/SAM")
+        self.network_architecture_drop_down.addItem(DLModel.UNET)
+        self.network_architecture_drop_down.addItem(DLModel.STARDIST)
+        self.network_architecture_drop_down.addItem(DLModel.CELLPOSE)
+        self.network_architecture_drop_down.addItem(DLModel.YOLO_SAM)
 
         self.train_layout.addWidget(self.network_architecture_drop_down)
 
@@ -261,7 +245,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         image_path = Path(directory)
 
         files = list(image_path.glob('*.jpg'))
+        files = files+list(image_path.glob('*.jpeg'))
         files = files+list(image_path.glob('*.tif'))
+        files = files+list(image_path.glob('*.png'))
 
         if len(files) == 0:
             QMessageBox.information(self, "Error", "No images found in the selected directory. Please select a directory with images.")
@@ -313,7 +299,7 @@ class NapariEasyAugmentBatchDL(QWidget):
          # Open a file dialog to select a file or directory
         options = QFileDialog.Options()
 
-        if self.network_architecture_drop_down.currentText() == "U-Net":
+        if self.network_architecture_drop_down.currentText() == DLModel.UNET:
             file_, _ = QFileDialog.getOpenFileName(self, "Select Model File or Directory", "", "All Files (*)", options=options)
 
             if file_.lower().endswith('.pth'):
@@ -321,12 +307,12 @@ class NapariEasyAugmentBatchDL(QWidget):
                 self.textBrowser_log.append("Loading Pytorch model...")
             else:
                 self.textBrowser_log.append("Selected file is not a .pth file.")
-        elif self.network_architecture_drop_down.currentText() == "Stardist":
+        elif self.network_architecture_drop_down.currentText() == DLModel.STARDIST:
             self.textBrowser_log.append("Loading StarDist model...")
-            directory_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
+            start_model_path = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
             # Assuming it's a StarDist model
-            self.model = StardistInstanceModel(None, self.deep_learning_project.model_path, self.deep_learning_project.num_classes, directory_)
-        elif self.network_architecture_drop_down.currentText() == "CellPose":
+            self.deep_learning_project.set_pretrained_model(start_model_path)
+        elif self.network_architecture_drop_down.currentText() == DLModel.CELLPOSE:
             pass
 
     def save_results(self):
@@ -351,8 +337,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         boxes=self.viewer.layers['Label box'].data
         objects=self.object_boxes_layer.data
         # if yolo
-        if self.network_architecture_drop_down.currentText() == "Yolo/SAM":
-            self.deep_learning_project.perform_yolo_augmentation(boxes, objects, num_patches_per_roi, patch_size, self.update)
+        if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
+            classes = self.object_boxes_layer.features['class'].to_numpy()
+            self.deep_learning_project.perform_yolo_augmentation(boxes, objects, classes, num_patches_per_roi, patch_size, self.update)
         else:
             self.deep_learning_project.perform_augmentation(boxes, num_patches_per_roi, patch_size)
 
@@ -361,75 +348,42 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         num_epochs = self.number_epochs_spin_box.value()
 
-        if self.network_architecture_drop_down.currentText() == "U-Net":
-            self.textBrowser_log.append("Using U-Net architecture...")
-
-            self.model = PytorchSemanticModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-            self.model.train(num_epochs, self.update)
-
-        elif self.network_architecture_drop_down.currentText() == "Stardist":
-            self.textBrowser_log.append("Using Stardist architecture...")
-
-            self.model = StardistInstanceModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-            self.model.train(num_epochs, self.update)
-            #if self.model is None:
-        elif self.network_architecture_drop_down.currentText() == "CellPose":
-            self.textBrowser_log.append("Using CellPose architecture...")
-            self.model = CellPoseInstanceModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-            self.model.train(num_epochs, self.update)
+        self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
 
     def predict_current_image(self):
-        self.textBrowser_log.append("Predicting current image...")  
+        self.textBrowser_log.append("Predicting current image...")
+        n = self.viewer.dims.current_step[0]
+        if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
+            predictions, boxes = self.deep_learning_project.predict(n, DLModel.YOLO_SAM, self.update)
+            self.object_boxes_layer.add(boxes)
+            self.object_boxes_layer.refresh()
+            self.labels[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
+            self.labels[0].refresh() 
+        else:
+            pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
+            self.labels[0].data[n, :pred.shape[0], :pred.shape[1]]=pred
+            self.labels[0].refresh()              
+        pass
+    
+    def predict_all_images(self):
+        
+        self.textBrowser_log.append("Predicting all images...")
+        
+        if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
 
-        if self.network_architecture_drop_down.currentText() == "Yolo/SAM":
+            predictions, boxes = self.deep_learning_project.predict_all(DLModel.YOLO_SAM, self.update)
 
-            self.model = YoloSAMModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-            
-            predictions = []
-            for z in range(self.viewer.layers['images'].data.shape[0]):
-
-                self.textBrowser_log.append("Apply Yolo/SAM to image "+str(z)+"...")
-                image = self.deep_learning_project.image_list[z]
-                prediction, result = self.model.predict(image)
-                
-                predictions.append(prediction)
-                boxes = []
-
-                for bbox in result:
-
-                    tl = [z, bbox[1], bbox[0]]
-                    tr = [z, bbox[1], bbox[2]]
-                    br = [z, bbox[3], bbox[2]]
-                    bl = [z, bbox[3], bbox[0]]
-                
-                    #bbox = [z, [bbox[1], bbox[0]], [bbox[3], bbox[2]]]
-                    bbox = [tl, tr, br, bl]
-                    boxes.append(bbox)
-
-
-                self.object_boxes_layer.add(boxes)
-            
+            self.object_boxes_layer.add(boxes)
             predictions = self.deep_learning_project.pad_to_largest(predictions)
             self.labels[0].data = predictions
+        else:
+            predictions = self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentText(), self.update)          
+            predictions = self.deep_learning_project.pad_to_largest(predictions)
 
-            return
-            
-        
-        if self.network_architecture_drop_down.currentText() == "U-Net":
-            self.textBrowser_log.append("Using U-Net architecture...")
+            #self.viewer.add_labels(predictions, name='predictions')
+            self.labels[0].data = predictions
 
-            self.model = PytorchSemanticModel(self.deep_learning_project.patch_path, self.deep_learning_project.model_path, self.deep_learning_project.num_classes)
-        
-        predictions = []
-        for z in range(self.viewer.layers['images'].data.shape[0]):
-            image = self.deep_learning_project.image_list[z]
-            prediction = self.model.predict(image)
-            predictions.append(prediction)
 
-        predictions = self.deep_learning_project.pad_to_largest(predictions)
 
-        #self.viewer.add_labels(predictions, name='predictions')
-        self.labels[0].data = predictions
 
-    def predict_all_images(self):
-        self.textBrowser_log.append("Predicting all images...")
+       

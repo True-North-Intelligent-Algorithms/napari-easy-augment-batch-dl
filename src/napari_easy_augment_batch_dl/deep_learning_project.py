@@ -5,12 +5,43 @@ import numpy as np
 from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name
 import json
 from tnia.deeplearning.dl_helper import make_label_directory
-from tnia.deeplearning.augmentation import uber_augmenter
+from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
 from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, xyxy_to_normalized_xywh
+import pandas as pd
+import yaml
+
+try:
+    from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
+except ImportError:
+    PytorchSemanticModel = None
+try:
+    from napari_easy_augment_batch_dl.stardist_instance_model import StardistInstanceModel
+except ImportError:
+    StardistInstanceModel = None
+try:
+    from napari_easy_augment_batch_dl.cellpose_instance_model import CellPoseInstanceModel
+except ImportError:
+    CellPoseInstanceModel = None
+try:
+    from napari_easy_augment_batch_dl.yolo_sam_model import YoloSAMModel
+except ImportError:
+    YoloSAMModel = None
+
+class DLModel:
+    UNET = "U-Net"
+    STARDIST = "Stardist"
+    CELLPOSE = "CellPose"
+    YOLO_SAM = "Yolo/SAM"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
+
+        self.models = {}
+        self.models[DLModel.UNET] = None
+        self.models[DLModel.STARDIST] = None
+        self.models[DLModel.CELLPOSE] = None
+        self.models[DLModel.YOLO_SAM] = None
 
         self.parent_path = Path(parent_path)
 
@@ -315,37 +346,121 @@ class DeepLearningProject:
 
             image_height = im.shape[0]
             image_width = im.shape[1]
-            
-            if len(filtered_boxes) > 0:
-                print(len(filtered_boxes), ' boxes for image ', n)
-                mask = np.zeros_like(im)
-                # use bounding box to create mask
-                for box in filtered_boxes:
-                    ystart = int(np.min(box[:,1]))
-                    yend = int(np.max(box[:,1]))
-                    xstart = int(np.min(box[:,2]))
-                    xend = int(np.max(box[:,2]))
 
-                    mask[ystart:yend, xstart:xend] = 1
+            if len(filtered_objects > 0):
+                
+                if len(filtered_boxes) > 0:
+                    print(len(filtered_boxes), ' boxes for image ', n)
+                    mask = np.zeros_like(im)
+                    # use bounding box to create mask
+                    for box in filtered_boxes:
+                        ystart = int(np.min(box[:,1]))
+                        yend = int(np.max(box[:,1]))
+                        xstart = int(np.min(box[:,2]))
+                        xend = int(np.max(box[:,2]))
 
-                im = np.where(mask>0, im, np.mean(im)).astype(im.dtype)
-            
-            imsave(os.path.join(self.yolo_image_label_paths[0], self.files[n].name), im)  
+                        mask[ystart:yend, xstart:xend] = 1
 
-            # create text file for image n
-            base_name = self.files[n].name.split('.')[0]
-            yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
-            with open(yolo_name, 'w') as f:
-                for object in filtered_objects:
-                    xywhn = xyxy_to_normalized_xywh(object[:,1:], image_width, image_height)
-                    f.write('0 ')
-                    xywhn = str(xywhn).replace('(','').replace(')','').replace(',','')
-                    f.write(xywhn)
-                    f.write('\n')
+                    im = np.where(mask>0, im, np.mean(im)).astype(im.dtype)
+                
+                imsave(os.path.join(self.yolo_image_label_paths[0], self.files[n].name), im)
+
+                # create text file for image n
+                base_name = self.files[n].name.split('.')[0]
+                yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
+                boxes_xywhn = []
+                with open(yolo_name, 'w') as f:
+                    for object, class_ in zip(filtered_objects, filtered_classes):
+                        xywhn = xyxy_to_normalized_xywh(object[:,1:], image_width, image_height)
+                        f.write(str(class_)+' ')
+                        xywhn_str = str(xywhn).replace('(','').replace(')','').replace(',','')
+                        f.write(xywhn_str)
+                        f.write('\n')
+                        xywhn = list(xywhn)
+                        xywhn.append('c1')
+                        boxes_xywhn.append(xywhn)
+
+                uber_augmenter_bb(im, boxes_xywhn, classes, self.yolo_patch_path, 'grid', 5, do_random_gamma=True, do_color_jitter = True)
+
         print()
 
+    def set_pretrained_model(self, pretrained_model_path):
+        self.model = StardistInstanceModel(None, self.model_path, self.num_classes, pretrained_model_path)
 
+    def get_model(self, network_type):
+        if self.models[network_type] is None:
+            if network_type == "U-Net":
+                self.models[network_type] = PytorchSemanticModel(self.patch_path, self.model_path, self.num_classes)
+            elif network_type == "Stardist":
+                self.models[network_type] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes)
+            elif network_type == "CellPose":
+                self.models[network_type] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes)
+            elif network_type == "Yolo/SAM":
+                self.models[network_type] = YoloSAMModel(self.patch_path, self.model_path, self.num_classes)
 
+        return self.models[network_type]
 
+    def perform_training(self, network_type, num_epochs, update):
 
-       
+        if update is not None:
+            update(f"Training {network_type} model...", 0)
+        
+        model = self.get_model(network_type) 
+        model.train(num_epochs, update)
+
+    def predict(self, n, network_type, update):
+        
+        image = self.image_list[n]
+        
+        if network_type == "Yolo/SAM":
+            if update is not None:
+                update("Apply Yolo/SAM to image "+str(n)+"...")
+
+            model = self.get_model(network_type)
+            prediction, results = model.predict(image)
+            boxes = self.xyxy_to_tltrbrbl(results, n)
+            return prediction, boxes
+        else:
+            prediction = self.model.predict(image)
+            return prediction
+        
+    def predict_all(self, network_type, update):
+        predictions = []
+        
+        if network_type == "Yolo/SAM":
+            predictions = []
+            boxes = []
+            for z in range(len(self.image_list)):
+                if update is not None:
+                    update("Apply Yolo/SAM to image "+str(z)+"...")
+                
+                model = self.get_model(network_type)
+
+                image = self.image_list[z]
+                prediction, result = model.predict(image)
+                
+                predictions.append(prediction)
+
+                boxes_ = self.xyxy_to_tltrbrbl(result, z)
+                boxes = boxes + boxes_
+
+            return predictions, boxes
+        else:
+            for z in range(len(self.image_list)):
+                image = self.image_list[z]
+                model = self.get_model(network_type)
+                prediction = model.predict(image)
+                predictions.append(prediction)
+            return predictions
+    
+    def xyxy_to_tltrbrbl(self, boxes, n):
+        boxes_ = []
+        for box in boxes:
+            tl = [n, box[1], box[0]]
+            tr = [n, box[1], box[2]]
+            br = [n, box[3], box[2]]
+            bl = [n, box[3], box[0]]
+            bbox = [tl, tr, br, bl]
+            boxes_.append(bbox)
+        return boxes_
+      
