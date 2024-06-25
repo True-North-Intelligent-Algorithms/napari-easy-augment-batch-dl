@@ -159,6 +159,22 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.yolo_sam_params_layout = QVBoxLayout()
         self.widgetGroup4 = QWidget()
         self.imagesz = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
+        self.yolo_class_label = QLabel("Class")
+        self.yolo_class_drop_down = QComboBox()
+        self.yolo_class_layout = QHBoxLayout()
+        self.yolo_class_layout.addWidget(self.yolo_class_label)
+        self.yolo_class_layout.addWidget(self.yolo_class_drop_down)
+
+        # handle dropdown changed 
+        def on_yolo_class_index_changed(index):
+            new_class = self.yolo_class_drop_down.currentText()
+            index = self.yolo_class_drop_down.currentIndex()
+            self.object_boxes_layer.feature_defaults['class'] = index
+
+        self.yolo_class_drop_down.currentIndexChanged.connect(on_yolo_class_index_changed) 
+            
+
+        self.yolo_sam_params_layout.addLayout(self.yolo_class_layout)
         self.yolo_sam_params_layout.addWidget(self.imagesz)
         self.widgetGroup4.setLayout(self.yolo_sam_params_layout)
 
@@ -280,20 +296,30 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_color="blue",
             edge_width=5,
         )
-
         self.object_boxes_layer = self.viewer.add_shapes(
             ndim=3,
             name="Object box",
             face_color="transparent",
             edge_color="green",
             edge_width=5,
+            #label_property = text_property,
+            #labels = annotations
+            text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
+
+        for c in range(self.deep_learning_project.num_classes):
+            self.yolo_class_drop_down.addItem("Class "+str(c))
+
+        self.object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
 
         if self.deep_learning_project.boxes is not None:
             boxes_layer.add(self.deep_learning_project.boxes)
 
         if self.deep_learning_project.object_boxes is not None:
             self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
+
+        if self.deep_learning_project.features is not None:
+            self.object_boxes_layer.features = self.deep_learning_project.features
     
     def load_pretrained_model(self):
          # Open a file dialog to select a file or directory
@@ -325,6 +351,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             
         for layer in self.viewer.layers:
             np.save(os.path.join(napari_path, layer.name+'.npy'), layer.data)
+
+        features = self.object_boxes_layer.features
+        features.to_csv(os.path.join(napari_path, 'features.csv'))
 
         self.deep_learning_project.save_project(self.viewer.layers['Label box'].data)
 
