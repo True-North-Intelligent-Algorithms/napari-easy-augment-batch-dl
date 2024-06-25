@@ -68,10 +68,20 @@ class DeepLearningProject:
             for c in range(self.num_classes):
                 self.label_list.append(np.load(os.path.join(self.napari_path, 'labels_'+str(c)+'.npy')))
 
-            self.boxes = np.load(self.napari_path / 'Label box.npy')
+            try:
+                self.boxes = np.load(self.napari_path / 'Label box.npy')
+            except:
+                self.boxes = []
 
-            self.object_boxes = np.load(self.napari_path / 'Object box.npy')
-            
+            try:
+                self.object_boxes = np.load(self.napari_path / 'Object box.npy')
+            except:
+                self.object_boxes = []
+
+            try:
+                self.features = pd.read_csv(self.napari_path / 'features.csv') 
+            except:
+                self.features = []           
         else:
             self.initialize_napari_project()
 
@@ -96,7 +106,9 @@ class DeepLearningProject:
             #self.label_list[c] = np.array(self.label_list[c])
 
         self.boxes = None
-
+        self.object_boxes = None
+        self.features = None
+        
     def pad_to_largest(self, images):
         # Find the maximum dimensions
         max_rows = max(image.shape[0] for image in images)
@@ -225,7 +237,7 @@ class DeepLearningProject:
             im = quantile_normalization(im).astype(np.float32)
             uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_random_gamma=True, do_color_jitter = True)
        
-    def perform_yolo_augmentation(self, boxes, objects, num_patches_per_image, patch_size, updater=None):
+    def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None):
         """ Yolo Bounding box augmentation is a little different than the pixel mask augmentation
 
             Instead of cropping ROIs and corresponding masks, we mask the pixels outside the rois to the mean of the pixels inside the ROIs
@@ -240,11 +252,42 @@ class DeepLearningProject:
             updater (_type_, optional):  Update the GUI with status messages and progress. Defaults to None.
         """
 
+
+
+
         # unlike the pixel mask DL we don't need to create a separate ground truth folder for each class
         # so when we make the label directores num_classes is 1
-        self.yolo_image_label_paths, self.yolo_mask_label_paths = make_label_directory(1, 1, self.yolo_label_path)
-        self.yolo_image_patch_paths, self.yolo_mask_patch_paths = make_label_directory(1, 1, self.yolo_patch_path)
+        #self.yolo_image_label_paths, self.yolo_mask_label_paths = make_label_directory(1, 1, self.yolo_label_path)
+        #self.yolo_image_patch_paths, self.yolo_mask_patch_paths = make_label_directory(1, 1, self.yolo_patch_path)
+        self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
+        self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
+        self.yolo_image_patch_paths = [os.path.join(self.yolo_patch_path, 'images')]
+        self.yolo_mask_patch_paths = [os.path.join(self.yolo_patch_path, 'labels')]
+
+        if not os.path.exists(self.yolo_image_label_paths[0]):
+            os.mkdir(self.yolo_image_label_paths[0])
+        if not os.path.exists(self.yolo_mask_label_paths[0]):
+            os.mkdir(self.yolo_mask_label_paths[0])
+        if not os.path.exists(self.yolo_image_patch_paths[0]):
+            os.mkdir(self.yolo_image_patch_paths[0])
+        if not os.path.exists(self.yolo_mask_patch_paths[0]):
+            os.mkdir(self.yolo_mask_patch_paths[0])
+       
+        # write the yaml 
+        # Create the YAML structure
+        names = ['c'+str(i) for i in range(self.num_classes)]
         
+        data = {
+            'names': names,
+            'nc': self.num_classes,
+            'train': self.yolo_image_patch_paths[0],
+            'val': self.yolo_image_patch_paths[0]
+        }
+
+        # Write the YAML file
+        with open(os.path.join(self.parent_path, 'data.yaml'), 'w') as f:
+            yaml.dump(data, f)
+
         updater('Performing Yolo Augmentation', 0)
 
         boxes = np.array(boxes)
@@ -256,9 +299,13 @@ class DeepLearningProject:
             
             index_objects = np.all(objects[:,:,0]==n, axis=1)
             filtered_objects = objects[index_objects]
+            filtered_classes = classes[index_objects]
 
-            index_boxes = np.all(boxes[:,:,0]==n, axis=1)
-            filtered_boxes = boxes[index_boxes]
+            if len(boxes) == 0:
+                filtered_boxes = []
+            else:
+                index_boxes = np.all(boxes[:,:,0]==n, axis=1)
+                filtered_boxes = boxes[index_boxes]
 
             print('number of boxes at',n,' is ', len(filtered_boxes))
             print('number of objects at',n,' is ', len(filtered_objects))
