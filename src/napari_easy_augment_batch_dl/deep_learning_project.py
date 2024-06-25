@@ -55,6 +55,9 @@ class DeepLearningProject:
         for index in range(len(self.files)):
             im = imread(self.files[index])
             print(im.shape)
+            if len(im.shape) == 3:
+                if im.shape[2] > 3:
+                    im = im[:,:,:3]
             self.image_list.append(im)
 
         #self.image_files = self.load_image_files()
@@ -108,6 +111,8 @@ class DeepLearningProject:
             pad_cols = max_cols - image.shape[1]
             
             if len(image.shape) == 3:
+                # we occasionally hit rgba images, just use the first 3 channels
+                image = image[:,:,:3]
                 # Pad the array
                 padded_image = np.pad(image, 
                                     ((0, pad_rows), (0, pad_cols), (0,0)), 
