@@ -10,6 +10,8 @@ from tnia.deeplearning.dl_helper import quantile_normalization
 from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, xyxy_to_normalized_xywh
 import pandas as pd
 import yaml
+import glob 
+
 
 try:
     from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
@@ -24,6 +26,10 @@ try:
 except ImportError:
     CellPoseInstanceModel = None
 try:
+    from napari_easy_augment_batch_dl.mobile_sam_model import MobileSAMModel
+except ImportError:
+    MobileSAMModel = None
+try:
     from napari_easy_augment_batch_dl.yolo_sam_model import YoloSAMModel
 except ImportError:
     YoloSAMModel = None
@@ -33,6 +39,7 @@ class DLModel:
     STARDIST = "Stardist"
     CELLPOSE = "CellPose"
     YOLO_SAM = "Yolo/SAM"
+    MOBILE_SAM2 = "Mobile SAM 2"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
@@ -42,6 +49,7 @@ class DeepLearningProject:
         self.models[DLModel.STARDIST] = None
         self.models[DLModel.CELLPOSE] = None
         self.models[DLModel.YOLO_SAM] = None
+        self.models[DLModel.MOBILE_SAM2] = None
 
         self.parent_path = Path(parent_path)
 
@@ -90,15 +98,87 @@ class DeepLearningProject:
                 if im.shape[2] > 3:
                     im = im[:,:,:3]
             self.image_list.append(im)
+        
+        self.label_list = []
+        self.prediction_list = []
+        
+        self.boxes = []
+        self.object_boxes = None
+        self.features = None
+        
+        if os.path.exists(json_name):
 
+            for c in range(self.num_classes):
+                labels_temp = []
+                predictions_temp = []
+                
+                label_names = list(Path(self.mask_label_paths[c]).glob('*.tif'))
+                json_names = list(Path(self.image_label_paths[c]).glob('*.json'))
+                print('there are {} labels for class {}'.format(len(label_names), c))
+                print('there are {} json files for class {}'.format(len(json_names), c))
+
+                n=0            
+                for image_name, image in zip(self.files, self.image_list):
+                    image_base_name = image_name.name.split('.')[0]
+
+                    # get all label names for this image
+                    label_names_ = [x for x in label_names if image_base_name in x.name]
+
+                    # get all json names for this image
+                    json_names_ = [x for x in json_names if image_base_name in x.name]
+
+                    label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                    prediction = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+
+                    print('image base name is ', image_base_name)
+
+                    for label_name_, json_name_ in zip(label_names_, json_names_):
+                        with open(json_name_, 'r') as f:
+                            json_ = json.load(f)
+                            print(json_)
+                            
+                            x1= json_['bbox'][0]
+                            y1= json_['bbox'][1]
+                            x2= json_['bbox'][2]
+                            y2= json_['bbox'][3]
+
+                            tl = [n, y1, x1]
+                            tr = [n, y1, x2]
+                            br = [n, y2, x2]
+                            bl = [n, y2, x1]
+                            bbox = [tl, tr, br, bl]
+                            self.boxes.append(bbox)
+
+                            label_crop = imread(label_name_)
+                            label[y1:y2, x1:x2] = label_crop
+                            #rois.append([[x1, y1], [x2, y2]])
+
+                    labels_temp.append(label)
+                    predictions_temp.append(prediction)
+                    n = n+1
+
+            self.label_list.append(labels_temp)
+            self.prediction_list.append(predictions_temp)                        
+
+        else:
+            for c in range(self.num_classes):
+                self.label_list.append([])
+                self.prediction_list.append([])
+                for image in self.image_list:
+                    self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
+                    self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
+        
+        '''
         #self.image_files = self.load_image_files()
         if self.napari_path.exists():
             self.images = np.load(self.napari_path / 'images.npy')
 
             self.label_list = []
+            self.prediction_list = []
+            
             for c in range(self.num_classes):
                 self.label_list.append(np.load(os.path.join(self.napari_path, 'labels_'+str(c)+'.npy')))
-
+                self.prediction_list.append(np.load(os.path.join(self.napari_path, 'predictions_'+str(c)+'.npy')))
             try:
                 self.boxes = np.load(self.napari_path / 'Label box.npy')
             except:
@@ -115,64 +195,47 @@ class DeepLearningProject:
                 self.features = []           
         else:
             self.initialize_napari_project()
+        '''        
 
     def initialize_napari_project(self):
         print('Napari directory does not exist, initializing project')
 
         self.label_list = []
+        self.prediction_list = []
 
         for c in range(self.num_classes):
             self.label_list.append([])
+            self.prediction_list.append([])
 
         for im in self.image_list:
 
             for c in range(self.num_classes): 
                 self.label_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
+                self.prediction_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
 
         self.images = self.pad_to_largest(self.image_list) #np.array(self.image_list)
         #self.images = np.array(self.image_list)
 
         for c in range(self.num_classes):
             self.label_list[c] =  self.pad_to_largest(self.label_list[c])#np.array(self.label_list[c])
+            self.prediction_list[c] = self.pad_to_largest(self.prediction_list[c])
             #self.label_list[c] = np.array(self.label_list[c])
 
         self.boxes = None
         self.object_boxes = None
         self.features = None
+    
+    def delete_all_files_in_directory(self, directory_path):
+        # Get a list of all files in the directory
+        files = glob.glob(os.path.join(directory_path, '*'))
         
-    def pad_to_largest(self, images):
-        # Find the maximum dimensions
-        max_rows = max(image.shape[0] for image in images)
-        max_cols = max(image.shape[1] for image in images)
-        
-        # Create a list to hold the padded images
-        padded_images = []
-        
-        for image in images:
-            # Calculate the padding for each dimension
-            pad_rows = max_rows - image.shape[0]
-            pad_cols = max_cols - image.shape[1]
-            
-            if len(image.shape) == 3:
-                # we occasionally hit rgba images, just use the first 3 channels
-                image = image[:,:,:3]
-                # Pad the array
-                padded_image = np.pad(image, 
-                                    ((0, pad_rows), (0, pad_cols), (0,0)), 
-                                    mode='constant', 
-                                    constant_values=0)
+        # Iterate over the list of files and remove each one
+        for file in files:
+            if os.path.isfile(file):  # Check if it is a file
+                os.remove(file)
+                print(f'Deleted file: {file}')
             else:
-                padded_image = np.pad(image, 
-                                    ((0, pad_rows), (0, pad_cols)), 
-                                    mode='constant', 
-                                    constant_values=0)
-            
-            padded_images.append(padded_image)
-        
-        # Stack the padded images along a new third dimension
-        result = np.array(padded_images)
-        
-        return result
+                print(f'Skipped non-file item: {file}')
 
     def save_project(self, boxes):
 
@@ -183,6 +246,10 @@ class DeepLearningProject:
             json_ = {}
             json_['num_classes'] = self.num_classes
             json.dump(json_, f)
+
+        for c in range(self.num_classes):
+            self.delete_all_files_in_directory(self.image_label_paths[c])
+            self.delete_all_files_in_directory(self.mask_label_paths[c])
         
         for box in boxes:
             z = int(box[0,0])
@@ -200,10 +267,10 @@ class DeepLearningProject:
             #print('bounding box is',ystart, yend, xstart, xend)
             print('image file is ', self.files[z])
 
-            if np.ndim(self.images[z]) == 3:
-                im = self.images[z,ystart:yend, xstart:xend, :]
+            if np.ndim(self.image_list[z]) == 3:
+                im = self.image_list[z][ystart:yend, xstart:xend, :]
             else:
-                im = self.images[z,ystart:yend, xstart:xend]
+                im = self.image_list[z][ystart:yend, xstart:xend]
 
             labels=[]
             
@@ -234,8 +301,18 @@ class DeepLearningProject:
                 json_['base_name'] = base_name
                 json_['bbox'] = [xstart, ystart, xend, yend]
                 json.dump(json_, f)
+    
+    def delete_augmentations(self):
+        image_patch_path =  os.path.join(self.patch_path, 'input0')
+        self.delete_all_files_in_directory(image_patch_path)
 
-    def perform_augmentation(self, boxes, num_patches = 100, patch_size=256, updater = None):
+        for c in range(self.num_classes):
+            label_patch_path =  os.path.join(self.patch_path, 'ground truth'+str(c))
+            self.delete_all_files_in_directory(label_patch_path) 
+
+    def perform_augmentation(self, boxes, num_patches = 100, patch_size=256, updater = None, 
+                                  do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
+                                  do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False):
 
         patch_path= self.parent_path / 'patches' 
 
@@ -255,20 +332,27 @@ class DeepLearningProject:
             xstart = int(np.min(box[:,1]))
             xend = int(np.max(box[:,1]))
 
-            if np.ndim(self.images[z]) == 3:
-                im = self.images[z,ystart:yend, xstart:xend, :]
+            if np.ndim(self.image_list[z]) == 3:
+                im = self.image_list[z][ystart:yend, xstart:xend, :]
             else:
-                im = self.images[z,ystart:yend, xstart:xend]
+                im = self.image_list[z][ystart:yend, xstart:xend]
 
             labels=[]
             
             for c in range(self.num_classes):
                 labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
 
-            im = quantile_normalization(im).astype(np.float32)
-            uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_random_gamma=True, do_color_jitter = True)
+            ## IMPORTANT:  Here is where normalization 1 is done when applying network need to match. 
+            im = quantile_normalization(im, quantile_low=0.001).astype(np.float32)
+
+            #do_random_sized_crop=True, do_random_brightness_contrast=True, 
+            #do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False)
+            uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_horizontal_flip=do_horizontal_flip, do_vertical_flip=do_vertical_flip, do_random_rotate90=do_random_rotate90, do_random_sized_crop=do_random_sized_crop, do_random_brightness_contrast=do_random_brightness_contrast, 
+                                  do_random_gamma=do_random_gamma, do_color_jitter=do_color_jitter, do_elastic_transform=do_elastic_transform)
        
-    def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None):
+    def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None,
+                                  do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
+                                  do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False):
         """ Yolo Bounding box augmentation is a little different than the pixel mask augmentation
 
             Instead of cropping ROIs and corresponding masks, we mask the pixels outside the rois to the mean of the pixels inside the ROIs
@@ -380,24 +464,30 @@ class DeepLearningProject:
                         xywhn.append('c1')
                         boxes_xywhn.append(xywhn)
 
-                uber_augmenter_bb(im, boxes_xywhn, classes, self.yolo_patch_path, 'grid', 5, do_random_gamma=True, do_color_jitter = True)
+                uber_augmenter_bb(im, boxes_xywhn, classes, self.yolo_patch_path, 'grid', 5, do_horizontal_flip=do_horizontal_flip, do_vertical_flip=do_vertical_flip,
+                                  do_random_rotate90=do_random_rotate90, do_random_sized_crop=do_random_sized_crop, do_random_brightness_contrast=do_random_brightness_contrast,
+                                  do_random_gamma=do_random_gamma, do_color_jitter=do_color_jitter)
 
         print()
 
-    def set_pretrained_model(self, pretrained_model_path):
-        self.model = StardistInstanceModel(None, self.model_path, self.num_classes, pretrained_model_path)
+    def set_pretrained_model(self, pretrained_model_path, model_type):
+        if model_type == DLModel.STARDIST:
+            self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
+        elif model_type == DLModel.YOLO_SAM:
+            self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model_path)
 
     def get_model(self, network_type):
         if self.models[network_type] is None:
-            if network_type == "U-Net":
+            if network_type == DLModel.UNET:
                 self.models[network_type] = PytorchSemanticModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == "Stardist":
+            elif network_type == DLModel.STARDIST:
                 self.models[network_type] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == "CellPose":
+            elif network_type == DLModel.CELLPOSE:
                 self.models[network_type] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == "Yolo/SAM":
+            elif network_type == DLModel.YOLO_SAM:
                 self.models[network_type] = YoloSAMModel(self.patch_path, self.model_path, self.num_classes)
-
+            elif network_type == DLModel.MOBILE_SAM2:
+                self.models[network_type] = MobileSAMModel(self.patch_path, self.model_path)
         return self.models[network_type]
 
     def perform_training(self, network_type, num_epochs, update):
@@ -412,27 +502,28 @@ class DeepLearningProject:
         
         image = self.image_list[n]
         
-        if network_type == "Yolo/SAM":
+        if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
             if update is not None:
-                update("Apply Yolo/SAM to image "+str(n)+"...")
+                update(f"Apply {network_type} to image "+str(n)+"...")
 
             model = self.get_model(network_type)
             prediction, results = model.predict(image)
             boxes = self.xyxy_to_tltrbrbl(results, n)
             return prediction, boxes
         else:
-            prediction = self.model.predict(image)
+            prediction = self.get_model(network_type).predict(image)
             return prediction
         
     def predict_all(self, network_type, update):
         predictions = []
         
-        if network_type == "Yolo/SAM":
+        if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
             predictions = []
             boxes = []
             for z in range(len(self.image_list)):
                 if update is not None:
-                    update("Apply Yolo/SAM to image "+str(z)+"...")
+                    update(f"Apply {network_type} to image "+str(z)+"...")
+                print('predicting image ', z)
                 
                 model = self.get_model(network_type)
 
