@@ -7,7 +7,7 @@ categories: ["Annotation", "Segmentation"]
 contributions:
   commands:
     - id: napari-easy-augment-batch-dl.napari_easy_augment_batch_dl
-      python_name: napari_easy_augment_batch_dl:easy_augment_batch_dl:NapariEasyAugmentBatchDL
+      python_name: napari_easy_augment_batch_dl.easy_augment_batch_dl:NapariEasyAugmentBatchDL
       title: Easy Augment Batch DL
   widgets:
     - command: napari-easy-augment-batch-dl.napari_easy_augment_batch_dl
