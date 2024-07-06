@@ -1,5 +1,6 @@
 
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget
+from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner
@@ -8,6 +9,7 @@ import numpy as np
 import pandas as pd
 import os
 from napari_easy_augment_batch_dl.utility import pad_to_largest
+from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -18,6 +20,10 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.deep_learning_project = None
         self.model = None
+
+        self.worker = None
+
+        self.counter = 0
 
         self.init_ui()
 
@@ -255,9 +261,17 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.setLayout(layout)
     
     def update(self, message, progress=0):
+        print('in the update')
         self.textBrowser_log.append(message)
         self.progressBar.setValue(progress)
 
+    def update_thread(self, message, progress=0):
+        if self.worker is not None:
+            self.counter = self.counter + 1
+            print('send signal to update ', self.counter)
+            self.worker.progress.emit(message, progress)
+        else:
+            self.update(message, progress)
 
     def open_image_directory(self):
         options = QFileDialog.Options()
@@ -489,9 +503,27 @@ class NapariEasyAugmentBatchDL(QWidget):
         # However this will confuse some users, as if they don't augment, not all images will be used in training
         # Thus we do a final round of augmentation before training
 
-        self.augment_all()
+        #self.augment_all()
 
-        self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
+        thread = False 
+        if thread:
+            self.thread = QThread()
+            model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
+            model.create_callback(self.update_thread)
+            self.worker = PyQt5WorkerThread(self.deep_learning_project.perform_training, self.network_architecture_drop_down.currentText(), num_epochs, None)
+            self.worker.moveToThread(self.thread)
+            self.thread.started.connect(self.disable_gui)
+            self.thread.started.connect(self.worker.run)
+            self.worker.progress.connect(self.update)
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+            self.thread.finished.connect(self.enable_gui)
+
+            self.thread.start()
+             
+        else:
+            self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
 
     def predict_current_image(self):
         self.textBrowser_log.append("Predicting current image...")
@@ -504,7 +536,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
             self.predictions[0].refresh() 
         else:
+               
             pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
+                
             self.predictions[0].data[n, :pred.shape[0], :pred.shape[1]]=pred
             self.predictions[0].refresh()              
         pass
@@ -523,11 +557,18 @@ class NapariEasyAugmentBatchDL(QWidget):
         else:
             predictions = self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentText(), self.update)          
             predictions = pad_to_largest(predictions)
+        
+        
+        
+
 
             #self.viewer.add_labels(predictions, name='predictions')
             self.predictions[0].data = predictions
 
+    def disable_gui(self):
+        pass
 
-
+    def enable_gui(self):
+        pass
 
        
