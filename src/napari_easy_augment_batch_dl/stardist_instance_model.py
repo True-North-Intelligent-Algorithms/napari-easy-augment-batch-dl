@@ -36,6 +36,7 @@ class StardistInstanceModel(BaseModel):
         self.model_path = model_path
         
         if start_model_path is None:
+            self.model = None
             '''
             n_rays = 32
             axes = 'YXC'
@@ -93,6 +94,11 @@ class StardistInstanceModel(BaseModel):
                 else:
                     n_channel_in = 1
                     add_trivial_channel = True
+
+            # if model is None create one            
+            if self.model is None:
+                config = Config2D (n_rays=32, axes=axes, n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=3)
+                self.model = StarDist2D(config = config, name='model_thread', basedir = self.model_path)
             
             print('make thread model')
             config = Config2D (n_rays=32, axes=axes, n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=3)
