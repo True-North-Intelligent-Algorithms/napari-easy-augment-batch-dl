@@ -13,10 +13,10 @@ from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 
 class NapariEasyAugmentBatchDL(QWidget):
 
-    def __init__(self, viewer, parent=None):
+    def __init__(self, napari_viewer, parent=None):
         super().__init__()
 
-        self.viewer = viewer
+        self.viewer = napari_viewer
 
         self.deep_learning_project = None
         self.model = None
