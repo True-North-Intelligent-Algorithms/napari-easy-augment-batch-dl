@@ -23,15 +23,60 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-easy-augment-batch-dl` via [pip]:
-
-    pip install napari-easy-augment-batch-dl
-
-
-
 To install latest development version :
 
     pip install git+https://github.com/bnorthan/napari-easy-augment-batch-dl.git
+
+You will also need to install the latest development version of tnia-python:
+
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git
+
+For augmentation you will need albumentations library
+
+```
+    pip install albumentations
+```
+
+You will also need one or more of stardist, cellpose, segment-everything or Yolo
+
+### Stardist
+
+#### Windows
+
+```
+    pip install numpy==1.26
+    conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
+    pip install "tensorflow<2.11"
+    pip install stardist==0.8.5
+    pip install gputools
+    pip install edt
+```
+
+#### Linux
+
+```
+    pip install numpy==1.26
+    pip install tensorflow[and-cuda]
+    pip install stardist
+    pip install gputools
+    pip install edt
+```
+
+### Pytorch
+
+### Cellpose
+
+### SAM (Segment Anything)
+
+###
+
+(more details to come on installing dependencies)
+
+
+(Coming soon) You can install `napari-easy-augment-batch-dl` via [pip]:
+
+    pip install napari-easy-augment-batch-dl
+
 
 
 ## Contributing
