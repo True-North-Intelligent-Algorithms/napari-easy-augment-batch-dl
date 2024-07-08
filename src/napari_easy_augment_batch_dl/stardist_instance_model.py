@@ -11,9 +11,10 @@ import json
 
 class CustomCallback(keras.callbacks.Callback):
 
-    def __init__(self, updater):
+    def __init__(self, updater, num_epochs=100):
         super(CustomCallback, self).__init__()
         self.updater = updater
+        self.num_epochs = num_epochs
 
     def on_train_begin(self, logs=None):
         keys = list(logs.keys())
@@ -27,7 +28,8 @@ class CustomCallback(keras.callbacks.Callback):
         keys = list(logs.keys())
         print("Start epoch {} of training; got log keys: {}".format(epoch, keys))
         if self.updater is not None:
-            self.updater(f"Starting epoch {epoch}", epoch)
+            percent_done = int(100*epoch/self.num_epochs)
+            self.updater(f"Starting epoch {epoch}", percent_done)
 
 class StardistInstanceModel(BaseModel):
     def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model_path: str = None):
@@ -84,6 +86,8 @@ class StardistInstanceModel(BaseModel):
         '''
         json_name = os.path.join(self.patch_path, 'info.json')
 
+        self.num_epochs = num_epochs
+
         if os.path.exists(json_name):
             with open(json_name, 'r') as f:
                 data = json.load(f)
@@ -100,18 +104,15 @@ class StardistInstanceModel(BaseModel):
                 config = Config2D (n_rays=32, axes=axes, n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=3)
                 self.model = StarDist2D(config = config, name='model_thread', basedir = self.model_path)
             
-            print('make thread model')
-            config = Config2D (n_rays=32, axes=axes, n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=3)
-            self.model = StarDist2D(config = config, name='model_thread', basedir = self.model_path)
-            print('start training1')
             X, Y = collect_training_data(self.patch_path, sub_sample=1, downsample=False, normalize_input=False, add_trivial_channel = add_trivial_channel)
             X_train, Y_train, X_val, Y_val = divide_training_data(X, Y, val_size=2)
-            print('start training2')
+            
             self.model.prepare_for_training()
-            print('start training3')
+            
             if self.custom_callback is not None:
+                self.custom_callback.num_epochs = num_epochs
                 self.model.callbacks.append(self.custom_callback)
-            print('start training4')
+            
             self.model.train(X_train, Y_train, validation_data=(X_val,Y_val),epochs=num_epochs, steps_per_epoch=100)
        
         
