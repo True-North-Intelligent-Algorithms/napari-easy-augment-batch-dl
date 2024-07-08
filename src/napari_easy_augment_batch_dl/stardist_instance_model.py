@@ -1,4 +1,3 @@
-from cv2 import add
 from napari_easy_augment_batch_dl.base_model import BaseModel
 import numpy as np
 from stardist.models import StarDist2D, Config2D
