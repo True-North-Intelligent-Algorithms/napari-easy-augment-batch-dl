@@ -505,7 +505,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         #self.augment_all()
 
-        thread = False 
+        thread = True 
         if thread:
             self.thread = QThread()
             model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
