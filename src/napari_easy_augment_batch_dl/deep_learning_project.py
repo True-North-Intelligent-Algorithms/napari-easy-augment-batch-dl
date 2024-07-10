@@ -66,8 +66,6 @@ class DeepLearningProject:
 
         self.image_path = Path(parent_path)
         self.label_path = Path(parent_path / r'labels')
-        self.napari_path = Path(parent_path / r'napari')
-
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
 
@@ -167,35 +165,6 @@ class DeepLearningProject:
                 for image in self.image_list:
                     self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
-        
-        '''
-        #self.image_files = self.load_image_files()
-        if self.napari_path.exists():
-            self.images = np.load(self.napari_path / 'images.npy')
-
-            self.label_list = []
-            self.prediction_list = []
-            
-            for c in range(self.num_classes):
-                self.label_list.append(np.load(os.path.join(self.napari_path, 'labels_'+str(c)+'.npy')))
-                self.prediction_list.append(np.load(os.path.join(self.napari_path, 'predictions_'+str(c)+'.npy')))
-            try:
-                self.boxes = np.load(self.napari_path / 'Label box.npy')
-            except:
-                self.boxes = []
-
-            try:
-                self.object_boxes = np.load(self.napari_path / 'Object box.npy')
-            except:
-                self.object_boxes = []
-
-            try:
-                self.features = pd.read_csv(self.napari_path / 'features.csv') 
-            except:
-                self.features = []           
-        else:
-            self.initialize_napari_project()
-        '''        
 
     def initialize_napari_project(self):
         print('Napari directory does not exist, initializing project')
