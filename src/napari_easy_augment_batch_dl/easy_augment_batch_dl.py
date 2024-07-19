@@ -424,9 +424,13 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.YOLO_SAM)
 
     def save_results(self):
+        '''
         self.textBrowser_log.append("Saving results...")
 
-        napari_path = self.deep_learning_project.napari_path
+        parent_path = self.deep_learning_project.parent_path
+
+        napari_path =   self.napari_path = Path(parent_path / r'napari')
+
         
         if not napari_path.exists():
                 os.makedirs(napari_path)
@@ -441,8 +445,13 @@ class NapariEasyAugmentBatchDL(QWidget):
             for n in range (len(self.deep_learning_project.label_list[c])):
                 l = self.deep_learning_project.label_list[c][n]
                 self.deep_learning_project.label_list[c][n] = self.labels[c].data[n, :l.shape[0], :l.shape[1]]
+        '''
+        label_nps = []
 
-        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data)
+        for label in self.labels:
+            label_nps.append(label.data)
+
+        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, label_nps)
 
         #QMessageBox.information(self, "Save Results", "Results saved successfully.")
 

@@ -206,7 +206,7 @@ class DeepLearningProject:
             else:
                 print(f'Skipped non-file item: {file}')
 
-    def save_project(self, boxes):
+    def save_project(self, boxes, labels_from_napari):
 
         # save json file with num_classes
         json_name = os.path.join(self.parent_path, 'info.json')
@@ -219,6 +219,8 @@ class DeepLearningProject:
         for c in range(self.num_classes):
             self.delete_all_files_in_directory(self.image_label_paths[c])
             self.delete_all_files_in_directory(self.mask_label_paths[c])
+
+        df = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
         
         for box in boxes:
             z = int(box[0,0])
@@ -233,6 +235,9 @@ class DeepLearningProject:
             xstart = int(np.min(box[:,1]))
             xend = int(np.max(box[:,1]))
 
+            df_new = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
+            df = pd.concat([df,df_new], ignore_index=True) 
+
             #print('bounding box is',ystart, yend, xstart, xend)
             print('image file is ', self.files[z])
 
@@ -244,7 +249,8 @@ class DeepLearningProject:
             labels=[]
             
             for c in range(self.num_classes):
-                labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
+                #labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
+                labels.append(labels_from_napari[c][z,ystart:yend, xstart:xend])
                 print('labelsum is ', labels[c].sum())
 
             print(im.shape, labels[0].shape)
@@ -270,6 +276,10 @@ class DeepLearningProject:
                 json_['base_name'] = base_name
                 json_['bbox'] = [xstart, ystart, xend, yend]
                 json.dump(json_, f)
+
+        df.to_csv(os.path.join(self.parent_path, 'bounding_boxes.csv'))
+        df.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
+
     
     def delete_augmentations(self):
         image_patch_path =  os.path.join(self.patch_path, 'input0')
