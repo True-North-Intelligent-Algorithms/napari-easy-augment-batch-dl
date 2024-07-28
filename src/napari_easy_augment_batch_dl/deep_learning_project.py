@@ -7,7 +7,7 @@ import json
 from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
-from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, xyxy_to_normalized_xywh
+from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr
 import pandas as pd
 import yaml
 import glob 
@@ -69,8 +69,11 @@ class DeepLearningProject:
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
 
+        # paths for yolo labels
         self.yolo_label_path = Path(parent_path / r'yolo_labels')
         self.yolo_patch_path = Path(parent_path / r'yolo_patches')
+        self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
+        self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
 
         if not os.path.exists(self.patch_path):
             os.mkdir(self.patch_path)
@@ -80,6 +83,11 @@ class DeepLearningProject:
             os.mkdir(self.yolo_label_path)
         if not os.path.exists(self.yolo_patch_path):
             os.mkdir(self.yolo_patch_path)
+
+        if not os.path.exists(self.yolo_image_label_paths[0]):
+            os.mkdir(self.yolo_image_label_paths[0])
+        if not os.path.exists(self.yolo_mask_label_paths[0]):
+            os.mkdir(self.yolo_mask_label_paths[0])
         
         self.files = list(self.image_path.glob('*.jpg'))
         self.files = self.files+list(self.image_path.glob('*.jpeg'))
@@ -106,6 +114,7 @@ class DeepLearningProject:
         
         if os.path.exists(json_name):
 
+            # load the label boxes.  
             for c in range(self.num_classes):
                 labels_temp = []
                 predictions_temp = []
@@ -122,8 +131,15 @@ class DeepLearningProject:
                     # get all label names for this image
                     label_names_ = [x for x in label_names if image_base_name in x.name]
 
+
+                    # this code is fragile, if an image name is part of a another image name it will break
+                    # !  TODO:  REWORK
                     # get all json names for this image
                     json_names_ = [x for x in json_names if image_base_name in x.name]
+
+                    # sort the label names and json names to make sure they correspond
+                    label_names_ = sorted(label_names_)
+                    json_names_ = sorted(json_names_)
 
                     label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
                     prediction = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
@@ -131,6 +147,10 @@ class DeepLearningProject:
                     print('image base name is ', image_base_name)
 
                     for label_name_, json_name_ in zip(label_names_, json_names_):
+
+                        print('label name is ', label_name_)
+                        print('json name is ', json_name_)
+
                         with open(json_name_, 'r') as f:
                             json_ = json.load(f)
                             print(json_)
@@ -155,8 +175,63 @@ class DeepLearningProject:
                     predictions_temp.append(prediction)
                     n = n+1
 
+
             self.label_list.append(labels_temp)
             self.prediction_list.append(predictions_temp)                        
+            
+            # now load the yolo labels (bounding boxes)
+
+            self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
+            self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
+            
+            self.object_boxes = []
+            
+            self.features = pd.DataFrame(columns=['class'])            
+
+            # loop loading the yolo bounding boxes.  For each image the yolo bounding boxes are stored in a text file 
+            n=0
+            for image_name, image in zip(self.files, self.image_list):
+                
+                image_base_name = image_name.name.split('.')[0]
+
+                # get the name of the the yolo format bounding boxes text file
+                yolo_txt_name = os.path.join(self.yolo_mask_label_paths[0], image_base_name+'.txt')
+
+                # if the text file doesn't exist this image does not have bounding boxes
+                if not os.path.exists(yolo_txt_name):
+                    n = n+1
+                    continue
+                                    
+                # load yolo txt file
+                with open(yolo_txt_name, 'r') as f:
+                    lines = f.readlines()
+                    
+                    for line in lines:
+                        line = line.strip()
+                        parts = line.split(' ')
+                        
+                        class_ = int(parts[0])
+                        
+                        # get the normalized x center, y center, width, height
+                        xywhn = [float(x) for x in parts[1:5]]
+                        xywhn = np.array(xywhn)
+
+                        # convert to top left, top right, bottom left, bottom right pixel coordinates
+                        xyxy = normalized_xywh_to_tltrblbr(xywhn[0], xywhn[1], xywhn[2], xywhn[3], image.shape[1], image.shape[0])
+                        xyxy = [[n, xyxy[0][0], xyxy[0][1]], [n, xyxy[1][0], xyxy[1][1]], [n, xyxy[2][0], xyxy[2][1]], [n, xyxy[3][0], xyxy[3][1]]]
+                        
+                        # add to the bounding box list
+                        self.object_boxes.append(np.array(xyxy))
+                        
+                        # add the class to a data frame
+                        # TODO: this format is useful for napari, but it make make sense to refactor this to the 
+                        # napari specific 'easy_augment_batch_dl' class
+                        df_new = pd.DataFrame([{'class': class_}])
+                        self.features = pd.concat([self.features,df_new], ignore_index=True) 
+
+                n = n+1
+
+            self.object_boxes = np.array(self.object_boxes)
 
         else:
             for c in range(self.num_classes):
@@ -216,6 +291,7 @@ class DeepLearningProject:
             json_['num_classes'] = self.num_classes
             json.dump(json_, f)
 
+        # delete old files TODO: think this over could be dangerous if something goes wrong with resaving
         for c in range(self.num_classes):
             self.delete_all_files_in_directory(self.image_label_paths[c])
             self.delete_all_files_in_directory(self.mask_label_paths[c])
@@ -277,9 +353,48 @@ class DeepLearningProject:
                 json_['bbox'] = [xstart, ystart, xend, yend]
                 json.dump(json_, f)
 
-        df.to_csv(os.path.join(self.parent_path, 'bounding_boxes.csv'))
         df.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
 
+    def save_object_boxes(self, object_boxes, object_classes):
+        for object_box in object_boxes:
+            print('object box is ', object_box)    
+        
+        object_boxes = np.array(object_boxes)
+
+        num_images = len(self.image_list)
+
+        print()
+
+        for n in range(num_images):
+            
+            index_objects = np.all(object_boxes[:,:,0]==n, axis=1)
+            filtered_object_boxes = object_boxes[index_objects]
+            filtered_object_classes = object_classes[index_objects]
+
+            if len(filtered_object_boxes) == 0:
+                continue
+            
+            print(self.files[n])
+            print(filtered_object_boxes)
+
+            im = self.image_list[n]
+            image_height = im.shape[0]
+            image_width = im.shape[1]                
+            
+            # create text file for image n
+            base_name = self.files[n].name.split('.')[0]
+            yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
+            boxes_xywhn = []
+            with open(yolo_name, 'w') as f:
+                for object, class_ in zip(filtered_object_boxes, filtered_object_classes):
+                    xywhn = tltrblbr_to_normalized_xywh(object[:,1:], image_width, image_height)
+                    f.write(str(class_)+' ')
+                    xywhn_str = str(xywhn).replace('(','').replace(')','').replace(',','')
+                    f.write(xywhn_str)
+                    f.write('\n')
+                    xywhn = list(xywhn)
+                    xywhn.append('c1')
+                    boxes_xywhn.append(xywhn)
     
     def delete_augmentations(self):
         image_patch_path =  os.path.join(self.patch_path, 'input0')
@@ -346,13 +461,7 @@ class DeepLearningProject:
             updater (_type_, optional):  Update the GUI with status messages and progress. Defaults to None.
         """
 
-
-
-
         # unlike the pixel mask DL we don't need to create a separate ground truth folder for each class
-        # so when we make the label directores num_classes is 1
-        #self.yolo_image_label_paths, self.yolo_mask_label_paths = make_label_directory(1, 1, self.yolo_label_path)
-        #self.yolo_image_patch_paths, self.yolo_mask_patch_paths = make_label_directory(1, 1, self.yolo_patch_path)
         self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
         self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
         self.yolo_image_patch_paths = [os.path.join(self.yolo_patch_path, 'images')]
@@ -434,7 +543,7 @@ class DeepLearningProject:
                 boxes_xywhn = []
                 with open(yolo_name, 'w') as f:
                     for object, class_ in zip(filtered_objects, filtered_classes):
-                        xywhn = xyxy_to_normalized_xywh(object[:,1:], image_width, image_height)
+                        xywhn = tltrblbr_to_normalized_xywh(object[:,1:], image_width, image_height)
                         f.write(str(class_)+' ')
                         xywhn_str = str(xywhn).replace('(','').replace(')','').replace(',','')
                         f.write(xywhn_str)
