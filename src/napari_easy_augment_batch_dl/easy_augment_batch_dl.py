@@ -314,7 +314,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.predictions = []
 
         for c in range(self.deep_learning_project.num_classes):
-            temp = pad_to_largest(self.deep_learning_project.label_list[c])
+            #temp = pad_to_largest(self.deep_learning_project.label_list[c])
+            temp = pad_to_largest(self.deep_learning_project.annotation_list[c])
             self.viewer.add_labels(temp, name='labels_'+str(c))
             self.labels.append(self.viewer.layers['labels_'+str(c)])
 
