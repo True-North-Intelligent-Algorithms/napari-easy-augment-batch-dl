@@ -64,7 +64,8 @@ class StardistInstanceModel(BaseModel):
 
     def predict(self, img: np.ndarray):
         #img_normalized = normalize(img,1,99.8, axis=(0,1))
-        img_normalized = quantile_normalization(img, quantile_low=0.001).astype(np.float32)
+        #img_normalized = quantile_normalization(img, quantile_low=0.001).astype(np.float32)
+        img_normalized = quantile_normalization(img, quantile_low=0.003).astype(np.float32)
 
         labels, details =  self.model.predict_instances(img_normalized)
 
