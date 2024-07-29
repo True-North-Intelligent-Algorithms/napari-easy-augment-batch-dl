@@ -38,7 +38,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.label_layout = QVBoxLayout()
         self.label_parameters_group.setLayout(self.label_layout)
 
-
         # add open results button
         self.open_image_directory_button = QPushButton("Open image directory...")
         self.open_image_directory_button.clicked.connect(self.open_image_directory)
@@ -574,10 +573,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         else:
             predictions = self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentText(), self.update)          
             predictions = pad_to_largest(predictions)
-        
-        
-        
-
 
             #self.viewer.add_labels(predictions, name='predictions')
             self.predictions[0].data = predictions
