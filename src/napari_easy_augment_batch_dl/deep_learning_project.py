@@ -490,8 +490,12 @@ class DeepLearningProject:
             for c in range(self.num_classes):
                 labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
 
-            ## IMPORTANT:  Here is where normalization 1 is done when applying network need to match. 
-            im = quantile_normalization(im, quantile_low=0.001).astype(np.float32)
+            ## IMPORTANT:  we apply normalization just before generating the patches
+            #  this is useful because the normalization will be applied using the range of the 
+            #  label values.  The labels are usually larger than the patches so normalization range
+            # is calculated using a larger region.  This is better than normalizing on the smaller patches
+            # Just be careful to match the quantile range used when predicting apr. to the range used here  
+            im = quantile_normalization(im, quantile_low=0.003).astype(np.float32)
 
             #do_random_sized_crop=True, do_random_brightness_contrast=True, 
             #do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False)
