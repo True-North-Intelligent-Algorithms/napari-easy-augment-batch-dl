@@ -457,9 +457,11 @@ class NapariEasyAugmentBatchDL(QWidget):
         object_boxes=self.object_boxes_layer.data
         
         self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, label_nps)
+
+        if len(object_boxes)>0:        
+            object_classes = self.object_boxes_layer.features['class'].to_numpy()
         
-        object_classes = self.object_boxes_layer.features['class'].to_numpy()
-        self.deep_learning_project.save_object_boxes(object_boxes, object_classes)
+            self.deep_learning_project.save_object_boxes(object_boxes, object_classes)
 
         #QMessageBox.information(self, "Save Results", "Results saved successfully.")
 
