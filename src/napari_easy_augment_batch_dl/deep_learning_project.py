@@ -68,6 +68,8 @@ class DeepLearningProject:
         self.label_path = Path(parent_path / r'labels')
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
+        self.annotation_path = self.parent_path / 'annotations'
+        self.prediction_path = self.parent_path / 'predictions'
 
         # paths for yolo labels
         self.yolo_label_path = Path(parent_path / r'yolo_labels')
@@ -83,6 +85,10 @@ class DeepLearningProject:
             os.mkdir(self.yolo_label_path)
         if not os.path.exists(self.yolo_patch_path):
             os.mkdir(self.yolo_patch_path)
+        if not os.path.exists(self.annotation_path):
+            os.mkdir(self.annotation_path)
+        if not os.path.exists(self.prediction_path):
+            os.mkdir(self.prediction_path)
 
         if not os.path.exists(self.yolo_image_label_paths[0]):
             os.mkdir(self.yolo_image_label_paths[0])
@@ -107,7 +113,7 @@ class DeepLearningProject:
         
         self.label_list = []
         self.prediction_list = []
-        
+        self.annotation_list = []        
         self.boxes = []
         self.object_boxes = None
         self.features = None
@@ -118,6 +124,7 @@ class DeepLearningProject:
             for c in range(self.num_classes):
                 labels_temp = []
                 predictions_temp = []
+                annotations_temp = []
                 
                 label_names = list(Path(self.mask_label_paths[c]).glob('*.tif'))
                 json_names = list(Path(self.image_label_paths[c]).glob('*.json'))
@@ -127,10 +134,9 @@ class DeepLearningProject:
                 n=0            
                 for image_name, image in zip(self.files, self.image_list):
                     image_base_name = image_name.name.split('.')[0]
-
+                    
                     # get all label names for this image
                     label_names_ = [x for x in label_names if image_base_name in x.name]
-
 
                     # this code is fragile, if an image name is part of a another image name it will break
                     # !  TODO:  REWORK
@@ -142,7 +148,6 @@ class DeepLearningProject:
                     json_names_ = sorted(json_names_)
 
                     label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
-                    prediction = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
                     print('image base name is ', image_base_name)
 
@@ -172,12 +177,29 @@ class DeepLearningProject:
                             #rois.append([[x1, y1], [x2, y2]])
 
                     labels_temp.append(label)
+
+                    annotation_name = self.get_annotation_name(n, c)
+                    # check if annotation_name exists
+                    if os.path.exists(annotation_name):
+                        annotation = imread(annotation_name)
+                    else:
+                        annotation = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+
+                    # check if prediction_name exists and if so load it
+                    prediction_name = self.get_prediction_name(n, c)
+                    if os.path.exists(prediction_name):
+                        prediction = imread(prediction_name)
+                    else:
+                        prediction = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                        
                     predictions_temp.append(prediction)
+                    annotations_temp.append(annotation)
                     n = n+1
 
 
             self.label_list.append(labels_temp)
-            self.prediction_list.append(predictions_temp)                        
+            self.prediction_list.append(predictions_temp)
+            self.annotation_list.append(annotations_temp)                        
             
             # now load the yolo labels (bounding boxes)
 
@@ -353,8 +375,40 @@ class DeepLearningProject:
                 json_['bbox'] = [xstart, ystart, xend, yend]
                 json.dump(json_, f)
 
+        # save annotations and predictions
+        z = 0
+        for image in self.image_list:
+            for c in range(self.num_classes):
+                height, width = image.shape[:2]
+                annotation = labels_from_napari[c][z][:height, :width]
+                annotation = annotation.astype(np.uint16)
+                
+                annotation_name = self.get_annotation_name(z, c)
+                imsave(annotation_name, annotation)
+
+                prediction = self.prediction_list[c][z][:height, :width]
+                prediction = prediction.astype(np.uint16)
+                prediction_name = self.get_prediction_name(z, c)
+                imsave(prediction_name, prediction)
+
+                z = z + 1
+
         df.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
 
+    def get_annotation_name(self, z, c):
+        annotation_class_dir = self.annotation_path / f'class_{c}'
+        if not annotation_class_dir.exists():
+            annotation_class_dir.mkdir(parents=True)
+        base_name = self.files[z].name.split('.')[0]
+        return annotation_class_dir / (base_name+'.tif')
+
+    def get_prediction_name(self, z, c):
+        prediction_class_dir = self.prediction_path / f'class_{c}'
+        if not prediction_class_dir.exists():
+            prediction_class_dir.mkdir(parents=True)
+        base_name = self.files[z].name.split('.')[0]
+        return prediction_class_dir / (base_name+'.tif')
+    
     def save_object_boxes(self, object_boxes, object_classes):
         for object_box in object_boxes:
             print('object box is ', object_box)    
