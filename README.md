@@ -31,10 +31,13 @@ You will also need to install the latest development version of tnia-python:
 
     pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git
 
-For augmentation you will need albumentations library
+You will need to install napari and for augmentation you will need albumentations library.  Also explicitly install numpy 1.26.  (We have not tested with numpy 2.0 so it is a good idea to explicitly install numpy 1.26 to avoid another dependency installing numpy 2.x)
 
 ```
+    pip install numpy==1.26
+    pip install napari[all]
     pip install albumentations
+    pip install matplotlib
 ```
 
 You will also need one or more of stardist, cellpose, segment-everything or Yolo
@@ -44,7 +47,6 @@ You will also need one or more of stardist, cellpose, segment-everything or Yolo
 #### Windows
 
 ```
-    pip install numpy==1.26
     conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1.0
     pip install "tensorflow<2.11"
     pip install stardist==0.8.5
@@ -55,7 +57,6 @@ You will also need one or more of stardist, cellpose, segment-everything or Yolo
 #### Linux
 
 ```
-    pip install numpy==1.26
     pip install tensorflow[and-cuda]
     pip install stardist
     pip install gputools
@@ -63,6 +64,12 @@ You will also need one or more of stardist, cellpose, segment-everything or Yolo
 ```
 
 ### Pytorch
+
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install pytorch-lightning
+pip install monai
+pip install scipy
+pip install tifffile
 
 ### Cellpose
 
