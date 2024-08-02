@@ -68,6 +68,7 @@ class DeepLearningProject:
         self.label_path = Path(parent_path / r'labels')
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
+
         self.annotation_path = self.parent_path / 'annotations'
         self.prediction_path = self.parent_path / 'predictions'
 
@@ -76,6 +77,8 @@ class DeepLearningProject:
         self.yolo_patch_path = Path(parent_path / r'yolo_patches')
         self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
         self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
+
+        self.yolo_predictions = Path(parent_path / r'yolo_predictions')
 
         if not os.path.exists(self.patch_path):
             os.mkdir(self.patch_path)
@@ -94,7 +97,10 @@ class DeepLearningProject:
             os.mkdir(self.yolo_image_label_paths[0])
         if not os.path.exists(self.yolo_mask_label_paths[0]):
             os.mkdir(self.yolo_mask_label_paths[0])
-        
+
+        if not os.path.exists(self.yolo_predictions):
+            os.mkdir(self.yolo_predictions)
+                    
         self.files = list(self.image_path.glob('*.jpg'))
         self.files = self.files+list(self.image_path.glob('*.jpeg'))
         self.files = self.files+list(self.image_path.glob('*.tif'))
@@ -116,6 +122,7 @@ class DeepLearningProject:
         self.annotation_list = []        
         self.boxes = []
         self.object_boxes = None
+        self.predicted_object_boxes = None
         self.features = None
         
         if os.path.exists(json_name):
@@ -207,6 +214,7 @@ class DeepLearningProject:
             self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
             
             self.object_boxes = []
+            self.predicted_object_boxes = []
             
             self.features = pd.DataFrame(columns=['class'])            
 
