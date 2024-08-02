@@ -569,16 +569,18 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.textBrowser_log.append("Predicting all images...")
         
-        if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM or self.network_architecture_drop_down.currentText() == DLModel.MOBILE_SAM2:
+        model_text = self.network_architecture_drop_down.currentText()
+        if model_text == DLModel.YOLO_SAM or model_text == DLModel.MOBILE_SAM2:
 
-            predictions, boxes = self.deep_learning_project.predict_all(DLModel.YOLO_SAM, self.update)
+            self.deep_learning_project.predict_all(model_text, self.update)
 
-            self.object_boxes_layer.add(boxes)
-            predictions = pad_to_largest(predictions)
+            self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
+            predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
             self.predictions[0].data = predictions
+        
         else:
-            predictions = self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentText(), self.update)          
-            predictions = pad_to_largest(predictions)
+            self.deep_learning_project.predict_all(model_text, self.update)          
+            predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
 
             #self.viewer.add_labels(predictions, name='predictions')
             self.predictions[0].data = predictions

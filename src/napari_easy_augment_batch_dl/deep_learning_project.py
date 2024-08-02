@@ -659,49 +659,48 @@ class DeepLearningProject:
     def predict(self, n, network_type, update):
         
         image = self.image_list[n]
-        
+            
+        if update is not None:
+            update(f"Apply {network_type} to image "+str(n)+"...")
+    
         if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
-            if update is not None:
-                update(f"Apply {network_type} to image "+str(n)+"...")
 
             model = self.get_model(network_type)
             prediction, results = model.predict(image)
             boxes = self.xyxy_to_tltrbrbl(results, n)
+
+            self.prediction_list[0][n] = prediction
+            
             return prediction, boxes
         else:
-            prediction = self.get_model(network_type).predict(image)
+            model = self.get_model(network_type)
+            prediction = model.predict(image)
+
+            self.prediction_list[0][n] = prediction
+
             return prediction
         
     def predict_all(self, network_type, update):
-        predictions = []
-        
+
         if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
-            predictions = []
-            boxes = []
-            for z in range(len(self.image_list)):
-                if update is not None:
-                    update(f"Apply {network_type} to image "+str(z)+"...")
-                print('predicting image ', z)
-                
-                model = self.get_model(network_type)
+            self.boxes = []
 
-                image = self.image_list[z]
-                prediction, result = model.predict(image)
-                
-                predictions.append(prediction)
+            for c in range(self.num_classes):
+                temp = [] 
+                for n in range(len(self.image_list)):
+                    prediction, boxes_ = self.predict(n, network_type, update)
+                    temp.append(prediction)
+                    self.boxes = self.boxes + boxes_
+                self.prediction_list.append(temp)
 
-                boxes_ = self.xyxy_to_tltrbrbl(result, z)
-                boxes = boxes + boxes_
-
-            return predictions, boxes
         else:
-            for z in range(len(self.image_list)):
-                image = self.image_list[z]
-                model = self.get_model(network_type)
-                prediction = model.predict(image)
-                predictions.append(prediction)
-            return predictions
-    
+            for c in range(self.num_classes):
+                temp=[]
+                for n in range(len(self.image_list)):
+                    prediction = self.predict(n, network_type, update)
+                    temp.append(prediction)
+                self.prediction_list.append(temp)
+        
     def xyxy_to_tltrbrbl(self, boxes, n):
         boxes_ = []
         for box in boxes:
