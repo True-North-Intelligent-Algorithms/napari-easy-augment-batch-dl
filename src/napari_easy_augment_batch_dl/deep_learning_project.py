@@ -326,8 +326,10 @@ class DeepLearningProject:
             self.delete_all_files_in_directory(self.image_label_paths[c])
             self.delete_all_files_in_directory(self.mask_label_paths[c])
 
-        df = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
-        
+        # start a dataframe to store the bounding boxes
+        df_bounding_boxes = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
+
+        # loop through all label bounding box saving the image and label data for the bounding box        
         for box in boxes:
             z = int(box[0,0])
 
@@ -341,8 +343,9 @@ class DeepLearningProject:
             xstart = int(np.min(box[:,1]))
             xend = int(np.max(box[:,1]))
 
-            df_new = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
-            df = pd.concat([df,df_new], ignore_index=True) 
+            # add this bounding box to the dataframe
+            df_temp = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
+            df_bounding_boxes = pd.concat([df_bounding_boxes,df_temp], ignore_index=True) 
 
             #print('bounding box is',ystart, yend, xstart, xend)
             print('image file is ', self.files[z])
@@ -401,7 +404,8 @@ class DeepLearningProject:
 
                 z = z + 1
 
-        df.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
+        # save bouning box info to a csv file
+        df_bounding_boxes.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
 
     def get_annotation_name(self, z, c):
         annotation_class_dir = self.annotation_path / f'class_{c}'
