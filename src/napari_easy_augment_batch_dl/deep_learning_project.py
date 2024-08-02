@@ -190,7 +190,7 @@ class DeepLearningProject:
                     if os.path.exists(annotation_name):
                         annotation = imread(annotation_name)
                     else:
-                        annotation = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                        annotation = label #np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
                     # check if prediction_name exists and if so load it
                     prediction_name = self.get_prediction_name(n, c)
@@ -321,7 +321,7 @@ class DeepLearningProject:
             json_['num_classes'] = self.num_classes
             json.dump(json_, f)
 
-        # delete old files TODO: think this over could be dangerous if something goes wrong with resaving
+        # delete old labels TODO: think this over could be dangerous if something goes wrong with resaving
         for c in range(self.num_classes):
             self.delete_all_files_in_directory(self.image_label_paths[c])
             self.delete_all_files_in_directory(self.mask_label_paths[c])
@@ -633,7 +633,9 @@ class DeepLearningProject:
             self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
         elif model_type == DLModel.YOLO_SAM:
             self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model_path)
-
+        elif model_type == DLModel.UNET:
+            self.models[DLModel.UNET] = PytorchSemanticModel(self.patch_path, pretrained_model_path, self.num_classes)
+            
     def get_model(self, network_type):
         if self.models[network_type] is None:
             if network_type == DLModel.UNET:
