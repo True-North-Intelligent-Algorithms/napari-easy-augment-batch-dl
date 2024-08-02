@@ -412,6 +412,9 @@ class NapariEasyAugmentBatchDL(QWidget):
                 self.textBrowser_log.append("Loading Pytorch model...")
             else:
                 self.textBrowser_log.append("Selected file is not a .pth file.")
+
+            self.deep_learning_project.set_pretrained_model(file_, DLModel.UNET)
+            
         elif self.network_architecture_drop_down.currentText() == DLModel.STARDIST:
             self.textBrowser_log.append("Loading StarDist model...")
             start_model_path = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)

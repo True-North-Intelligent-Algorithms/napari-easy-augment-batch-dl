@@ -9,8 +9,17 @@ import torch
 from tnia.deeplearning.dl_helper import quantile_normalization
 from torchvision import transforms
 from torchvision.transforms import v2
+import os
 
 class PytorchSemanticModel(BaseModel):
+    
+    def __init__(self, patch_path, model_name, num_classes):
+        # get path from model_name
+        model_path = os.path.dirname(model_name)
+        
+        super().__init__(patch_path, model_path, num_classes)
+        
+        self.model = torch.load(model_name )
     
     def train(self, num_epochs, updater=None):
         updater('Training Pytorch Semantic model', 0)
