@@ -169,8 +169,12 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.cellpose_params_layout = QVBoxLayout()
         self.widgetGroup3 = QWidget()
-        self.cell_diameter = LabeledSpinner("Cell Diameter", 0, 100, 30, None, is_double=False, step=1)
-        self.cellpose_params_layout.addWidget(self.cell_diameter)
+        self.cell_diameter_spinner = LabeledSpinner("Cell Diameter", 0, 100, 30, None, is_double=False, step=1)
+        self.flow_threshold_spinner = LabeledSpinner("Flow Threshold", 0, 100, 0.4, None, is_double=True, step=0.01)
+        self.cellpose_prob_thresh_spinner = LabeledSpinner("Prob. Threshold", 0, 1, 0.0, None, is_double=True, step=0.01)
+        self.cellpose_params_layout.addWidget(self.cell_diameter_spinner)
+        self.cellpose_params_layout.addWidget(self.flow_threshold_spinner)
+        self.cellpose_params_layout.addWidget(self.cellpose_prob_thresh_spinner)  
         self.widgetGroup3.setLayout(self.cellpose_params_layout)
         
         self.mobile_sam_params_layout = QVBoxLayout()
@@ -396,8 +400,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         if self.deep_learning_project.features is not None:
             self.object_boxes_layer.features = self.deep_learning_project.features
         
-        object_classes = self.object_boxes_layer.features['class'].to_numpy()
-        
         self.boxes_layer.events.data.connect(handle_new_roi)
     
     def load_pretrained_model(self):
@@ -421,7 +423,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             # Assuming it's a StarDist model
             self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.STARDIST)
         elif self.network_architecture_drop_down.currentText() == DLModel.CELLPOSE:
-            pass
+            file_, _ = QFileDialog.getOpenFileName(self, "Select Cellpose Model File", "", "All Files (*)", options=options)
+            self.deep_learning_project.set_pretrained_model(file_, DLModel.CELLPOSE)
+
         elif self.network_architecture_drop_down.currentText() == DLModel.MOBILE_SAM2:
             raise NotImplementedError("Mobile SAM2 model is fixed and cannot be changed")
         elif self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
@@ -558,6 +562,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
             self.predictions[0].refresh() 
         else:
+
+            if model_text == DLModel.CELLPOSE:
+                self.deep_learning_project.set_cellpose_params(self.cell_diameter_spinner.spinner.value(), [0,1], self.flow_threshold_spinner.spinner.value(), self.cellpose_prob_thresh_spinner.spinner.value())
                
             pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
                 

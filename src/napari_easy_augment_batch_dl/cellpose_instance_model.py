@@ -9,17 +9,22 @@ class CellPoseInstanceModel(BaseModel):
     def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model_path: str = None):
         super().__init__(patch_path, model_path, num_classes)
 
+        # start logger (to see training across epochs)
+        logger = io.logger_setup()
+        
         if start_model_path is None:
             
-            # start logger (to see training across epochs)
-            logger = io.logger_setup()
 
             # DEFINE CELLPOSE MODEL (without size model)
             self.model = models.CellposeModel(gpu=True, model_type=None)
         else:
-            basename = os.path.basename(start_model_path)
-            basedir = os.path.dirname(start_model_path)
-            pass
+            self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model_path)
+
+        self.flow_threshold = 0.4
+        self.cellprob_threshold = 0.0
+    
+    def create_callback(self, updater):
+        pass
 
     def train(self, num_epochs, updater=None):
         add_trivial_channel = False
@@ -54,4 +59,4 @@ class CellPoseInstanceModel(BaseModel):
             model_name='cellpose_thirdtry')
 
     def predict(self, img: np.ndarray):
-        return self.model.eval(img, channels=[0, 1])[0]
+        return self.model.eval(img, channels=[0, 1], flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]

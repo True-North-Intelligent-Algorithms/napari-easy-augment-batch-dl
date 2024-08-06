@@ -267,9 +267,12 @@ class DeepLearningProject:
             for c in range(self.num_classes):
                 self.label_list.append([])
                 self.prediction_list.append([])
+                self.annotation_list.append([])
+                
                 for image in self.image_list:
                     self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
+                    self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
 
     def initialize_napari_project(self):
         print('Napari directory does not exist, initializing project')
@@ -633,6 +636,8 @@ class DeepLearningProject:
             self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
         elif model_type == DLModel.YOLO_SAM:
             self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model_path)
+        elif model_type == DLModel.CELLPOSE:
+            self.models[DLModel.CELLPOSE] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
         elif model_type == DLModel.UNET:
             self.models[DLModel.UNET] = PytorchSemanticModel(self.patch_path, pretrained_model_path, self.num_classes)
             
@@ -702,7 +707,14 @@ class DeepLearningProject:
                     prediction = self.predict(n, network_type, update)
                     temp.append(prediction)
                 self.prediction_list.append(temp)
-        
+
+    def set_cellpose_params(self, diameter, cellpose_channels = [0,1], cellprob_threshold = 0.0, flow_threshold = 0.4):
+        cellpose_model = self.get_model(DLModel.CELLPOSE)
+        cellpose_model.diameter = diameter
+        cellpose_model.cellpose_channels = cellpose_channels
+        cellpose_model.cellprob_threshold = cellprob_threshold
+        cellpose_model.flow_threshold = flow_threshold    
+    
     def xyxy_to_tltrbrbl(self, boxes, n):
         boxes_ = []
         for box in boxes:
