@@ -63,17 +63,27 @@ You will also need one or more of stardist, cellpose, segment-everything or Yolo
     pip install edt
 ```
 
-### Pytorch
+### Pytorch (for unet segmentation)
 
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install pytorch-lightning
-pip install monai
-pip install scipy
-pip install tifffile
+```
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    pip install pytorch-lightning
+    pip install monai
+    pip install scipy
+    pip install tifffile
+```
 
 ### Cellpose
 
+```
+    pip install cellpose
+```
+
 ### SAM (Segment Anything)
+
+```
+    pip install segment-everything
+```
 
 ###
 
