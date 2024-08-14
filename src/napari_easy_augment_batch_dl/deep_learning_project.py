@@ -7,11 +7,10 @@ import json
 from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
-from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr
+from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr, x1y1x2y2_to_tltrblbr, yolotxt_to_naparibb
 import pandas as pd
 import yaml
 import glob 
-
 
 try:
     from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
@@ -124,6 +123,7 @@ class DeepLearningProject:
         self.object_boxes = None
         self.predicted_object_boxes = None
         self.features = None
+        self.predicted_features = None
         
         if os.path.exists(json_name):
 
@@ -166,17 +166,20 @@ class DeepLearningProject:
                         with open(json_name_, 'r') as f:
                             json_ = json.load(f)
                             print(json_)
-                            
+                                                        
                             x1= json_['bbox'][0]
                             y1= json_['bbox'][1]
                             x2= json_['bbox'][2]
                             y2= json_['bbox'][3]
 
+                            '''
                             tl = [n, y1, x1]
                             tr = [n, y1, x2]
                             br = [n, y2, x2]
                             bl = [n, y2, x1]
                             bbox = [tl, tr, br, bl]
+                            '''
+                            bbox = x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n)
                             self.boxes.append(bbox)
 
                             label_crop = imread(label_name_)
@@ -231,7 +234,11 @@ class DeepLearningProject:
                 if not os.path.exists(yolo_txt_name):
                     n = n+1
                     continue
-                                    
+
+                object_boxes, features = yolotxt_to_naparibb(yolo_txt_name, image.shape, n)
+                self.object_boxes = self.object_boxes + object_boxes
+                self.features = pd.concat([self.features, features], ignore_index=True)
+                ''''                   
                 # load yolo txt file
                 with open(yolo_txt_name, 'r') as f:
                     lines = f.readlines()
@@ -258,7 +265,7 @@ class DeepLearningProject:
                         # napari specific 'easy_augment_batch_dl' class
                         df_new = pd.DataFrame([{'class': class_}])
                         self.features = pd.concat([self.features,df_new], ignore_index=True) 
-
+                '''
                 n = n+1
 
             self.object_boxes = np.array(self.object_boxes)
@@ -690,14 +697,17 @@ class DeepLearningProject:
     def predict_all(self, network_type, update):
 
         if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
-            self.boxes = []
+            self.object_boxes = []
+            self.predicted_object_boxes = []
 
             for c in range(self.num_classes):
                 temp = [] 
                 for n in range(len(self.image_list)):
                     prediction, boxes_ = self.predict(n, network_type, update)
                     temp.append(prediction)
-                    self.boxes = self.boxes + boxes_
+                    self.object_boxes = self.object_boxes + boxes_
+                    self.predicted_object_boxes = self.predicted_object_boxes + boxes_
+                    
                 self.prediction_list.append(temp)
 
         else:
