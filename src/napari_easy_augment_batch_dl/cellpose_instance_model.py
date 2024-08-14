@@ -28,7 +28,7 @@ class CellPoseInstanceModel(BaseModel):
 
     def train(self, num_epochs, updater=None):
         add_trivial_channel = False
-        X, Y = collect_training_data(self.patch_path, sub_sample=1, downsample=False, normalize_input=False, add_trivial_channel = add_trivial_channel)
+        X, Y = collect_training_data(self.patch_path, sub_sample=1, downsample=False, normalize_input=False, add_trivial_channel = add_trivial_channel, relabel=True)
 
         train_percentage = 0.9
 
