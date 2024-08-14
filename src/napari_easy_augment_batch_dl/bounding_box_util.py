@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def is_bbox_within(bbox_small, bbox_large):
     """
@@ -95,3 +96,72 @@ def normalized_xywh_to_tltrblbr(normalized_center_x, normalized_center_y, normal
     ymax = center_y + height / 2
 
     return np.array([[ymin, xmin], [ymin, xmax], [ymax, xmax], [ymax, xmin]])
+
+def x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n =-1):
+    """
+    Convert a bounding box defined by its top-left and bottom-right coordinates to the 
+    coordinates of its corners in pixel space (top-left, top-right, bottom-right, bottom-left).
+
+    Parameters:
+    - x1 (int): x-coordinate of the top-left corner of the bounding box.
+    - y1 (int): y-coordinate of the top-left corner of the bounding box.
+    - x2 (int): x-coordinate of the bottom-right corner of the bounding box.
+    - y2 (int): y-coordinate of the bottom-right corner of the bounding box.
+    - n (int): z-coordinate of the bounding box. Default is -1 (no z-coordinate).
+
+    Returns:
+    - np.ndarray: Array of shape (4, 2) containing the coordinates of the bounding box corners 
+      in the format [[top_left_y, top_left_x], [top_right_y, top_right_x], 
+      [bottom_right_y, bottom_right_x], [bottom_left_y, bottom_left_x]].
+    """
+    if n == -1:
+        return np.array([[y1, x1], [y1, x2], [y2, x2], [y2, x1]])
+    else: 
+      return np.array([[n, y1, x1], [n, y1, x2], [n, y2, x2], [n, y2, x1]])
+
+def yolotxt_to_naparibb(yolo_txt_name, image_shape, n):
+    """
+    Convert a YOLO txt file to a list of bounding boxes in the format required for Napari.
+    
+    Parameters:
+    - yolo_txt_name (str): Path to the YOLO txt file.
+    - image_shape (tuple): Shape of the image in the format (height, width).
+    - n (int): z-coordinate of the bounding box.
+
+    Returns:
+    - list: List of bounding boxes in the format required for Napari.
+    - features: A pandas DataFrame containing the class information for each bounding box.
+    
+    """
+    
+    object_boxes = []
+    features = pd.DataFrame(columns=['class'])            
+
+    # load yolo txt file
+    with open(yolo_txt_name, 'r') as f:
+        lines = f.readlines()
+        
+        for line in lines:
+            line = line.strip()
+            parts = line.split(' ')
+            
+            class_ = int(parts[0])
+            
+            # get the normalized x center, y center, width, height
+            xywhn = [float(x) for x in parts[1:5]]
+            xywhn = np.array(xywhn)
+
+            # convert to top left, top right, bottom left, bottom right pixel coordinates
+            xyxy = normalized_xywh_to_tltrblbr(xywhn[0], xywhn[1], xywhn[2], xywhn[3], image_shape[1], image_shape[0])
+            xyxy = [[n, xyxy[0][0], xyxy[0][1]], [n, xyxy[1][0], xyxy[1][1]], [n, xyxy[2][0], xyxy[2][1]], [n, xyxy[3][0], xyxy[3][1]]]
+            
+            # add to the bounding box list
+            object_boxes.append(np.array(xyxy))
+            
+            # add the class to a data frame
+            # TODO: this format is useful for napari, but it make make sense to refactor this to the 
+            # napari specific 'easy_augment_batch_dl' class
+            df_new = pd.DataFrame([{'class': class_}])
+            features = pd.concat([features,df_new], ignore_index=True) 
+
+    return object_boxes, features
