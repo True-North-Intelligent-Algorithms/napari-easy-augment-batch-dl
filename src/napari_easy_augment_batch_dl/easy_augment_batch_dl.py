@@ -384,21 +384,38 @@ class NapariEasyAugmentBatchDL(QWidget):
             #labels = annotations
             text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
+        
+        self.predicted_object_boxes_layer = self.viewer.add_shapes(
+            ndim=3,
+            name="Predicted Object box",
+            face_color="transparent",
+            edge_color="green",
+            edge_width=5,
+            #label_property = text_property,
+            #labels = annotations
+            text={'string': '{class}', 'size': 15, 'color': 'green'},
+        )
 
         for c in range(self.deep_learning_project.num_classes):
             self.yolo_class_drop_down.addItem("Class "+str(c))
 
         self.object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
+        self.predicted_object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
 
         if self.deep_learning_project.boxes is not None:
             self.boxes_layer.add(self.deep_learning_project.boxes)
 
         if self.deep_learning_project.object_boxes is not None:
             self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
-        
+
+        if self.deep_learning_project.predicted_object_boxes is not None:
+            self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
 
         if self.deep_learning_project.features is not None:
             self.object_boxes_layer.features = self.deep_learning_project.features
+
+        if self.deep_learning_project.predicted_features is not None:
+            self.predicted_object_boxes_layer.features = self.deep_learning_project.predicted_features
         
         self.boxes_layer.events.data.connect(handle_new_roi)
     
@@ -434,28 +451,6 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.YOLO_SAM)
 
     def save_results(self):
-        '''
-        self.textBrowser_log.append("Saving results...")
-
-        parent_path = self.deep_learning_project.parent_path
-
-        napari_path =   self.napari_path = Path(parent_path / r'napari')
-
-        
-        if not napari_path.exists():
-                os.makedirs(napari_path)
-            
-        for layer in self.viewer.layers:
-            np.save(os.path.join(napari_path, layer.name+'.npy'), layer.data)
-
-        features = self.object_boxes_layer.features
-        features.to_csv(os.path.join(napari_path, 'features.csv'))
-
-        for c in range(self.deep_learning_project.num_classes):
-            for n in range (len(self.deep_learning_project.label_list[c])):
-                l = self.deep_learning_project.label_list[c][n]
-                self.deep_learning_project.label_list[c][n] = self.labels[c].data[n, :l.shape[0], :l.shape[1]]
-        '''
         label_nps = []
 
         for label in self.labels:
@@ -511,7 +506,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             classes = self.object_boxes_layer.features['class'].to_numpy()
             self.deep_learning_project.perform_yolo_augmentation(boxes, objects, classes, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
-                                                                 perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color, perform_elastic_deformation)
+                                                                 perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
         else:
             self.deep_learning_project.perform_augmentation(boxes, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
@@ -531,7 +526,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         #self.augment_all()
 
-        thread = True 
+        thread = False 
         if thread:
             self.thread = QThread()
             model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
@@ -557,8 +552,13 @@ class NapariEasyAugmentBatchDL(QWidget):
         model_text = self.network_architecture_drop_down.currentText()
         if model_text == DLModel.YOLO_SAM or model_text == DLModel.MOBILE_SAM2:
             predictions, boxes = self.deep_learning_project.predict(n, model_text, self.update)
-            self.object_boxes_layer.add(boxes)
-            self.object_boxes_layer.refresh()
+            
+            #self.object_boxes_layer.add(boxes)
+            #self.object_boxes_layer.refresh()
+
+            self.predicted_object_boxes_layer.add(boxes)
+            self.predicted_object_boxes_layer.refresh()
+
             self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
             self.predictions[0].refresh() 
         else:
@@ -581,7 +581,9 @@ class NapariEasyAugmentBatchDL(QWidget):
 
             self.deep_learning_project.predict_all(model_text, self.update)
 
-            self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
+            #self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
+            self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
+
             predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
             self.predictions[0].data = predictions
         
