@@ -26,6 +26,10 @@ class YoloSAMModel(BaseModel):
         labels = segmented_stacked_labels.make_2d_labels(type="min")
         return labels, self.bbs
     
+    def create_callback(self, updater):
+        self.updater = updater
+        pass
+    
     def train(self, num_epochs, updater=None):
         #if 'ultralytics' in sys.modules:
         #    del sys.modules['ultralytics']

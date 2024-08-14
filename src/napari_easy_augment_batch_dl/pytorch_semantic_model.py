@@ -15,14 +15,26 @@ class PytorchSemanticModel(BaseModel):
     
     def __init__(self, patch_path, model_name, num_classes):
         # get path from model_name
-        model_path = os.path.dirname(model_name)
+        if os.path.isdir(model_name):
+            self.model_path = model_name
+            #model_name = os.path.join(model_path, 'model.pth')
+        else:
+            self.model_path = os.path.dirname(model_name)
+            self.model = torch.load(model_name )
         
-        super().__init__(patch_path, model_path, num_classes)
+        super().__init__(patch_path, self.model_path, num_classes)
         
-        self.model = torch.load(model_name )
+    def create_callback(self, updater):
+        self.updater = updater
+        pass
     
     def train(self, num_epochs, updater=None):
-        updater('Training Pytorch Semantic model', 0)
+        
+        if updater is None:
+            updater = self.updater
+        
+        if updater is not None:
+            updater('Training Pytorch Semantic model', 0)
 
         cuda_present = torch.cuda.is_available()
         ndevices = torch.cuda.device_count()
