@@ -13,7 +13,7 @@ from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 
 class NapariEasyAugmentBatchDL(QWidget):
 
-    def __init__(self, napari_viewer, parent=None):
+    def __init__(self, napari_viewer, parent=None, label_only = False):
         super().__init__()
 
         self.viewer = napari_viewer
@@ -25,9 +25,11 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.counter = 0
 
-        self.init_ui()
+        self.init_ui(label_only)
 
-    def init_ui(self):
+    def init_ui(self, label_only = False):
+
+        self.label_only = label_only
 
         self.setWindowTitle("Easy Augment Batch DL")
         layout = QVBoxLayout()
@@ -47,6 +49,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.save_results_button = QPushButton("Save results...")
         self.save_results_button.clicked.connect(self.save_results)
         self.label_layout.addWidget(self.save_results_button)
+
+        # current file name label
+        self.current_file_name_label = QLabel("Current file: None")
+        self.label_layout.addWidget(self.current_file_name_label)
         
         layout.addWidget(self.label_parameters_group)
 
@@ -130,7 +136,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.delete_augmentations_button.clicked.connect(self.delete_augmentations)
         self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button)
 
-        layout.addWidget(self.augment_parameters_group)
 
         # add train network group
         self.train_predict_group = QGroupBox("3. Train/Predict")
@@ -145,7 +150,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.network_architecture_drop_down.addItem(DLModel.YOLO_SAM)
 
         self.train_predict_layout.addWidget(self.network_architecture_drop_down)
-
+        
         def on_index_changed(index):
             self.stacked_model_params_layout.setCurrentIndex(index)
 
@@ -194,8 +199,9 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         # handle dropdown changed 
         def on_yolo_class_index_changed(index):
-            index = self.yolo_class_drop_down.currentIndex()
-            self.object_boxes_layer.feature_defaults['class'] = index
+            if self.object_boxes_layer is not None:
+                index = self.yolo_class_drop_down.currentIndex()
+                self.object_boxes_layer.feature_defaults['class'] = index
 
         self.yolo_class_drop_down.currentIndexChanged.connect(on_yolo_class_index_changed) 
 
@@ -239,9 +245,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.train_network_button.clicked.connect(self.perform_training)
         self.train_predict_layout.addWidget(self.train_network_button)
         
-        layout.addWidget(self.train_predict_group)
-
-
         # add predict current image
         self.predict_current_image_button = QPushButton("Predict current image")
         self.predict_current_image_button.clicked.connect(self.predict_current_image)
@@ -252,16 +255,32 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.predict_all_images_button.clicked.connect(self.predict_all_images)
         self.train_predict_layout.addWidget(self.predict_all_images_button)
 
-        #layout.addWidget(self.predict_group)
-
         # add status log and progress
         self.textBrowser_log = QTextBrowser()
         self.progressBar = QProgressBar()
 
-        layout.addWidget(self.textBrowser_log)
-        layout.addWidget(self.progressBar)
-
+        if label_only == False:
+            layout.addWidget(self.augment_parameters_group)
+            layout.addWidget(self.train_predict_group)
+            layout.addWidget(self.textBrowser_log)
+            layout.addWidget(self.progressBar)
+        else:
+            self.predict_group = QGroupBox("Predict")
+            self.predict_layout = QVBoxLayout()
+            self.predict_layout.addWidget(self.predict_current_image_button)
+            self.predict_layout.addWidget(self.predict_all_images_button)
+            self.predict_group.setLayout(self.predict_layout)
+            layout.addWidget(self.predict_group)
         self.setLayout(layout)
+
+        def index_changed(event):
+            index = self.viewer.dims.current_step[0]
+            filename = self.deep_learning_project.files[index]
+            self.current_file_name_label.setText(filename.name)
+            
+        
+        
+        self.viewer.dims.events.current_step.connect(index_changed)
     
     def update(self, message, progress=0):
         print('in the update')
@@ -277,17 +296,21 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.update(message, progress)
 
     def open_image_directory(self):
+        
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         
-        directory = QFileDialog.getExistingDirectory(
+        image_path = QFileDialog.getExistingDirectory(
             self,
             "Select image directory",
             "",
             options=options,
         )
 
-        image_path = Path(directory)
+        self.load_image_directory(image_path)
+    
+    def load_image_directory(self, image_path):
+        image_path = Path(image_path)
 
         files = list(image_path.glob('*.jpg'))
         files = files+list(image_path.glob('*.jpeg'))
@@ -300,7 +323,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         # check if json exists
         
-        if (Path(directory) / 'info.json').exists():
+        if (image_path / 'info.json').exists():
             # pre-existing project num classes will be read from json
             num_classes = -1
             pass
@@ -395,6 +418,10 @@ class NapariEasyAugmentBatchDL(QWidget):
             #labels = annotations
             text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
+
+        if self.label_only == True:
+            self.object_boxes_layer.visible = False
+            self.predicted_object_boxes_layer.visible = False
 
         for c in range(self.deep_learning_project.num_classes):
             self.yolo_class_drop_down.addItem("Class "+str(c))
