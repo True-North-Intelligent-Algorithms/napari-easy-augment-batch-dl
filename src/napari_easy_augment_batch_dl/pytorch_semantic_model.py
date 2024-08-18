@@ -2,7 +2,7 @@ import numpy as np
 from napari_easy_augment_batch_dl.base_model import BaseModel
 from tifffile import imread
 import json
-from pytorch_semantic_dataset import PyTorchSemanticDataset
+from napari_easy_augment_batch_dl.pytorch_semantic_dataset import PyTorchSemanticDataset
 from torch.utils.data import DataLoader
 from monai.networks.nets import BasicUNet
 import torch
