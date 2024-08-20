@@ -1,5 +1,5 @@
 
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
 from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
@@ -127,7 +127,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.number_patches_spin_box.setValue(100)
         num_patches_layout.addWidget(num_patches_label)
         num_patches_layout.addWidget(self.number_patches_spin_box)
-        self.augment_parameters_group.layout().addLayout(num_patches_layout)
+        self.augment_parameters_group.layout().addLayout(num_patches_layout, 4, 0)
 
         # add patch size spin box and label
         patch_size_layout = QHBoxLayout()
@@ -137,22 +137,22 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.patch_size_spin_box.setValue(256)
         patch_size_layout.addWidget(patch_size_label)
         patch_size_layout.addWidget(self.patch_size_spin_box)
-        self.augment_parameters_group.layout().addLayout(patch_size_layout)
+        self.augment_parameters_group.layout().addLayout(patch_size_layout, 4, 1)
         
         # add augment current button
         self.augment_current_button = QPushButton("Augment current image")
         self.augment_current_button.clicked.connect(self.augment_current)
-        self.augment_parameters_group.layout().addWidget(self.augment_current_button)
+        self.augment_parameters_group.layout().addWidget(self.augment_current_button, 5, 0)
 
         # add perform augmentation button
         self.perform_augmentation_button = QPushButton("Augment all images")
         self.perform_augmentation_button.clicked.connect(self.augment_all)
-        self.augment_parameters_group.layout().addWidget(self.perform_augmentation_button)
+        self.augment_parameters_group.layout().addWidget(self.perform_augmentation_button, 5, 1)
 
         # add delete augmentations button
         self.delete_augmentations_button = QPushButton("Delete augmentations")
         self.delete_augmentations_button.clicked.connect(self.delete_augmentations)
-        self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button)
+        self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button, 6,0)
 
 
         # add train network group
