@@ -53,53 +53,71 @@ class NapariEasyAugmentBatchDL(QWidget):
         # current file name label
         self.current_file_name_label = QLabel("Current file: None")
         self.label_layout.addWidget(self.current_file_name_label)
-        
+
         layout.addWidget(self.label_parameters_group)
 
         # add augment parameters group
         self.augment_parameters_group = QGroupBox("2. Augment images")
-        self.augment_layout = QVBoxLayout()
+        self.augment_layout = QGridLayout()
         self.augment_parameters_group.setLayout(self.augment_layout)
 
         # add horizontal flip check box
         self.horizontal_flip_check_box = QCheckBox("Horizontal Flip")
         self.horizontal_flip_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.horizontal_flip_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.horizontal_flip_check_box, 0, 0
+        )
 
         # add vertical flip check box
         self.vertical_flip_check_box = QCheckBox("Vertical Flip")
         self.vertical_flip_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.vertical_flip_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.vertical_flip_check_box, 0, 1
+        )
 
         # add rotate check box
         self.random_rotate_check_box = QCheckBox("Random Rotate")
         self.random_rotate_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_rotate_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_rotate_check_box, 1, 0
+        )
 
         # add random resize check box
         self.random_resize_check_box = QCheckBox("Random Resize")
         self.random_resize_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_resize_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_resize_check_box, 1, 1
+        )
 
         # add random brightness contrast check box
-        self.random_brightness_contrast_check_box = QCheckBox("Random Brightness/Contrast")
+        self.random_brightness_contrast_check_box = QCheckBox(
+            "Random Brightness/Contrast"
+        )
         self.random_brightness_contrast_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_brightness_contrast_check_box)    
+        self.augment_parameters_group.layout().addWidget(
+            self.random_brightness_contrast_check_box, 2, 0
+        )
 
         # add random gamma check box
         self.random_gamma_check_box = QCheckBox("Random Gamma")
         self.random_gamma_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.random_gamma_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_gamma_check_box, 2, 1
+        )
 
         # add random adjust color check box
         self.random_adjust_color_check_box = QCheckBox("Random Adjust Color")
         self.random_adjust_color_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.random_adjust_color_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_adjust_color_check_box, 3, 0
+        )
 
         # add elastic deformation check box
         self.elastic_deformation_check_box = QCheckBox("Elastic Deformation")
         self.elastic_deformation_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.elastic_deformation_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.elastic_deformation_check_box, 3, 1
+        )
 
         # add number patches spin box and label
         num_patches_layout = QHBoxLayout()
