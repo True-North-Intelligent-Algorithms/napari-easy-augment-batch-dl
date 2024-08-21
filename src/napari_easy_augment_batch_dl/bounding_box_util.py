@@ -145,7 +145,11 @@ def yolotxt_to_naparibb(yolo_txt_name, image_shape, n):
             line = line.strip()
             parts = line.split(' ')
             
-            class_ = int(parts[0])
+            try:
+                # get the class
+              class_ = int(parts[0])
+            except:
+              class_ = 0
             
             # get the normalized x center, y center, width, height
             xywhn = [float(x) for x in parts[1:5]]
