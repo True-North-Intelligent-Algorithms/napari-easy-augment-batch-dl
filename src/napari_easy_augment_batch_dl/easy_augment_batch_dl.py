@@ -1,5 +1,5 @@
 
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
 from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
@@ -53,53 +53,71 @@ class NapariEasyAugmentBatchDL(QWidget):
         # current file name label
         self.current_file_name_label = QLabel("Current file: None")
         self.label_layout.addWidget(self.current_file_name_label)
-        
+
         layout.addWidget(self.label_parameters_group)
 
         # add augment parameters group
         self.augment_parameters_group = QGroupBox("2. Augment images")
-        self.augment_layout = QVBoxLayout()
+        self.augment_layout = QGridLayout()
         self.augment_parameters_group.setLayout(self.augment_layout)
 
         # add horizontal flip check box
         self.horizontal_flip_check_box = QCheckBox("Horizontal Flip")
         self.horizontal_flip_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.horizontal_flip_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.horizontal_flip_check_box, 0, 0
+        )
 
         # add vertical flip check box
         self.vertical_flip_check_box = QCheckBox("Vertical Flip")
         self.vertical_flip_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.vertical_flip_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.vertical_flip_check_box, 0, 1
+        )
 
         # add rotate check box
         self.random_rotate_check_box = QCheckBox("Random Rotate")
         self.random_rotate_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_rotate_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_rotate_check_box, 1, 0
+        )
 
         # add random resize check box
         self.random_resize_check_box = QCheckBox("Random Resize")
         self.random_resize_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_resize_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_resize_check_box, 1, 1
+        )
 
         # add random brightness contrast check box
-        self.random_brightness_contrast_check_box = QCheckBox("Random Brightness/Contrast")
+        self.random_brightness_contrast_check_box = QCheckBox(
+            "Random Brightness/Contrast"
+        )
         self.random_brightness_contrast_check_box.setChecked(True)
-        self.augment_parameters_group.layout().addWidget(self.random_brightness_contrast_check_box)    
+        self.augment_parameters_group.layout().addWidget(
+            self.random_brightness_contrast_check_box, 2, 0
+        )
 
         # add random gamma check box
         self.random_gamma_check_box = QCheckBox("Random Gamma")
         self.random_gamma_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.random_gamma_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_gamma_check_box, 2, 1
+        )
 
         # add random adjust color check box
         self.random_adjust_color_check_box = QCheckBox("Random Adjust Color")
         self.random_adjust_color_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.random_adjust_color_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.random_adjust_color_check_box, 3, 0
+        )
 
         # add elastic deformation check box
         self.elastic_deformation_check_box = QCheckBox("Elastic Deformation")
         self.elastic_deformation_check_box.setChecked(False)
-        self.augment_parameters_group.layout().addWidget(self.elastic_deformation_check_box)
+        self.augment_parameters_group.layout().addWidget(
+            self.elastic_deformation_check_box, 3, 1
+        )
 
         # add number patches spin box and label
         num_patches_layout = QHBoxLayout()
@@ -109,7 +127,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.number_patches_spin_box.setValue(100)
         num_patches_layout.addWidget(num_patches_label)
         num_patches_layout.addWidget(self.number_patches_spin_box)
-        self.augment_parameters_group.layout().addLayout(num_patches_layout)
+        self.augment_parameters_group.layout().addLayout(num_patches_layout, 4, 0)
 
         # add patch size spin box and label
         patch_size_layout = QHBoxLayout()
@@ -119,22 +137,22 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.patch_size_spin_box.setValue(256)
         patch_size_layout.addWidget(patch_size_label)
         patch_size_layout.addWidget(self.patch_size_spin_box)
-        self.augment_parameters_group.layout().addLayout(patch_size_layout)
+        self.augment_parameters_group.layout().addLayout(patch_size_layout, 4, 1)
         
         # add augment current button
         self.augment_current_button = QPushButton("Augment current image")
         self.augment_current_button.clicked.connect(self.augment_current)
-        self.augment_parameters_group.layout().addWidget(self.augment_current_button)
+        self.augment_parameters_group.layout().addWidget(self.augment_current_button, 5, 0)
 
         # add perform augmentation button
         self.perform_augmentation_button = QPushButton("Augment all images")
         self.perform_augmentation_button.clicked.connect(self.augment_all)
-        self.augment_parameters_group.layout().addWidget(self.perform_augmentation_button)
+        self.augment_parameters_group.layout().addWidget(self.perform_augmentation_button, 5, 1)
 
         # add delete augmentations button
         self.delete_augmentations_button = QPushButton("Delete augmentations")
         self.delete_augmentations_button.clicked.connect(self.delete_augmentations)
-        self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button)
+        self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button, 6,0)
 
 
         # add train network group
