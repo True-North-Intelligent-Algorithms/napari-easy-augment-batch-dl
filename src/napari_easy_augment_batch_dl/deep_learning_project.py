@@ -103,6 +103,7 @@ class DeepLearningProject:
         self.files = list(self.image_path.glob('*.jpg'))
         self.files = self.files+list(self.image_path.glob('*.jpeg'))
         self.files = self.files+list(self.image_path.glob('*.tif'))
+        self.files = self.files+list(self.image_path.glob('*.tiff'))
         self.files = self.files+list(self.image_path.glob('*.png'))
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
@@ -110,7 +111,6 @@ class DeepLearningProject:
         self.image_list = []
         for index in range(len(self.files)):
             im = imread(self.files[index])
-            print(im.shape)
             if len(im.shape) == 3:
                 if im.shape[2] > 3:
                     im = im[:,:,:3]
@@ -134,9 +134,9 @@ class DeepLearningProject:
                 annotations_temp = []
                 
                 label_names = list(Path(self.mask_label_paths[c]).glob('*.tif'))
-                json_names = list(Path(self.image_label_paths[c]).glob('*.json'))
-                print('there are {} labels for class {}'.format(len(label_names), c))
-                print('there are {} json files for class {}'.format(len(json_names), c))
+                json_names = list(Path(self.image_label_paths[0]).glob('*.json'))
+                #print('there are {} labels for class {}'.format(len(label_names), c))
+                #print('there are {} json files for class {}'.format(len(json_names), c))
 
                 n=0            
                 for image_name, image in zip(self.files, self.image_list):
@@ -156,29 +156,22 @@ class DeepLearningProject:
 
                     label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
-                    print('image base name is ', image_base_name)
+                    #print('image base name is ', image_base_name)
 
                     for label_name_, json_name_ in zip(label_names_, json_names_):
 
-                        print('label name is ', label_name_)
-                        print('json name is ', json_name_)
+                        #print('label name is ', label_name_)
+                        #print('json name is ', json_name_)
 
                         with open(json_name_, 'r') as f:
                             json_ = json.load(f)
-                            print(json_)
+                            #print(json_)
                                                         
                             x1= json_['bbox'][0]
                             y1= json_['bbox'][1]
                             x2= json_['bbox'][2]
                             y2= json_['bbox'][3]
 
-                            '''
-                            tl = [n, y1, x1]
-                            tr = [n, y1, x2]
-                            br = [n, y2, x2]
-                            bl = [n, y2, x1]
-                            bbox = [tl, tr, br, bl]
-                            '''
                             bbox = x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n)
                             self.boxes.append(bbox)
 
@@ -207,9 +200,9 @@ class DeepLearningProject:
                     n = n+1
 
 
-            self.label_list.append(labels_temp)
-            self.prediction_list.append(predictions_temp)
-            self.annotation_list.append(annotations_temp)                        
+                self.label_list.append(labels_temp)
+                self.prediction_list.append(predictions_temp)
+                self.annotation_list.append(annotations_temp)                        
             
             # now load the yolo labels (bounding boxes)
 
@@ -332,8 +325,8 @@ class DeepLearningProject:
             json.dump(json_, f)
 
         # delete old labels TODO: think this over could be dangerous if something goes wrong with resaving
+        self.delete_all_files_in_directory(self.image_label_paths[0])
         for c in range(self.num_classes):
-            self.delete_all_files_in_directory(self.image_label_paths[c])
             self.delete_all_files_in_directory(self.mask_label_paths[c])
 
         # start a dataframe to store the bounding boxes
@@ -412,7 +405,7 @@ class DeepLearningProject:
                 prediction_name = self.get_prediction_name(z, c)
                 imsave(prediction_name, prediction)
 
-                z = z + 1
+            z = z + 1
 
         # save bouning box info to a csv file
         df_bounding_boxes.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)

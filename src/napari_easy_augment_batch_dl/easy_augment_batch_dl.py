@@ -333,6 +333,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         files = list(image_path.glob('*.jpg'))
         files = files+list(image_path.glob('*.jpeg'))
         files = files+list(image_path.glob('*.tif'))
+        files = files+list(image_path.glob('*.tiff'))
         files = files+list(image_path.glob('*.png'))
 
         if len(files) == 0:
