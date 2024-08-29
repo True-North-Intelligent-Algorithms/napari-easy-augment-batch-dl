@@ -663,7 +663,7 @@ class DeepLearningProject:
         model = self.get_model(network_type) 
         model.train(num_epochs, update)
 
-    def predict(self, n, network_type, update):
+    def predict(self, n, network_type, update, imagesz=1024):
         
         image = self.image_list[n]
             
@@ -673,7 +673,7 @@ class DeepLearningProject:
         if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
 
             model = self.get_model(network_type)
-            prediction, results = model.predict(image)
+            prediction, results = model.predict(image, imagesz)
             boxes = self.xyxy_to_tltrbrbl(results, n)
 
             self.prediction_list[0][n] = prediction

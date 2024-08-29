@@ -18,8 +18,8 @@ class YoloSAMModel(BaseModel):
             self.yolo_detecter = YoloDetector(best_model_path, "loaded YOLO", device='cuda')
         self.custom_model = None
                  
-    def predict(self, img: np.ndarray):
-        results = self.yolo_detecter.get_results(img, conf=0.1, iou=0.8, imgsz=1024)
+    def predict(self, img: np.ndarray, imagesz=1024):
+        results = self.yolo_detecter.get_results(img, conf=0.1, iou=0.8, imgsz=imagesz)
         self.bbs=results[0].boxes.xyxy.cpu().numpy()
         stacked_labels = StackedLabels.from_yolo_results(self.bbs, None, img)
         segmented_stacked_labels = segment_from_stacked_labels(stacked_labels, "MobileSamV2")

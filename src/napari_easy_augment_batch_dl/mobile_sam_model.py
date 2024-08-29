@@ -12,8 +12,8 @@ class MobileSAMModel(BaseModel):
         super().__init__(patch_path, model_path, 1)
         self.yolo_detecter = YoloDetector(str(get_weights_path("ObjectAwareModel")), "ObjectAwareModelFromMobileSamV2", device='cuda')
                  
-    def predict(self, img: np.ndarray):
-        results = self.yolo_detecter.get_results(img, conf=0.1, iou=0.8, imgsz=1024)
+    def predict(self, img: np.ndarray, imagesz=1024):
+        results = self.yolo_detecter.get_results(img, conf=0.1, iou=0.8, imgsz=imagesz, max_det=10000)
         self.bbs=results[0].boxes.xyxy.cpu().numpy()
         stacked_labels = StackedLabels.from_yolo_results(self.bbs, None, img)
         segmented_stacked_labels = segment_from_stacked_labels(stacked_labels, "MobileSamV2")

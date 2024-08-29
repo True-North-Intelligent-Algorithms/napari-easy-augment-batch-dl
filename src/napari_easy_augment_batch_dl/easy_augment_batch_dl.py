@@ -1,4 +1,5 @@
 
+from email.mime import image
 from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
 from PyQt5.QtCore import QThread
 from pathlib import Path
@@ -202,13 +203,13 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.mobile_sam_params_layout = QVBoxLayout()
         self.widgetGroup4 = QWidget()
-        self.imagesz = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
-        self.mobile_sam_params_layout.addWidget(self.imagesz)
+        self.imagesz_ms = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
+        self.mobile_sam_params_layout.addWidget(self.imagesz_ms)
         self.widgetGroup4.setLayout(self.mobile_sam_params_layout)
 
         self.yolo_sam_params_layout = QVBoxLayout()
         self.widgetGroup5 = QWidget()
-        self.imagesz = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
+        self.imagesz_ys = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
         self.yolo_class_label = QLabel("Class")
         self.yolo_class_drop_down = QComboBox()
         self.yolo_class_layout = QHBoxLayout()
@@ -224,7 +225,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.yolo_class_drop_down.currentIndexChanged.connect(on_yolo_class_index_changed) 
 
         self.yolo_sam_params_layout.addLayout(self.yolo_class_layout)
-        self.yolo_sam_params_layout.addWidget(self.imagesz)
+        self.yolo_sam_params_layout.addWidget(self.imagesz_ys)
         self.widgetGroup5.setLayout(self.yolo_sam_params_layout)
 
         self.stacked_model_params_layout.addWidget(self.widgetGroup1)
@@ -408,12 +409,15 @@ class NapariEasyAugmentBatchDL(QWidget):
                     self.boxes_layer.data[-1] = new_box
                     self.boxes_layer.refresh()
 
-                # copy from prediction to label
-                for c in range(self.deep_learning_project.num_classes):
-                    self.labels[c].data[z, ystart:yend, xstart:xend] = self.predictions[c].data[z, ystart:yend, xstart:xend]
-                    self.labels[c].refresh()
+                prediction =  self.predictions[c].data[z, ystart:yend, xstart:xend]
 
-                print(self.boxes_layer.data)
+                if np.sum(prediction) > 0:
+                    # copy from prediction to label
+                    for c in range(self.deep_learning_project.num_classes):
+                        self.labels[c].data[z, ystart:yend, xstart:xend] = self.predictions[c].data[z, ystart:yend, xstart:xend]
+                        self.labels[c].refresh()
+
+                        print(self.boxes_layer.data)
 
         
         self.object_boxes_layer = self.viewer.add_shapes(
@@ -572,8 +576,15 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         #self.augment_all()
 
-        thread = False 
+        thread = True
         if thread:
+            '''
+            if hasattr(self, 'thread'):
+                if self.thread.isRunning():
+
+                    self.thread.quit()
+                    self.thread.wait()
+            '''            
             self.thread = QThread()
             model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
             model.create_callback(self.update_thread)
@@ -597,7 +608,13 @@ class NapariEasyAugmentBatchDL(QWidget):
         n = self.viewer.dims.current_step[0]
         model_text = self.network_architecture_drop_down.currentText()
         if model_text == DLModel.YOLO_SAM or model_text == DLModel.MOBILE_SAM2:
-            predictions, boxes = self.deep_learning_project.predict(n, model_text, self.update)
+            
+            if model_text == DLModel.YOLO_SAM:
+                imagesz = self.imagesz_ys.spinner.value()
+            else:
+                imagesz = self.imagesz_ms.spinner.value()
+            
+            predictions, boxes = self.deep_learning_project.predict(n, model_text, self.update, imagesz=imagesz)
             
             #self.object_boxes_layer.add(boxes)
             #self.object_boxes_layer.refresh()
@@ -607,6 +624,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
             self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
             self.predictions[0].refresh() 
+
         else:
 
             if model_text == DLModel.CELLPOSE:
