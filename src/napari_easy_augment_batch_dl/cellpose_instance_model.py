@@ -6,20 +6,21 @@ from cellpose import models, io
 
 class CellPoseInstanceModel(BaseModel):
 
-    def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model_path: str = None):
+    def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model: str = None):
         super().__init__(patch_path, model_path, num_classes)
 
         # start logger (to see training across epochs)
         logger = io.logger_setup()
         
-        if start_model_path is None:
-            
-
+        if start_model is None:
             # DEFINE CELLPOSE MODEL (without size model)
             self.model = models.CellposeModel(gpu=True, model_type=None)
+        elif type(start_model) == models.Cellpose:
+            self.model = start_model
         else:
-            self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model_path)
+            self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model)
 
+        self.diameter = 30
         self.flow_threshold = 0.4
         self.cellprob_threshold = 0.0
     
@@ -59,4 +60,4 @@ class CellPoseInstanceModel(BaseModel):
             model_name='cellpose_thirdtry')
 
     def predict(self, img: np.ndarray):
-        return self.model.eval(img, channels=[0, 1], flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]
+        return self.model.eval(img, channels=[0, 1], diameter = self.diameter, flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]
