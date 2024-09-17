@@ -409,15 +409,19 @@ class NapariEasyAugmentBatchDL(QWidget):
                     self.boxes_layer.data[-1] = new_box
                     self.boxes_layer.refresh()
 
-                prediction =  self.predictions[c].data[z, ystart:yend, xstart:xend]
+                for c in range(self.deep_learning_project.num_classes):
+                    prediction =  self.predictions[c].data[z, ystart:yend, xstart:xend]
 
-                if np.sum(prediction) > 0:
-                    # copy from prediction to label
-                    for c in range(self.deep_learning_project.num_classes):
-                        self.labels[c].data[z, ystart:yend, xstart:xend] = self.predictions[c].data[z, ystart:yend, xstart:xend]
-                        self.labels[c].refresh()
+                    if np.sum(prediction) > 0:
 
-                        print(self.boxes_layer.data)
+                        reply = QMessageBox.question(self, 'Overwrite', 'Overwrite existing labels with predictions?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+
+                        if reply == QMessageBox.Yes:
+                            # copy from prediction to label
+                                self.labels[c].data[z, ystart:yend, xstart:xend] = self.predictions[c].data[z, ystart:yend, xstart:xend]
+                                self.labels[c].refresh()
+
+                                print(self.boxes_layer.data)
 
         
         self.object_boxes_layer = self.viewer.add_shapes(
