@@ -178,18 +178,20 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.stacked_model_params_layout = QStackedWidget()
         
         self.pytorch_semantic_params_layout = QVBoxLayout()
-        self.widgetGroup1 = QWidget()
-        self.pytorch_semantic_threshold = LabeledSpinner("Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
+        self.widgetGroup2 = QWidget()
+        self.pytorch_semantic_threshold = LabeledSpinner("Threshold", -10, 10, 0, None, is_double=True, step=0.1)
         self.pytorch_semantic_params_layout.addWidget(self.pytorch_semantic_threshold)
-        self.widgetGroup1.setLayout(self.pytorch_semantic_params_layout)
+        self.widgetGroup2.setLayout(self.pytorch_semantic_params_layout)
 
         self.stardist_params_layout = QVBoxLayout()
-        self.widgetGroup2 = QWidget()
+        self.widgetGroup1 = QWidget()
         self.prob_thresh = LabeledSpinner("Prob. Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
         self.nms_thresh = LabeledSpinner("NMS Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
+        self.scale = LabeledSpinner("Scale", 0, 1, 0.5, None, is_double=True, step=0.01)
         self.stardist_params_layout.addWidget(self.prob_thresh)
         self.stardist_params_layout.addWidget(self.nms_thresh)
-        self.widgetGroup2.setLayout(self.stardist_params_layout)
+        self.stardist_params_layout.addWidget(self.scale)
+        self.widgetGroup1.setLayout(self.stardist_params_layout)
 
         self.cellpose_params_layout = QVBoxLayout()
         self.widgetGroup3 = QWidget()
@@ -633,7 +635,11 @@ class NapariEasyAugmentBatchDL(QWidget):
 
             if model_text == DLModel.CELLPOSE:
                 self.deep_learning_project.set_cellpose_params(self.cell_diameter_spinner.spinner.value(), [0,1], self.flow_threshold_spinner.spinner.value(), self.cellpose_prob_thresh_spinner.spinner.value())
-               
+            elif model_text == DLModel.STARDIST:
+                self.deep_learning_project.set_stardist_params(self.prob_thresh.spinner.value(), self.nms_thresh.spinner.value(), self.scale.spinner.value())
+            elif model_text == DLModel.UNET:
+                self.deep_learning_project.set_pytorch_semantic_params(self.pytorch_semantic_threshold.spinner.value())
+
             pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
                 
             self.predictions[0].data[n, :pred.shape[0], :pred.shape[1]]=pred

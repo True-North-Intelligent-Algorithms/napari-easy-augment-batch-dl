@@ -717,6 +717,16 @@ class DeepLearningProject:
         cellpose_model.cellpose_channels = cellpose_channels
         cellpose_model.cellprob_threshold = cellprob_threshold
         cellpose_model.flow_threshold = flow_threshold    
+
+    def set_stardist_params(self, prob_thresh, nms_thresh, scale):
+        stardist_model = self.get_model(DLModel.STARDIST)
+        stardist_model.prob_thresh = prob_thresh
+        stardist_model.nms_thresh = nms_thresh
+        stardist_model.scale = scale
+
+    def set_pytorch_semantic_params(self, threshold):
+        pytorch_model = self.get_model(DLModel.UNET)
+        pytorch_model.threshold = threshold
     
     def xyxy_to_tltrbrbl(self, boxes, n):
         boxes_ = []

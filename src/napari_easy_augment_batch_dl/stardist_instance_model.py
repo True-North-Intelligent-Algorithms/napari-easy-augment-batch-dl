@@ -58,6 +58,10 @@ class StardistInstanceModel(BaseModel):
 
         self.custom_callback = None
 
+        self.prob_thresh = 0.5
+        self.nms_thresh = 0.4
+        self.scale = 1
+
     def create_callback(self, updater):
         self.updater = updater
         self.custom_callback = CustomCallback(updater)
