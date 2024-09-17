@@ -10,6 +10,7 @@ from tnia.deeplearning.dl_helper import quantile_normalization
 from torchvision import transforms
 from torchvision.transforms import v2
 import os
+from datetime import datetime
 
 class PytorchSemanticModel(BaseModel):
     
@@ -17,12 +18,24 @@ class PytorchSemanticModel(BaseModel):
         # get path from model_name
         if os.path.isdir(model_name):
             self.model_path = model_name
+            self.model = None
             #model_name = os.path.join(model_path, 'model.pth')
         else:
             self.model_path = os.path.dirname(model_name)
             self.model = torch.load(model_name )
+
+        self.model_name = self.generate_model_name(
+            base_name="model"
+        )
         
         super().__init__(patch_path, self.model_path, num_classes)
+
+        self.threshold = 0.5
+
+    def generate_model_name(self, base_name="model"):
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_name = f"{base_name}_{current_time}.pth"
+        return model_name
         
     def create_callback(self, updater):
         self.updater = updater
@@ -91,15 +104,16 @@ class PytorchSemanticModel(BaseModel):
 
         train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 
-        self.model = BasicUNet(
-            spatial_dims=2,
-            in_channels=num_in_channels,
-            out_channels=num_truths,
-            #features=[16, 16, 32, 64, 128, 16],
-            act="relu",
-            norm="batch",
-            dropout=0.25,
-        )
+        if self.model == None:
+            self.model = BasicUNet(
+                spatial_dims=2,
+                in_channels=num_in_channels,
+                out_channels=num_truths,
+                #features=[16, 16, 32, 64, 128, 16],
+                act="relu",
+                #norm="batch",
+                dropout=0.25,
+            )
 
         # Important: transfer the model to the chosen device
         self.model = self.model.to(device)
@@ -141,7 +155,10 @@ class PytorchSemanticModel(BaseModel):
                         "Loss:",
                         batch_loss.item(),
                     )
-        torch.save(self.model, self.model_path / 'model.pth')
+                    if updater is not None:
+                        progress = int(epoch/num_epochs*100)
+                        updater(f"Epoch {epoch} Batch {batch_idx} Loss {batch_loss.item()}", progress)
+        torch.save(self.model, self.model_path / self.model_name)
 
     def predict(self, image):
         device = torch.device("cuda")
@@ -174,7 +191,7 @@ class PytorchSemanticModel(BaseModel):
         y = self.model(x)
 
         prediction = y.cpu().detach()[0, 0].numpy()
-        binary = prediction > 0.35
+        binary = prediction > self.threshold 
 
         return binary
 
