@@ -625,15 +625,15 @@ class DeepLearningProject:
 
         print()
 
-    def set_pretrained_model(self, pretrained_model_path, model_type):
+    def set_pretrained_model(self, pretrained_model, model_type):
         if model_type == DLModel.STARDIST:
-            self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
+            self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model)
         elif model_type == DLModel.YOLO_SAM:
-            self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model_path)
+            self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model)
         elif model_type == DLModel.CELLPOSE:
-            self.models[DLModel.CELLPOSE] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model_path)
+            self.models[DLModel.CELLPOSE] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model)
         elif model_type == DLModel.UNET:
-            self.models[DLModel.UNET] = PytorchSemanticModel(self.patch_path, pretrained_model_path, self.num_classes)
+            self.models[DLModel.UNET] = PytorchSemanticModel(self.patch_path, pretrained_model, self.num_classes)
             
     def get_model(self, network_type):
         if self.models[network_type] is None:
