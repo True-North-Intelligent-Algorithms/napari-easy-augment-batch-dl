@@ -1,6 +1,6 @@
 import numpy as np
         
-def pad_to_largest(images, force8bit=True):
+def pad_to_largest(images, force8bit=False):
     # Find the maximum dimensions
     max_rows = max(image.shape[0] for image in images)
     max_cols = max(image.shape[1] for image in images)

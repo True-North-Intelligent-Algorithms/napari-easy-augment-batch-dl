@@ -355,7 +355,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.deep_learning_project = DeepLearningProject(image_path, num_classes)
         
-        self.images = pad_to_largest(self.deep_learning_project.image_list) #np.array(self.image_list)
+        self.images = pad_to_largest(self.deep_learning_project.image_list, force8bit = True) 
 
         self.viewer.add_image(self.images, name='images')
 
