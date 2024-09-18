@@ -386,16 +386,38 @@ class DeepLearningProject:
         annotation_class_dir = self.annotation_path / f'class_{c}'
         if not annotation_class_dir.exists():
             annotation_class_dir.mkdir(parents=True)
+
         base_name = self.files[z].name.split('.')[0]
-        return annotation_class_dir / (base_name+'.tif')
+        
+        full_base_name = annotation_class_dir / (base_name+'.tif')
+
+        # does full base name exist?
+        if full_base_name.exists():
+            return full_base_name
+        else:
+            # base name will be created using stem, so we handle extra '.' before the extension
+            base_name = self.files[z].stem
+            full_base_name = annotation_class_dir / (base_name+'.tif')
+            return full_base_name
 
     def get_prediction_name(self, z, c):
         prediction_class_dir = self.prediction_path / f'class_{c}'
         if not prediction_class_dir.exists():
             prediction_class_dir.mkdir(parents=True)
+
         base_name = self.files[z].name.split('.')[0]
-        return prediction_class_dir / (base_name+'.tif')
-    
+
+        full_base_name = prediction_class_dir / (base_name+'.tif')
+
+        # does full base name exist?
+        if full_base_name.exists():
+            return full_base_name
+        else:
+            # base name will be created using stem, so we handle extra '.' before the extension
+            base_name = self.files[z].stem
+            full_base_name = prediction_class_dir / (base_name+'.tif')
+            return full_base_name
+         
     def save_object_boxes(self, object_boxes, object_classes):
         for object_box in object_boxes:
             print('object box is ', object_box)    
