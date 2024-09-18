@@ -273,35 +273,7 @@ class DeepLearningProject:
                     self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
-
-    def initialize_napari_project(self):
-        print('Napari directory does not exist, initializing project')
-
-        self.label_list = []
-        self.prediction_list = []
-
-        for c in range(self.num_classes):
-            self.label_list.append([])
-            self.prediction_list.append([])
-
-        for im in self.image_list:
-
-            for c in range(self.num_classes): 
-                self.label_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
-                self.prediction_list[c].append(np.zeros((im.shape[0], im.shape[1]), dtype=np.uint8))
-
-        self.images = self.pad_to_largest(self.image_list) #np.array(self.image_list)
-        #self.images = np.array(self.image_list)
-
-        for c in range(self.num_classes):
-            self.label_list[c] =  self.pad_to_largest(self.label_list[c])#np.array(self.label_list[c])
-            self.prediction_list[c] = self.pad_to_largest(self.prediction_list[c])
-            #self.label_list[c] = np.array(self.label_list[c])
-
-        self.boxes = None
-        self.object_boxes = None
-        self.features = None
-    
+        
     def delete_all_files_in_directory(self, directory_path):
         # Get a list of all files in the directory
         files = glob.glob(os.path.join(directory_path, '*'))
