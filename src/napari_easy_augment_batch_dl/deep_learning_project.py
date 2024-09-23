@@ -7,10 +7,12 @@ import json
 from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
-from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr, x1y1x2y2_to_tltrblbr, yolotxt_to_naparibb
+from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr, x1y1x2y2_to_tltrblbr, yolotxt_to_naparibb, tltrblbr_to_normalized_xywh
 import pandas as pd
 import yaml
 import glob 
+from napari_easy_augment_batch_dl.base_model import BaseModel#, DLModel
+import inspect
 
 try:
     from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
@@ -33,23 +35,11 @@ try:
 except ImportError:
     YoloSAMModel = None
 
-class DLModel:
-    UNET = "U-Net"
-    STARDIST = "Stardist"
-    CELLPOSE = "CellPose"
-    YOLO_SAM = "Yolo/SAM"
-    MOBILE_SAM2 = "Mobile SAM 2"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
 
         self.models = {}
-        self.models[DLModel.UNET] = None
-        self.models[DLModel.STARDIST] = None
-        self.models[DLModel.CELLPOSE] = None
-        self.models[DLModel.YOLO_SAM] = None
-        self.models[DLModel.MOBILE_SAM2] = None
-
         self.parent_path = Path(parent_path)
 
         # check if json.info exists
@@ -124,7 +114,24 @@ class DeepLearningProject:
         self.predicted_object_boxes = None
         self.features = None
         self.predicted_features = None
+
+        self.models = {} 
+
+        # look for models derived from 'BaseModel' and add them to the models dictionary
+        for name, obj in globals().items():  
         
+            if inspect.isclass(obj) and issubclass(obj, BaseModel) and obj is not BaseModel:
+                print('found class ', name)
+                try:
+                    instance = obj(self.patch_path, self.model_path, self.num_classes)
+                    self.models[instance.descriptor] = instance
+                    self.test = {name: field.metadata for name, field in obj.__dataclass_fields__.items() if field.metadata.get('harvest')}
+
+                    self.temp_model_names = instance.get_model_names()
+                except Exception as e:
+                    print(f"Error instantiating class {name}: {e}")
+
+        # if there is already a json file this is a pre-existing project                
         if os.path.exists(json_name):
 
             # load the label boxes.  
@@ -135,8 +142,6 @@ class DeepLearningProject:
                 
                 label_names = list(Path(self.mask_label_paths[c]).glob('*.tif'))
                 json_names = list(Path(self.image_label_paths[0]).glob('*.json'))
-                #print('there are {} labels for class {}'.format(len(label_names), c))
-                #print('there are {} json files for class {}'.format(len(json_names), c))
 
                 n=0            
                 for image_name, image in zip(self.files, self.image_list):
@@ -231,38 +236,10 @@ class DeepLearningProject:
                 object_boxes, features = yolotxt_to_naparibb(yolo_txt_name, image.shape, n)
                 self.object_boxes = self.object_boxes + object_boxes
                 self.features = pd.concat([self.features, features], ignore_index=True)
-                ''''                   
-                # load yolo txt file
-                with open(yolo_txt_name, 'r') as f:
-                    lines = f.readlines()
-                    
-                    for line in lines:
-                        line = line.strip()
-                        parts = line.split(' ')
-                        
-                        class_ = int(parts[0])
-                        
-                        # get the normalized x center, y center, width, height
-                        xywhn = [float(x) for x in parts[1:5]]
-                        xywhn = np.array(xywhn)
-
-                        # convert to top left, top right, bottom left, bottom right pixel coordinates
-                        xyxy = normalized_xywh_to_tltrblbr(xywhn[0], xywhn[1], xywhn[2], xywhn[3], image.shape[1], image.shape[0])
-                        xyxy = [[n, xyxy[0][0], xyxy[0][1]], [n, xyxy[1][0], xyxy[1][1]], [n, xyxy[2][0], xyxy[2][1]], [n, xyxy[3][0], xyxy[3][1]]]
-                        
-                        # add to the bounding box list
-                        self.object_boxes.append(np.array(xyxy))
-                        
-                        # add the class to a data frame
-                        # TODO: this format is useful for napari, but it make make sense to refactor this to the 
-                        # napari specific 'easy_augment_batch_dl' class
-                        df_new = pd.DataFrame([{'class': class_}])
-                        self.features = pd.concat([self.features,df_new], ignore_index=True) 
-                '''
                 n = n+1
 
             self.object_boxes = np.array(self.object_boxes)
-
+        # else this is a new project
         else:
             for c in range(self.num_classes):
                 self.label_list.append([])
@@ -273,7 +250,7 @@ class DeepLearningProject:
                     self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
-        
+    # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
         # Get a list of all files in the directory
         files = glob.glob(os.path.join(directory_path, '*'))
@@ -311,6 +288,7 @@ class DeepLearningProject:
             name = self.files[z].name.split('.')[0]
 
             # get rid of first column (z axis)
+            # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget codee
             box = box[:,1:]
 
             ystart = int(np.min(box[:,0]))
@@ -626,27 +604,10 @@ class DeepLearningProject:
         print()
 
     def set_pretrained_model(self, pretrained_model, model_type):
-        if model_type == DLModel.STARDIST:
-            self.models[DLModel.STARDIST] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model)
-        elif model_type == DLModel.YOLO_SAM:
-            self.models[DLModel.YOLO_SAM] = YoloSAMModel(None, self.model_path, self.num_classes, pretrained_model)
-        elif model_type == DLModel.CELLPOSE:
-            self.models[DLModel.CELLPOSE] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes, pretrained_model)
-        elif model_type == DLModel.UNET:
-            self.models[DLModel.UNET] = PytorchSemanticModel(self.patch_path, pretrained_model, self.num_classes)
-            
+        # add this model to the model dictionary 
+        self.models[model_type] = pretrained_model
+
     def get_model(self, network_type):
-        if self.models[network_type] is None:
-            if network_type == DLModel.UNET:
-                self.models[network_type] = PytorchSemanticModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == DLModel.STARDIST:
-                self.models[network_type] = StardistInstanceModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == DLModel.CELLPOSE:
-                self.models[network_type] = CellPoseInstanceModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == DLModel.YOLO_SAM:
-                self.models[network_type] = YoloSAMModel(self.patch_path, self.model_path, self.num_classes)
-            elif network_type == DLModel.MOBILE_SAM2:
-                self.models[network_type] = MobileSAMModel(self.patch_path, self.model_path)
         return self.models[network_type]
 
     def perform_training(self, network_type, num_epochs, update):
@@ -663,8 +624,10 @@ class DeepLearningProject:
             
         if update is not None:
             update(f"Apply {network_type} to image "+str(n)+"...")
-    
-        if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
+        
+        model = self.models[network_type]
+
+        if model.boxes == True:
 
             model = self.get_model(network_type)
             prediction, results = model.predict(image, imagesz)
@@ -674,16 +637,16 @@ class DeepLearningProject:
             
             return prediction, boxes
         else:
-            model = self.get_model(network_type)
             prediction = model.predict(image)
 
             self.prediction_list[0][n] = prediction
 
             return prediction
-        
+            
     def predict_all(self, network_type, update):
-
-        if network_type == DLModel.YOLO_SAM or network_type == DLModel.MOBILE_SAM2:
+        model = self.models[network_type]
+        
+        if model.boxes == True:
             self.object_boxes = []
             self.predicted_object_boxes = []
 
@@ -704,32 +667,5 @@ class DeepLearningProject:
                     prediction = self.predict(n, network_type, update)
                     temp.append(prediction)
                 self.prediction_list.append(temp)
-
-    def set_cellpose_params(self, diameter, cellpose_channels = [0,1], cellprob_threshold = 0.0, flow_threshold = 0.4):
-        cellpose_model = self.get_model(DLModel.CELLPOSE)
-        cellpose_model.diameter = diameter
-        cellpose_model.cellpose_channels = cellpose_channels
-        cellpose_model.cellprob_threshold = cellprob_threshold
-        cellpose_model.flow_threshold = flow_threshold    
-
-    def set_stardist_params(self, prob_thresh, nms_thresh, scale):
-        stardist_model = self.get_model(DLModel.STARDIST)
-        stardist_model.prob_thresh = prob_thresh
-        stardist_model.nms_thresh = nms_thresh
-        stardist_model.scale = scale
-
-    def set_pytorch_semantic_params(self, threshold):
-        pytorch_model = self.get_model(DLModel.UNET)
-        pytorch_model.threshold = threshold
-    
-    def xyxy_to_tltrbrbl(self, boxes, n):
-        boxes_ = []
-        for box in boxes:
-            tl = [n, box[1], box[0]]
-            tr = [n, box[1], box[2]]
-            br = [n, box[3], box[2]]
-            bl = [n, box[3], box[0]]
-            bbox = [tl, tr, br, bl]
-            boxes_.append(bbox)
-        return boxes_
-      
+   
+     

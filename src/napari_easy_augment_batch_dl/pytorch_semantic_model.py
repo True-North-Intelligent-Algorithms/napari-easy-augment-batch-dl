@@ -1,5 +1,5 @@
 import numpy as np
-from napari_easy_augment_batch_dl.base_model import BaseModel
+from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
 from tifffile import imread
 import json
 from napari_easy_augment_batch_dl.pytorch_semantic_dataset import PyTorchSemanticDataset
@@ -11,8 +11,12 @@ from torchvision import transforms
 from torchvision.transforms import v2
 import os
 from datetime import datetime
+from dataclasses import dataclass, field
 
+@dataclass
 class PytorchSemanticModel(BaseModel):
+
+    semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     
     def __init__(self, patch_path, model_name, num_classes):
         # get path from model_name
@@ -31,6 +35,8 @@ class PytorchSemanticModel(BaseModel):
         super().__init__(patch_path, self.model_path, num_classes)
 
         self.threshold = 0.5
+        self.descriptor = "Pytorch Semantic Model"
+        self.load_mode = LoadMode.File
 
     def generate_model_name(self, base_name="model"):
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -195,6 +201,7 @@ class PytorchSemanticModel(BaseModel):
 
         return binary
 
-    
+    def load_model_from_disk(self, model_name):
+            self.model = torch.load(model_name)
 
 

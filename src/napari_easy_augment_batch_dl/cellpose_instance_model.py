@@ -1,31 +1,45 @@
-from napari_easy_augment_batch_dl.base_model import BaseModel
+from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
 import numpy as np
-import os
 from tnia.deeplearning.dl_helper import collect_training_data
 from cellpose import models, io
+from dataclasses import dataclass, field
 
+@dataclass
 class CellPoseInstanceModel(BaseModel):
+    
+    diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 100.0, 'default': 30.0, 'step': 1.0})
+    prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -1.0, 'max': 1.0, 'default': 0.0, 'step': 0.1})
+    flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -1.0, 'max': 1.0, 'default': 0.0, 'step': 0.1})
+    chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
+    chan2: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 1, 'step': 1})
 
     def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model: str = None):
         super().__init__(patch_path, model_path, num_classes)
 
         # start logger (to see training across epochs)
         logger = io.logger_setup()
-        
+
+        # if no model set to none and wait until user selects a model 
         if start_model is None:
-            # DEFINE CELLPOSE MODEL (without size model)
-            self.model = models.CellposeModel(gpu=True, model_type=None)
+            self.model = None
+        # if model passed in set it
         elif type(start_model) == models.Cellpose:
             self.model = start_model
+        # otherwise if path passed in load model
         else:
             self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model)
 
         self.diameter = 30
         self.flow_threshold = 0.4
         self.cellprob_threshold = 0.0
-    
-    def create_callback(self, updater):
-        pass
+        self.chan_segment = 0
+        self.chan2 = 1
+
+        self.descriptor = "CellPose Instance Model"
+        self.load_mode = LoadMode.File
+
+    def load_model_from_disk(self, model_path):
+        self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=model_path)
 
     def train(self, num_epochs, updater=None):
         add_trivial_channel = False
@@ -36,28 +50,42 @@ class CellPoseInstanceModel(BaseModel):
         X_ = X.copy()
         Y_ = Y.copy()
 
-        X_train = X_[:int(len(X_)*0.8)]
-        Y_train = Y_[:int(len(Y_)*0.8)]
-        X_test = X_[int(len(X_)*0.8):]
-        Y_test = Y_[int(len(Y_)*0.8):]
+        X_train = X_[:int(len(X_)*train_percentage)]
+        Y_train = Y_[:int(len(Y_)*train_percentage)]
+        X_test = X_[int(len(X_)*train_percentage):]
+        Y_test = Y_[int(len(Y_)*train_percentage):]
 
         print(X_train[0].shape)
         print(Y_train[0].shape)
 
         #print(help(self.model.train_seg))
 
+        if self.model is None:
+            self.model = models.CellposeModel(gpu=True, model_type=None)
+
         from cellpose import train
+
+        model_name = self.generate_model_name('cellpose')
       
         new_model_path = train.train_seg(self.model.net, X_train, Y_train, 
-            #test_data=X_val,
-            #test_labels=Y_val,
+            test_data=X_test,
+            test_labels=Y_test,
             channels=[0,1], 
             save_path=self.model_path, 
             n_epochs = num_epochs,
+            # TODO: make below GUI options
             #learning_rate=learning_rate, 
             #weight_decay=weight_decay, 
             #nimg_per_epoch=200,
-            model_name='cellpose_thirdtry')
+            model_name=model_name)
 
     def predict(self, img: np.ndarray):
-        return self.model.eval(img, channels=[0, 1], diameter = self.diameter, flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]
+        return self.model.eval(img, channels=[self.chan_segment, self.chan2], diameter = self.diameter, flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]
+
+    def get_model_names(self):
+        return ['notset', 'cyto3', 'tissuenet_cp3']
+    
+    def set_pretrained_model(self, model_name):
+        if model_name != 'notset':
+            if model_name in self.get_model_names():
+                self.model = models.CellposeModel(gpu=True, model_type=model_name)

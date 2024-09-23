@@ -4,13 +4,13 @@ from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDi
 from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
-from napari_easy_augment_batch_dl.widgets import LabeledSpinner
-from napari_easy_augment_batch_dl.deep_learning_project import DLModel
+#from napari_easy_augment_batch_dl.deep_learning_project import DLModel
 import numpy as np
 import pandas as pd
 import os
 from napari_easy_augment_batch_dl.utility import pad_to_largest
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
+from napari_easy_augment_batch_dl.param_widget import ParamWidget
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -162,12 +162,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         # add network architecture drop down
         self.network_architecture_drop_down = QComboBox()
-        self.network_architecture_drop_down.addItem(DLModel.STARDIST)
-        self.network_architecture_drop_down.addItem(DLModel.UNET)
-        self.network_architecture_drop_down.addItem(DLModel.CELLPOSE)
-        self.network_architecture_drop_down.addItem(DLModel.MOBILE_SAM2)
-        self.network_architecture_drop_down.addItem(DLModel.YOLO_SAM)
-
         self.train_predict_layout.addWidget(self.network_architecture_drop_down)
         
         def on_index_changed(index):
@@ -176,75 +170,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.network_architecture_drop_down.currentIndexChanged.connect(on_index_changed)
 
         self.stacked_model_params_layout = QStackedWidget()
-        
-        self.pytorch_semantic_params_layout = QVBoxLayout()
-        self.widgetGroup2 = QWidget()
-        self.pytorch_semantic_threshold = LabeledSpinner("Threshold", -10, 10, 0, None, is_double=True, step=0.1)
-        self.pytorch_semantic_params_layout.addWidget(self.pytorch_semantic_threshold)
-        self.widgetGroup2.setLayout(self.pytorch_semantic_params_layout)
-
-        self.stardist_params_layout = QVBoxLayout()
-        self.widgetGroup1 = QWidget()
-        self.prob_thresh = LabeledSpinner("Prob. Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
-        self.nms_thresh = LabeledSpinner("NMS Threshold", 0, 1, 0.5, None, is_double=True, step=0.01)
-        self.scale = LabeledSpinner("Scale", 0, 1, 0.5, None, is_double=True, step=0.01)
-        self.stardist_params_layout.addWidget(self.prob_thresh)
-        self.stardist_params_layout.addWidget(self.nms_thresh)
-        self.stardist_params_layout.addWidget(self.scale)
-        self.widgetGroup1.setLayout(self.stardist_params_layout)
-
-        self.cellpose_params_layout = QVBoxLayout()
-        self.widgetGroup3 = QWidget()
-        self.cell_diameter_spinner = LabeledSpinner("Cell Diameter", 0, 100, 30, None, is_double=False, step=1)
-        self.flow_threshold_spinner = LabeledSpinner("Flow Threshold", 0, 100, 0.4, None, is_double=True, step=0.01)
-        self.cellpose_prob_thresh_spinner = LabeledSpinner("Prob. Threshold", 0, 1, 0.0, None, is_double=True, step=0.01)
-        self.cellpose_params_layout.addWidget(self.cell_diameter_spinner)
-        self.cellpose_params_layout.addWidget(self.flow_threshold_spinner)
-        self.cellpose_params_layout.addWidget(self.cellpose_prob_thresh_spinner)  
-        self.widgetGroup3.setLayout(self.cellpose_params_layout)
-        
-        self.mobile_sam_params_layout = QVBoxLayout()
-        self.widgetGroup4 = QWidget()
-        self.imagesz_ms = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
-        self.mobile_sam_params_layout.addWidget(self.imagesz_ms)
-        self.widgetGroup4.setLayout(self.mobile_sam_params_layout)
-
-        self.yolo_sam_params_layout = QVBoxLayout()
-        self.widgetGroup5 = QWidget()
-        self.imagesz_ys = LabeledSpinner("Image Size", 0, 10000, 512, None, is_double=False, step=1)
-        self.yolo_class_label = QLabel("Class")
-        self.yolo_class_drop_down = QComboBox()
-        self.yolo_class_layout = QHBoxLayout()
-        self.yolo_class_layout.addWidget(self.yolo_class_label)
-        self.yolo_class_layout.addWidget(self.yolo_class_drop_down)
-
-        # handle dropdown changed 
-        def on_yolo_class_index_changed(index):
-            if self.object_boxes_layer is not None:
-                index = self.yolo_class_drop_down.currentIndex()
-                self.object_boxes_layer.feature_defaults['class'] = index
-
-        self.yolo_class_drop_down.currentIndexChanged.connect(on_yolo_class_index_changed) 
-
-        self.yolo_sam_params_layout.addLayout(self.yolo_class_layout)
-        self.yolo_sam_params_layout.addWidget(self.imagesz_ys)
-        self.widgetGroup5.setLayout(self.yolo_sam_params_layout)
-
-        self.stacked_model_params_layout.addWidget(self.widgetGroup1)
-        self.stacked_model_params_layout.addWidget(self.widgetGroup2)
-        self.stacked_model_params_layout.addWidget(self.widgetGroup3)
-        self.stacked_model_params_layout.addWidget(self.widgetGroup4)
-        self.stacked_model_params_layout.addWidget(self.widgetGroup5)
 
         self.train_predict_layout.addWidget(self.stacked_model_params_layout)
         
         self.train_predict_group.setLayout(self.train_predict_layout)
-        
-        # add load pretrained model button 
-        self.load_pretrained_model_button = QPushButton("Load pretrained model...")
-        self.load_pretrained_model_button.clicked.connect(self.load_pretrained_model)
-        self.train_predict_layout.addWidget(self.load_pretrained_model_button)
-
 
         # add network name text box
         self.network_name_text_box = QLineEdit()
@@ -298,8 +227,6 @@ class NapariEasyAugmentBatchDL(QWidget):
             index = self.viewer.dims.current_step[0]
             filename = self.deep_learning_project.files[index]
             self.current_file_name_label.setText(filename.name)
-            
-        
         
         self.viewer.dims.events.current_step.connect(index_changed)
     
@@ -354,7 +281,18 @@ class NapariEasyAugmentBatchDL(QWidget):
             num_classes, ok = QInputDialog.getInt(self, "Number of Classes", "Enter the number of classes (less than 8):", 1, 1, 8)
 
         self.deep_learning_project = DeepLearningProject(image_path, num_classes)
-        
+
+
+        for key, obj in self.deep_learning_project.models.items():
+            try:
+                temp1 = ParamWidget(obj)
+                self.network_architecture_drop_down.addItem(obj.descriptor)
+                self.stacked_model_params_layout.addWidget(temp1.widgetGroup)
+            except Exception as e:
+                print(e)
+                #self.network_architecture_drop_down.addItem(obj.__name__)
+                pass
+
         self.images = pad_to_largest(self.deep_learning_project.image_list, force8bit = True) 
 
         self.viewer.add_image(self.images, name='images')
@@ -451,11 +389,18 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.object_boxes_layer.visible = False
             self.predicted_object_boxes_layer.visible = False
 
+        
+        #TODO: integrate to new GUI approach
+        '''
         for c in range(self.deep_learning_project.num_classes):
             self.yolo_class_drop_down.addItem("Class "+str(c))
+        
 
         self.object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
         self.predicted_object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
+        '''        
+        self.object_boxes_layer.feature_defaults['class'] = 0 
+        self.predicted_object_boxes_layer.feature_defaults['class'] = 0 
 
         if self.deep_learning_project.boxes is not None:
             self.boxes_layer.add(self.deep_learning_project.boxes)
@@ -572,16 +517,16 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         num_epochs = self.number_epochs_spin_box.value()
 
+        # TODO: work out how to handle augmentation before training
         # perform another round of augmentation before training
         # The user also has the option to perform augmentation before training as to customize the augmented data
         # (for example they can augment a single image multiple times potentially with different augmentations, weighting that image more)
         # So ideally the user would augment the data before training
         # However this will confuse some users, as if they don't augment, not all images will be used in training
-        # Thus we do a final round of augmentation before training
-
+        # Thus we do a final round of augmentation before training?
         #self.augment_all()
 
-        thread = True
+        thread =  False
         if thread:
             '''
             if hasattr(self, 'thread'):
@@ -611,15 +556,18 @@ class NapariEasyAugmentBatchDL(QWidget):
     def predict_current_image(self):
         self.textBrowser_log.append("Predicting current image...")
         n = self.viewer.dims.current_step[0]
-        model_text = self.network_architecture_drop_down.currentText()
-        if model_text == DLModel.YOLO_SAM or model_text == DLModel.MOBILE_SAM2:
-            
-            if model_text == DLModel.YOLO_SAM:
-                imagesz = self.imagesz_ys.spinner.value()
-            else:
-                imagesz = self.imagesz_ms.spinner.value()
-            
-            predictions, boxes = self.deep_learning_project.predict(n, model_text, self.update, imagesz=imagesz)
+        
+        model_name = self.network_architecture_drop_down.currentText()
+        show_boxes = self.deep_learning_project.models[model_name].boxes
+
+        model = self.deep_learning_project.models[model_name].model
+
+        if model == None:
+            QMessageBox.information(self, "Error", "Please load or a select a pretrained model first.")
+            return
+
+        if show_boxes == True:
+            predictions, boxes = self.deep_learning_project.predict(n, model_name, self.update)
             
             #self.object_boxes_layer.add(boxes)
             #self.object_boxes_layer.refresh()
@@ -629,30 +577,25 @@ class NapariEasyAugmentBatchDL(QWidget):
 
             self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
             self.predictions[0].refresh() 
-
         else:
-
-            if model_text == DLModel.CELLPOSE:
-                self.deep_learning_project.set_cellpose_params(self.cell_diameter_spinner.spinner.value(), [0,1], self.flow_threshold_spinner.spinner.value(), self.cellpose_prob_thresh_spinner.spinner.value())
-            elif model_text == DLModel.STARDIST:
-                self.deep_learning_project.set_stardist_params(self.prob_thresh.spinner.value(), self.nms_thresh.spinner.value(), self.scale.spinner.value())
-            elif model_text == DLModel.UNET:
-                self.deep_learning_project.set_pytorch_semantic_params(self.pytorch_semantic_threshold.spinner.value())
-
+            
             pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
-                
+                    
             self.predictions[0].data[n, :pred.shape[0], :pred.shape[1]]=pred
             self.predictions[0].refresh()              
-        pass
+        
+            pass
     
     def predict_all_images(self):
         
         self.textBrowser_log.append("Predicting all images...")
-        
-        model_text = self.network_architecture_drop_down.currentText()
-        if model_text == DLModel.YOLO_SAM or model_text == DLModel.MOBILE_SAM2:
 
-            self.deep_learning_project.predict_all(model_text, self.update)
+        model_name = self.network_architecture_drop_down.currentText()
+        show_boxes = self.deep_learning_project.models[model_name].boxes
+
+        if show_boxes == True:
+
+            self.deep_learning_project.predict_all(model_name, self.update)
 
             #self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
             self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
@@ -661,11 +604,16 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predictions[0].data = predictions
         
         else:
-            self.deep_learning_project.predict_all(model_text, self.update)          
+            self.deep_learning_project.predict_all(model_name, self.update)          
             predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
 
             #self.viewer.add_labels(predictions, name='predictions')
             self.predictions[0].data = predictions
+        ''' 
+        self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentIndex(), self.update)          
+        predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
+        self.predictions[0].data = predictions
+        '''
 
     def disable_gui(self):
         pass
