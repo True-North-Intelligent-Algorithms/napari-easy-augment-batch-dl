@@ -5,6 +5,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QSpinBox,
     QWidget,
+    QComboBox
 )
 
 class LabeledSpinner(QWidget):
@@ -28,5 +29,23 @@ class LabeledSpinner(QWidget):
         self.layout.setContentsMargins(10, 2, 10, 2)  # adjust the margins around the layout
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.spinner)
+
+        self.setLayout(self.layout)
+
+class LabeledCombo(QWidget):
+    def __init__(self, label_text, items, change_value_method):
+        super().__init__()
+
+        self.label = QLabel(label_text)
+        self.combo = QComboBox()
+        self.combo.addItems(items)
+
+        if change_value_method is not None:
+            self.combo.currentIndexChanged.connect(change_value_method)
+
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(10, 2, 10, 2)  # adjust the margins around the layout
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.combo)
 
         self.setLayout(self.layout)
