@@ -169,3 +169,28 @@ def yolotxt_to_naparibb(yolo_txt_name, image_shape, n):
             features = pd.concat([features,df_new], ignore_index=True) 
 
     return object_boxes, features
+
+def xyxy_to_tltrbrbl(boxes, n):
+    """ Convert a list of bounding boxes in xyxy format to n-tltrbrbl format.
+
+    xyxy format is [top-left-x, top-left-y, bottom-right-x, bottom-right-y]
+
+    n-tltrbrbl format is [[n, top-left-y, top-left-x], [n, top-right-y, top-right-x], [n, bottom-right-y, bottom-right-x], [n, bottom-left-y, bottom-left-x]]
+
+    Args:
+        boxes (_type_): _description_
+        n (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    boxes_ = []
+    for box in boxes:
+        tl = [n, box[1], box[0]]
+        tr = [n, box[1], box[2]]
+        br = [n, box[3], box[2]]
+        bl = [n, box[3], box[0]]
+        bbox = [tl, tr, br, bl]
+        boxes_.append(bbox)
+    return boxes_
+ 
