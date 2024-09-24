@@ -1,4 +1,3 @@
-import nonsense
 from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
 import numpy as np
 import os
@@ -18,12 +17,12 @@ class YoloSAMModel(BaseModel):
     
     def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model_path: str = None):
         super().__init__(patch_path, model_path, num_classes)
-        #self.yolo_detecter = YoloDetector( 'yolov8m.pt', "RegularYOLO", 'cuda')
+        #self.model = YoloDetector( 'yolov8m.pt', "RegularYOLO", 'cuda')
         model_name = os.path.join(model_path, r'')
         
         if start_model_path is not None:
             best_model_path = os.path.join(start_model_path, 'weights', 'best.pt')
-            self.yolo_detecter = YoloDetector(best_model_path, "loaded YOLO", device='cuda')
+            self.model = YoloDetector(best_model_path, "loaded YOLO", device='cuda')
         
         self.custom_model = None
         self.conf = 0.5
@@ -34,7 +33,7 @@ class YoloSAMModel(BaseModel):
         self.load_mode = LoadMode.Directory
                  
     def predict(self, img: np.ndarray, imagesz=1024):
-        results = self.yolo_detecter.get_results(img, conf=self.conf, iou=self.iou, imgsz=self.imagesz)
+        results = self.model.get_results(img, conf=self.conf, iou=self.iou, imgsz=self.imagesz)
         self.bbs=results[0].boxes.xyxy.cpu().numpy()
         stacked_labels = StackedLabels.from_yolo_results(self.bbs, None, img)
         segmented_stacked_labels = segment_from_stacked_labels(stacked_labels, "MobileSamV2")
@@ -77,4 +76,8 @@ class YoloSAMModel(BaseModel):
             resume = resume)
         
         new_model_path = os.path.join(project_path, name, 'weights', 'best.pt')
-        self.yolo_detecter = YoloDetector(new_model_path, "new trained YOLO", device='cuda')
+        self.model = YoloDetector(new_model_path, "new trained YOLO", device='cuda')
+    
+    def load_model_from_disk(self, model_path):
+        best_model_path = os.path.join(model_path, 'weights', 'best.pt')
+        self.model = YoloDetector(best_model_path, "loaded YOLO", device='cuda')
