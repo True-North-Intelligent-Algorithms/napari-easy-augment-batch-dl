@@ -7,7 +7,16 @@ import json
 from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
-from napari_easy_augment_batch_dl.bounding_box_util import is_bbox_within, tltrblbr_to_normalized_xywh, normalized_xywh_to_tltrblbr, x1y1x2y2_to_tltrblbr, yolotxt_to_naparibb, tltrblbr_to_normalized_xywh
+from napari_easy_augment_batch_dl.bounding_box_util import (
+    is_bbox_within,
+    tltrblbr_to_normalized_xywh,
+    normalized_xywh_to_tltrblbr,
+    x1y1x2y2_to_tltrblbr,
+    yolotxt_to_naparibb,
+    tltrblbr_to_normalized_xywh,
+    xyxy_to_tltrbrbl
+)
+
 import pandas as pd
 import yaml
 import glob 
@@ -631,7 +640,7 @@ class DeepLearningProject:
 
             model = self.get_model(network_type)
             prediction, results = model.predict(image, imagesz)
-            boxes = self.xyxy_to_tltrbrbl(results, n)
+            boxes = xyxy_to_tltrbrbl(results, n)
 
             self.prediction_list[0][n] = prediction
             
