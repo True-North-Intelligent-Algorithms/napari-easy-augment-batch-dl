@@ -39,3 +39,13 @@ def pad_to_largest(images, force8bit=False):
     
     return result
 
+def unpad_to_original(images, original_images):
+    unpadded_images = []        
+    for n in range(len(images)):
+        height, width = original_images[n].shape[:2]
+
+        image = images[n][:height, :width]
+        unpadded_images.append(image)
+
+    return unpadded_images
+
