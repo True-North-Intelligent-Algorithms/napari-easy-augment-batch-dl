@@ -8,7 +8,7 @@ from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProje
 import numpy as np
 import pandas as pd
 import os
-from napari_easy_augment_batch_dl.utility import pad_to_largest
+from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.param_widget import ParamWidget
 
@@ -134,7 +134,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         patch_size_layout = QHBoxLayout()
         patch_size_label = QLabel("Patch size:")
         self.patch_size_spin_box = QSpinBox()
-        self.patch_size_spin_box.setRange(1, 1000)
+        self.patch_size_spin_box.setRange(1, 4096)
         self.patch_size_spin_box.setValue(256)
         patch_size_layout.addWidget(patch_size_label)
         patch_size_layout.addWidget(self.patch_size_spin_box)
@@ -451,10 +451,17 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.YOLO_SAM)
 
     def save_results(self):
+        '''
         label_nps = []
-
+        label_nps_ = []
         for label in self.labels:
             label_nps.append(label.data)
+
+            temp = unpad_to_original(label.data, self.deep_learning_project.image_list)
+            label_nps_.append(temp)
+        '''
+
+        self.update_project()
 
         object_boxes=self.object_boxes_layer.data
         
@@ -468,6 +475,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         #QMessageBox.information(self, "Save Results", "Results saved successfully.")
 
     def augment_current(self):
+        
+        self.update_project()
+        
         self.textBrowser_log.append("Augmenting current image...")
 
         n = self.viewer.dims.current_step[0]
@@ -480,6 +490,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.perform_augmentation(filtered_boxes)
 
     def augment_all(self):
+        
+        self.update_project()
+        
         boxes = self.viewer.layers['Label box'].data
         self.perform_augmentation(boxes)
 
@@ -502,7 +515,11 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.textBrowser_log.append("Performing augmentation...")
         objects=self.object_boxes_layer.data
         # if yolo
-        if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
+
+        model_name = self.network_architecture_drop_down.currentText()
+        if self.deep_learning_project.models[model_name].boxes ==True:
+
+        #if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
             classes = self.object_boxes_layer.features['class'].to_numpy()
             self.deep_learning_project.perform_yolo_augmentation(boxes, objects, classes, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
@@ -620,5 +637,14 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def enable_gui(self):
         pass
+
+    def update_project(self):   
+        label_nps = []
+        for label in self.labels:
+            temp = unpad_to_original(label.data, self.deep_learning_project.image_list)
+            label_nps.append(temp)
+
+        self.deep_learning_project.annotation_list = label_nps
+
 
        

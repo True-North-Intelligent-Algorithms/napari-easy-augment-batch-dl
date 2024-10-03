@@ -29,7 +29,7 @@ except ImportError:
     PytorchSemanticModel = None
 try:
     from napari_easy_augment_batch_dl.stardist_instance_model import StardistInstanceModel
-except ImportError:
+except:
     StardistInstanceModel = None
 try:
     from napari_easy_augment_batch_dl.cellpose_instance_model import CellPoseInstanceModel
@@ -115,7 +115,6 @@ class DeepLearningProject:
                     im = im[:,:,:3]
             self.image_list.append(im)
         
-        self.label_list = []
         self.prediction_list = []
         self.annotation_list = []        
         self.boxes = []
@@ -214,7 +213,6 @@ class DeepLearningProject:
                     n = n+1
 
 
-                self.label_list.append(labels_temp)
                 self.prediction_list.append(predictions_temp)
                 self.annotation_list.append(annotations_temp)                        
             
@@ -251,12 +249,10 @@ class DeepLearningProject:
         # else this is a new project
         else:
             for c in range(self.num_classes):
-                self.label_list.append([])
                 self.prediction_list.append([])
                 self.annotation_list.append([])
                 
                 for image in self.image_list:
-                    self.label_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
     # TODO: move to a utility class 
@@ -272,7 +268,7 @@ class DeepLearningProject:
             else:
                 print(f'Skipped non-file item: {file}')
 
-    def save_project(self, boxes, labels_from_napari):
+    def save_project(self, boxes):
 
         # save json file with num_classes
         json_name = os.path.join(self.parent_path, 'info.json')
@@ -320,8 +316,7 @@ class DeepLearningProject:
             labels=[]
             
             for c in range(self.num_classes):
-                #labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
-                labels.append(labels_from_napari[c][z,ystart:yend, xstart:xend])
+                labels.append(self.annotation_list[c][z,ystart:yend, xstart:xend])
                 print('labelsum is ', labels[c].sum())
 
             print(im.shape, labels[0].shape)
@@ -353,7 +348,7 @@ class DeepLearningProject:
         for image in self.image_list:
             for c in range(self.num_classes):
                 height, width = image.shape[:2]
-                annotation = labels_from_napari[c][z][:height, :width]
+                annotation = self.annotation_list[c][z][:height, :width]
                 annotation = annotation.astype(np.uint16)
                 
                 annotation_name = self.get_annotation_name(z, c)
@@ -484,7 +479,7 @@ class DeepLearningProject:
             labels=[]
             
             for c in range(self.num_classes):
-                labels.append(self.label_list[c][z][ystart:yend, xstart:xend])
+                labels.append(self.annotation_list[c][z][ystart:yend, xstart:xend])
 
             ## IMPORTANT:  we apply normalization just before generating the patches
             #  this is useful because the normalization will be applied using the range of the 
