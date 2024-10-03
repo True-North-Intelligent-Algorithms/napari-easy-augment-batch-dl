@@ -7,9 +7,9 @@ from dataclasses import dataclass, field
 @dataclass
 class CellPoseInstanceModel(BaseModel):
     
-    diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 100.0, 'default': 30.0, 'step': 1.0})
-    prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -1.0, 'max': 1.0, 'default': 0.0, 'step': 0.1})
-    flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -1.0, 'max': 1.0, 'default': 0.0, 'step': 0.1})
+    diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 500.0, 'default': 30.0, 'step': 1.0})
+    prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
+    flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
     chan2: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 1, 'step': 1})
 
@@ -30,10 +30,10 @@ class CellPoseInstanceModel(BaseModel):
             self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model)
 
         self.diameter = 30
-        self.flow_threshold = 0.4
-        self.cellprob_threshold = 0.0
-        self.chan_segment = 0
-        self.chan2 = 1
+        self.prob_thresh = 0.0
+        self.flow_thresh = 0.4
+        self.chan_segment = 1
+        self.chan2 = 0
 
         self.descriptor = "CellPose Instance Model"
         self.load_mode = LoadMode.File
@@ -70,7 +70,7 @@ class CellPoseInstanceModel(BaseModel):
         new_model_path = train.train_seg(self.model.net, X_train, Y_train, 
             test_data=X_test,
             test_labels=Y_test,
-            channels=[0,1], 
+            channels=[self.chan_segment, self.chan2], 
             save_path=self.model_path, 
             n_epochs = num_epochs,
             # TODO: make below GUI options
@@ -80,7 +80,7 @@ class CellPoseInstanceModel(BaseModel):
             model_name=model_name)
 
     def predict(self, img: np.ndarray):
-        return self.model.eval(img, channels=[self.chan_segment, self.chan2], diameter = self.diameter, flow_threshold=self.flow_threshold, cellprob_threshold=self.cellprob_threshold)[0]
+        return self.model.eval(img, channels=[self.chan_segment, self.chan2], diameter = self.diameter, flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh)[0]
 
     def get_model_names(self):
         return ['notset', 'cyto3', 'tissuenet_cp3']
