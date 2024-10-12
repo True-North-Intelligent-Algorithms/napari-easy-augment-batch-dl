@@ -1,13 +1,10 @@
 
-from email.mime import image
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
+from qtpy.QtWidgets import QDialog, QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
 from PyQt5.QtCore import QThread
+from PyQt5.QtCore import Qt  # This brings in the Qt constants
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
-#from napari_easy_augment_batch_dl.deep_learning_project import DLModel
 import numpy as np
-import pandas as pd
-import os
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.param_widget import ParamWidget
@@ -175,11 +172,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.train_predict_group.setLayout(self.train_predict_layout)
 
-        # add network name text box
-        self.network_name_text_box = QLineEdit()
-        self.network_name_text_box.setPlaceholderText("Enter network name")
-        self.train_predict_layout.addWidget(self.network_name_text_box)
-
         # add number epochs spin box
         self.number_epochs_layout = QHBoxLayout()
         self.number_epochs_label = QLabel("Number of epochs:")
@@ -281,13 +273,15 @@ class NapariEasyAugmentBatchDL(QWidget):
             num_classes, ok = QInputDialog.getInt(self, "Number of Classes", "Enter the number of classes (less than 8):", 1, 1, 8)
 
         self.deep_learning_project = DeepLearningProject(image_path, num_classes)
+        self.param_widgets = {}
 
 
         for key, obj in self.deep_learning_project.models.items():
             try:
                 temp1 = ParamWidget(obj)
+                self.param_widgets[key] = temp1
                 self.network_architecture_drop_down.addItem(obj.descriptor)
-                self.stacked_model_params_layout.addWidget(temp1.widgetGroup)
+                self.stacked_model_params_layout.addWidget(temp1.prediction_widget)
             except Exception as e:
                 print(e)
                 #self.network_architecture_drop_down.addItem(obj.__name__)
@@ -418,54 +412,17 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predicted_object_boxes_layer.features = self.deep_learning_project.predicted_features
         
         self.boxes_layer.events.data.connect(handle_new_roi)
-    
-    def load_pretrained_model(self):
-         # Open a file dialog to select a file or directory
-        options = QFileDialog.Options()
-
-        if self.network_architecture_drop_down.currentText() == DLModel.UNET:
-            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File or Directory", "", "All Files (*)", options=options)
-
-            if file_.lower().endswith('.pth'):
-                #self.load_pytorch_model(file_or_directory)
-                self.textBrowser_log.append("Loading Pytorch model...")
-            else:
-                self.textBrowser_log.append("Selected file is not a .pth file.")
-
-            self.deep_learning_project.set_pretrained_model(file_, DLModel.UNET)
-            
-        elif self.network_architecture_drop_down.currentText() == DLModel.STARDIST:
-            self.textBrowser_log.append("Loading StarDist model...")
-            start_model_path = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
-            # Assuming it's a StarDist model
-            self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.STARDIST)
-        elif self.network_architecture_drop_down.currentText() == DLModel.CELLPOSE:
-            file_, _ = QFileDialog.getOpenFileName(self, "Select Cellpose Model File", "", "All Files (*)", options=options)
-            self.deep_learning_project.set_pretrained_model(file_, DLModel.CELLPOSE)
-
-        elif self.network_architecture_drop_down.currentText() == DLModel.MOBILE_SAM2:
-            raise NotImplementedError("Mobile SAM2 model is fixed and cannot be changed")
-        elif self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
-            self.textBrowser_log.append("Loading YOLO model...")
-            start_model_path = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
-            self.deep_learning_project.set_pretrained_model(start_model_path, DLModel.YOLO_SAM)
+   
+    def set_pretrained_model(self, model_path, model_type):
+        widget = self.param_widgets[model_type]
+        widget.load_model_from_path(model_path) 
 
     def save_results(self):
-        '''
-        label_nps = []
-        label_nps_ = []
-        for label in self.labels:
-            label_nps.append(label.data)
-
-            temp = unpad_to_original(label.data, self.deep_learning_project.image_list)
-            label_nps_.append(temp)
-        '''
-
         self.update_project()
 
         object_boxes=self.object_boxes_layer.data
         
-        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, label_nps)
+        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data)
 
         if len(object_boxes)>0:        
             object_classes = self.object_boxes_layer.features['class'].to_numpy()
@@ -531,6 +488,10 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def perform_training(self):
         self.textBrowser_log.append("Training network...")
+        
+        widget = self.param_widgets[self.network_architecture_drop_down.currentText()]
+        dialog = widget.train_dialog
+        dialog.exec_()
 
         num_epochs = self.number_epochs_spin_box.value()
 
@@ -569,6 +530,8 @@ class NapariEasyAugmentBatchDL(QWidget):
              
         else:
             self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
+
+        widget.sync_with_model()
 
     def predict_current_image(self):
         self.textBrowser_log.append("Predicting current image...")
@@ -626,11 +589,6 @@ class NapariEasyAugmentBatchDL(QWidget):
 
             #self.viewer.add_labels(predictions, name='predictions')
             self.predictions[0].data = predictions
-        ''' 
-        self.deep_learning_project.predict_all(self.network_architecture_drop_down.currentIndex(), self.update)          
-        predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
-        self.predictions[0].data = predictions
-        '''
 
     def disable_gui(self):
         pass

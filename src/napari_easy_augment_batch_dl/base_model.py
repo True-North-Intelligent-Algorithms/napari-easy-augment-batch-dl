@@ -1,17 +1,9 @@
 from datetime import datetime
 
-class DLModel:
-    UNET = "U-Net"
-    STARDIST = "Stardist"
-    CELLPOSE = "CellPose"
-    YOLO_SAM = "Yolo/SAM"
-    MOBILE_SAM2 = "Mobile SAM 2"
-
 class LoadMode:
     NotLoadable = 0
     Directory = 1
     File=2
-
 
 class BaseModel:
     def __init__(self, patch_path='', model_path='', num_classes=1):
@@ -21,6 +13,8 @@ class BaseModel:
         self.model_name = 'notset'
         self.load_mode = LoadMode.NotLoadable
         self.boxes = False
+        self.builtin_names = []
+        self.pretrained_models = {}
 
     def set_model(self, model):
         self.model = model
@@ -33,7 +27,10 @@ class BaseModel:
 
     def get_model_names(self):
         return ['notset']
-    
+
+    def get_optimizers(self):
+        return []
+
     def create_callback(self, updater):
         pass
 
@@ -42,5 +39,24 @@ class BaseModel:
         model_name = f"{base_name}_{current_time}"
         return model_name
     
-    def set_pretrained_model(self, model_path):
+    def set_pretrained_model(self, model_name):
+        if model_name != 'notset':
+
+            model = self.pretrained_models.get(model_name, None)
+
+            if model is None:
+
+                # if a built in model set it
+                if model_name in self.builtin_names:
+                    #self.model = models.CellposeModel(gpu=True, model_type=model_name)
+                    self.set_builtin_model(model_name)
+                    self.pretrained_models[model_name] = self.model
+            else:
+                self.model = model
+
+    def set_optimizer(self, optimizer):
         pass
+
+    def set_builtin_model(self, model_name):
+        pass
+

@@ -1,6 +1,8 @@
 from qtpy.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget, QFileDialog
-from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo
+from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo, LabeledEdit
 from napari_easy_augment_batch_dl.base_model import LoadMode
+from PyQt5.QtCore import Qt  # This brings in the Qt constants
+import os
 
 class ParamWidget(QDialog):
     def __init__(self, model, parent=None):
@@ -9,14 +11,18 @@ class ParamWidget(QDialog):
         self.model = model 
         self.harvested_params = {name: field.metadata for name, field in model.__dataclass_fields__.items() if field.metadata.get('harvest')}
         self.model_names = model.get_model_names()
-        self.layout = QVBoxLayout()
-        self.widgetGroup = QWidget()
+        self.optimizers = model.get_optimizers()
+        self.prediction_layout = QVBoxLayout()
+        self.prediction_widget = QWidget()
         
+        self.train_layout = QVBoxLayout()
+        self.train_widget = QWidget()
+
         # Create input fields based on the harvested parameters
         self.fields = {}
         for param_name, meta in self.harvested_params.items():
-            #label = QLabel(param_name)
-            #layout.addWidget(label)
+
+            train = meta.get('training', False)
             
             if meta['type'] == 'int':
                 min = meta.get('min', 0)
@@ -26,8 +32,6 @@ class ParamWidget(QDialog):
                 field = LabeledSpinner(param_name, min, max, default, None, is_double=False, step=step)
                 field.spinner.valueChanged.connect(lambda value, name=param_name: setattr(self.model, name, value))
             elif meta['type'] == 'float':
-                #field = QLineEdit()
-                #field.setPlaceholderText("Enter a float")
                 min = meta.get('min', 0)
                 max = meta.get('max', 1)
                 default = meta.get('default', 0.5)
@@ -38,60 +42,67 @@ class ParamWidget(QDialog):
                 field = QLineEdit()
                 field.setPlaceholderText("Enter a string")
             else:
-                field = QLineEdit()
-                
+                #field = QLineEdit()
+
+                # see if model has param name
+                if hasattr(self.model, param_name):
+                    default = getattr(self.model, param_name)
+                    place_holder = None
+                else:
+                    default = None
+                    place_holder = "Enter a string"
+
+                field = LabeledEdit(param_name, default, place_holder, None)
+                field.edit.textChanged.connect(lambda text, name=param_name: setattr(self.model, name, text))
+
             self.fields[param_name] = field
-            self.layout.addWidget(field)
+            
+            if train:
+                self.train_layout.addWidget(field)            
+            else:
+                self.prediction_layout.addWidget(field)
 
-            # add call back to set the value
-            #field.textChanged.connect(lambda text, name=param_name: setattr(self.model, name, text))
-
-
+        # the model name is a special case.  We need a combo box and special handler to select the model
         if len(self.model_names) > 0:
             # add combo with model names
-            '''
-            label = QLabel('Model')
-            self.layout.addWidget(label)
-            self.network_architecture_drop_down = QComboBox()
-            self.network_architecture_drop_down.addItems(self.model_names)
-            self.layout.addWidget(self.network_architecture_drop_down)
-            self.network_architecture_drop_down.currentIndexChanged.connect(self.on_model_name_change)
-            '''
-
             self.pretrained_combo = LabeledCombo('Model', self.model_names, self.on_model_name_change)
-            self.layout.addWidget(self.pretrained_combo)
+            self.prediction_layout.addWidget(self.pretrained_combo)
 
-        if self.model.load_mode == LoadMode.Directory:
+        # same with the optimizers
+        if len(self.optimizers) > 0:
+            self.optimizer_combo = LabeledCombo('Optimizer', self.optimizers, self.on_optimizer_change)
+            self.train_layout.addWidget(self.optimizer_combo)
+
+        # also need to add a load button if the model is loadable    
+        if self.model.load_mode == LoadMode.Directory or self.model.load_mode == LoadMode.File:
             # add load button
             load_button = QPushButton("Load")
-            load_button.clicked.connect(self.load_model)
-            self.layout.addWidget(load_button)
-        elif self.model.load_mode == LoadMode.File:
-            # add load button
-            load_button = QPushButton("Load")
-            load_button.clicked.connect(self.load_model)
-            self.layout.addWidget(load_button)
+            load_button.clicked.connect(self.show_load_model_dialog)
+            self.prediction_layout.addWidget(load_button)
 
-       
-        # Add OK button to close the dialog
-        #ok_button = QPushButton("OK")
-        #ok_button.clicked.connect(self.accept)
-        #layout.addWidget(ok_button)
-        
-        self.widgetGroup.setLayout(self.layout)
-    
+        # create a widget for the prediction and training parameters       
+        self.prediction_widget.setLayout(self.prediction_layout)
+        self.train_widget.setLayout(self.train_layout)
+
+        # create a dialog for the training parameters (I tried to create this as needed, but ran into issues with the widget being deleted)
+        self.train_dialog = QDialog()
+        layout = QVBoxLayout(self.train_dialog)
+        layout.addWidget(self.train_widget)
+        self.train_dialog.setLayout(layout)
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(self.train_dialog.accept)
+        layout.addWidget(ok_button)
+        self.train_dialog.setAttribute(Qt.WA_DeleteOnClose, False)
+
     def on_model_name_change(self, index):
         model_name = self.model_names[index]
         self.model.set_pretrained_model(model_name)
-    
-    def get_values(self):
-        # Return the values entered in the dialog
-        return {name: field.text() for name, field in self.fields.items()}
-    
-    def load_directory(self):
-        pass;
 
-    def load_model(self):
+    def on_optimizer_change(self, index):
+        optimizer = self.optimizers[index]
+        self.model.set_optimizer(optimizer)
+    
+    def show_load_model_dialog(self):
 
         if self.model.load_mode == LoadMode.File:
             options = QFileDialog.Options()
@@ -100,11 +111,27 @@ class ParamWidget(QDialog):
             options = QFileDialog.Options()
             file_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
         
+        self.load_model_from_path(file_)
+
+    def load_model_from_path(self, file_): 
         self.model.load_model_from_disk(file_)
 
-        model_name = file_.split('/')[-1]
-
+        model_name = os.path.basename(file_)
+        
         self.pretrained_combo.combo.addItem(model_name)
+        self.fields['model_name'].edit.setText(model_name)
         self.model_names.append(model_name)
         self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
+
+    def sync_with_model(self):
+        
+        # model name
+        model_name = self.model.model_name
+
+        items = [self.pretrained_combo.combo.itemText(i) for i in range(self.pretrained_combo.combo.count())]
+
+        if model_name not in items:
+            self.pretrained_combo.combo.addItem(model_name)
+            self.model_names.append(model_name)
+            self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
 

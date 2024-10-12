@@ -43,6 +43,14 @@ class StardistInstanceModel(BaseModel):
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     nms_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     scale: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 100.0, 'default': 1.0, 'step': 1.0})
+    
+    # third set of parameters have advanced False and training True and will be shown in the training popup dialog
+    num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+    model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'cyto3', 'step': 1})
+
+    builtin_names = ['2D_versatile_fluo', '2D_versatile_he']
+    
+    model_names = ['notset', '2D_versatile_fluo', '2D_versatile_he']
 
     def __init__(self, patch_path: str = '', model_path: str = '',  num_classes: int = 1, start_model_path: str = None):
         super().__init__(patch_path, model_path, num_classes)
@@ -51,18 +59,6 @@ class StardistInstanceModel(BaseModel):
         
         if start_model_path is None:
             self.model = None
-            '''
-            n_rays = 32
-            axes = 'YXC'
-
-            if axes == 'YXC':
-                n_channel_in = 3
-            else:
-                n_channel_in = 1
-
-            config = Config2D (n_rays=n_rays, axes=axes,n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=4)
-            self.model = StarDist2D(config = config, name='model_temp', basedir = model_path)
-            '''
         else:
             basename = os.path.basename(start_model_path)
             basedir = os.path.dirname(start_model_path)
@@ -82,6 +78,7 @@ class StardistInstanceModel(BaseModel):
         self.custom_callback = CustomCallback(updater)
 
     def predict(self, img: np.ndarray):
+        # TODO: make quantiles a parameter
         #img_normalized = normalize(img,1,99.8, axis=(0,1))
         #img_normalized = quantile_normalization(img, quantile_low=0.001).astype(np.float32)
         img_normalized = quantile_normalization(img, quantile_low=0.003).astype(np.float32)
@@ -92,18 +89,7 @@ class StardistInstanceModel(BaseModel):
     
     def train(self, num_epochs, updater=None):
        # make thread model
-        '''
-        for i in range(num_epochs):
-            # pause
-            print('epoch ',i)
-            time.sleep(1)
-            
-            if self.updater is not None:
-                self.updater(f"Starting epoch {i}", i)
-                #print(f"Starting epoch {i}")
-                # do something
 
-        '''
         json_name = os.path.join(self.patch_path, 'info.json')
 
         self.num_epochs = num_epochs
@@ -142,8 +128,7 @@ class StardistInstanceModel(BaseModel):
         return self._model_type
 
     def get_model_names(self):
-        return ['model1', 'model2']
-
+        return self.model_names
 
     def load_model_from_disk(self, full_model_name):
         # get path and name from model_name
@@ -151,3 +136,9 @@ class StardistInstanceModel(BaseModel):
         model_name = os.path.basename(full_model_name)
 
         self.model = StarDist2D(config=None, name=model_name, basedir=model_path)
+
+        self.pretrained_models[model_name] = self.model
+
+    def set_builtin_model(self, model_name):
+        StarDist2D.from_pretrained(model_name)
+

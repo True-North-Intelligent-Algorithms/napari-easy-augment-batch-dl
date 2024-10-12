@@ -8,9 +8,7 @@ from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
 from tnia.deeplearning.dl_helper import quantile_normalization
 from napari_easy_augment_batch_dl.bounding_box_util import (
-    is_bbox_within,
     tltrblbr_to_normalized_xywh,
-    normalized_xywh_to_tltrblbr,
     x1y1x2y2_to_tltrblbr,
     yolotxt_to_naparibb,
     tltrblbr_to_normalized_xywh,
@@ -20,7 +18,7 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
 import pandas as pd
 import yaml
 import glob 
-from napari_easy_augment_batch_dl.base_model import BaseModel#, DLModel
+from napari_easy_augment_batch_dl.base_model import BaseModel
 import inspect
 
 try:
@@ -44,11 +42,16 @@ try:
 except ImportError:
     YoloSAMModel = None
 
+class DLModel:
+    UNET = "U-Net"
+    STARDIST = "Stardist"
+    CELLPOSE = "CellPose"
+    YOLO_SAM = "Yolo/SAM"
+    MOBILE_SAM2 = "Mobile SAM 2"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
 
-        self.models = {}
         self.parent_path = Path(parent_path)
 
         # check if json.info exists
@@ -110,9 +113,28 @@ class DeepLearningProject:
         self.image_list = []
         for index in range(len(self.files)):
             im = imread(self.files[index])
+
             if len(im.shape) == 3:
+                # change channel to be last dimension       
+                if im.shape[0]<=7:
+                    im = np.transpose(im, (1,2,0))
+        
+                #############################################################################################
+                # below is done for visualization purposes and maybe you should be done on Napari side?? 
+        
+                #if im.shape[2] > 3:
+                #im = im[:,:,:3]
+
+                '''
                 if im.shape[2] > 3:
                     im = im[:,:,:3]
+                elif im.shape[2]<3:
+                    im = np.concatenate([im, np.zeros(im.shape[:2])[:, :, None]], axis=2)
+                '''
+                
+                # end below is done for visualization purposes and maybe you should be done on Napari side??
+                # #############################################################################################
+                            
             self.image_list.append(im)
         
         self.prediction_list = []
@@ -288,60 +310,65 @@ class DeepLearningProject:
 
         # loop through all label bounding box saving the image and label data for the bounding box        
         for box in boxes:
-            z = int(box[0,0])
 
-            name = self.files[z].name.split('.')[0]
+            # put a try around this because sometimes invalid boxes are generated
+            try:
+                z = int(box[0,0])
 
-            # get rid of first column (z axis)
-            # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget codee
-            box = box[:,1:]
+                name = self.files[z].name.split('.')[0]
 
-            ystart = int(np.min(box[:,0]))
-            yend = int(np.max(box[:,0]))
-            xstart = int(np.min(box[:,1]))
-            xend = int(np.max(box[:,1]))
+                # get rid of first column (z axis)
+                # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget codee
+                box = box[:,1:]
 
-            # add this bounding box to the dataframe
-            df_temp = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
-            df_bounding_boxes = pd.concat([df_bounding_boxes,df_temp], ignore_index=True) 
+                ystart = int(np.min(box[:,0]))
+                yend = int(np.max(box[:,0]))
+                xstart = int(np.min(box[:,1]))
+                xend = int(np.max(box[:,1]))
 
-            #print('bounding box is',ystart, yend, xstart, xend)
-            print('image file is ', self.files[z])
+                # add this bounding box to the dataframe
+                df_temp = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
+                df_bounding_boxes = pd.concat([df_bounding_boxes,df_temp], ignore_index=True) 
 
-            if np.ndim(self.image_list[z]) == 3:
-                im = self.image_list[z][ystart:yend, xstart:xend, :]
-            else:
-                im = self.image_list[z][ystart:yend, xstart:xend]
+                #print('bounding box is',ystart, yend, xstart, xend)
+                print('image file is ', self.files[z])
 
-            labels=[]
-            
-            for c in range(self.num_classes):
-                labels.append(self.annotation_list[c][z,ystart:yend, xstart:xend])
-                print('labelsum is ', labels[c].sum())
+                if np.ndim(self.image_list[z]) == 3:
+                    im = self.image_list[z][ystart:yend, xstart:xend, :]
+                else:
+                    im = self.image_list[z][ystart:yend, xstart:xend]
 
-            print(im.shape, labels[0].shape)
+                labels=[]
+                
+                for c in range(self.num_classes):
+                    labels.append(self.annotation_list[c][z][ystart:yend, xstart:xend])
+                    print('labelsum is ', labels[c].sum())
 
-            image_name, mask_name = generate_patch_names(str(self.image_label_paths[0]), str(self.mask_label_paths[0]), name)
-            base_name = generate_next_patch_name(str(self.image_label_paths[0]), name)
+                print(im.shape, labels[0].shape)
 
-            print(base_name)
-            print(image_name)
-            print(mask_name)
+                image_name, mask_name = generate_patch_names(str(self.image_label_paths[0]), str(self.mask_label_paths[0]), name)
+                base_name = generate_next_patch_name(str(self.image_label_paths[0]), name)
 
-            imsave(image_name, im)
-            print(image_name)
+                print(base_name)
+                print(image_name)
+                print(mask_name)
 
-            for c in range(self.num_classes):
-              print(self.mask_label_paths[c])
-              imsave(os.path.join(self.mask_label_paths[c], base_name+".tif"), labels[c])
+                imsave(image_name, im)
+                print(image_name)
 
-            # save xstart, ystart, xend, yend to json 
-            json_name = os.path.join(self.image_label_paths[0], base_name+".json")
-            with open(json_name, 'w') as f:
-                json_ = {}
-                json_['base_name'] = base_name
-                json_['bbox'] = [xstart, ystart, xend, yend]
-                json.dump(json_, f)
+                for c in range(self.num_classes):
+                    print(self.mask_label_paths[c])
+                    imsave(os.path.join(self.mask_label_paths[c], base_name+".tif"), labels[c])
+
+                # save xstart, ystart, xend, yend to json 
+                json_name = os.path.join(self.image_label_paths[0], base_name+".json")
+                with open(json_name, 'w') as f:
+                    json_ = {}
+                    json_['base_name'] = base_name
+                    json_['bbox'] = [xstart, ystart, xend, yend]
+                    json.dump(json_, f)
+            except:
+                print('error saving bounding box')
 
         # save annotations and predictions
         z = 0
@@ -485,8 +512,9 @@ class DeepLearningProject:
             #  this is useful because the normalization will be applied using the range of the 
             #  label values.  The labels are usually larger than the patches so normalization range
             # is calculated using a larger region.  This is better than normalizing on the smaller patches
-            # Just be careful to match the quantile range used when predicting apr. to the range used here  
-            im = quantile_normalization(im, quantile_low=0.003).astype(np.float32)
+            # Just be careful to match the quantile range used when predicting apr. to the range used here
+            # TODO: need to make this a parameter  
+            im = quantile_normalization(im).astype(np.float32)
 
             #do_random_sized_crop=True, do_random_brightness_contrast=True, 
             #do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False)
@@ -609,7 +637,10 @@ class DeepLearningProject:
 
     def set_pretrained_model(self, pretrained_model, model_type):
         # add this model to the model dictionary 
-        self.models[model_type] = pretrained_model
+
+        if model_type == DLModel.STARDIST:
+            model = self.models['Stardist Model']
+            model.load_model_from_disk(pretrained_model)
 
     def get_model(self, network_type):
         return self.models[network_type]
