@@ -1,6 +1,6 @@
 import numpy as np
         
-def pad_to_largest(images, force8bit=False):
+def pad_to_largest(images, force8bit=False, normalize_per_channel = False):
 
     # TODO: this is actually a pretty complicated function, not only do we pad but 
     # we also normalize the images to 8 bit, and we also convert to rgb if the image is not 3 channel
@@ -39,11 +39,8 @@ def pad_to_largest(images, force8bit=False):
                 padded_image = multi_channel_to_rgb(padded_image)
        
         if force8bit:
-            #min_ = np.min(padded_image)
-            #max_ = np.max(padded_image)
-            #padded_image = ((padded_image - min_) / (max_ - min_) * 255).astype(np.uint8)
-
-            if (len(padded_image.shape) > 2):
+            
+            if (len(padded_image.shape) > 2) and normalize_per_channel:
                 padded_image = normalize_per_channel(padded_image)
             else:
                 min_ = np.min(padded_image)
@@ -62,7 +59,6 @@ def pad_to_largest(images, force8bit=False):
                 padded_images[i] = padded_images[i][:,:,np.newaxis]
                 padded_images[i] = multi_channel_to_rgb(padded_images[i])
     '''
-    # final check to see if all images have the same number of dimensions
     
     # Stack the padded images along a new third dimension
     result = np.array(padded_images)
