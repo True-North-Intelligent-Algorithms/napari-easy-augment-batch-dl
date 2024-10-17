@@ -223,7 +223,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.viewer.dims.events.current_step.connect(index_changed)
     
     def update(self, message, progress=0):
-        print('in the update')
         self.textBrowser_log.append(message)
         self.progressBar.setValue(progress)
 
