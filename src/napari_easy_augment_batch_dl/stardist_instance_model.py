@@ -1,9 +1,7 @@
-from matplotlib.pyplot import step
 from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
 import numpy as np
 from stardist.models import StarDist2D, Config2D
 import os
-from csbdeep.utils import normalize
 from tnia.deeplearning.dl_helper import quantile_normalization
 from tnia.deeplearning.dl_helper import collect_training_data
 from tnia.deeplearning.dl_helper import divide_training_data
@@ -11,10 +9,6 @@ import keras
 import json
 from dataclasses import dataclass, field
 from enum import Enum
-
-class ModelType(Enum):
-    STARDIST1 = "stardist-one"
-    STARDIST2 = "stardist-two"
 
 class CustomCallback(keras.callbacks.Callback):
 
@@ -73,23 +67,24 @@ class StardistInstanceModel(BaseModel):
         self.descriptor = "Stardist Model"
         self.load_mode = LoadMode.Directory
 
+        self.quantile_low = 0.01
+        self.quantile_high = 0.998
+
+        self.num_epochs = 100
+
     def create_callback(self, updater):
         self.updater = updater
         self.custom_callback = CustomCallback(updater)
 
     def predict(self, img: np.ndarray):
-        # TODO: make quantiles a parameter
-        #img_normalized = normalize(img,1,99.8, axis=(0,1))
-        #img_normalized = quantile_normalization(img, quantile_low=0.001).astype(np.float32)
-        img_normalized = quantile_normalization(img, quantile_low=0.003).astype(np.float32)
+        img_normalized = quantile_normalization(img, quantile_low=self.quantile_low, quantile_high=self.quantile_high).astype(np.float32)
 
-        labels, details =  self.model.predict_instances(img_normalized)
+        labels, details =  self.model.predict_instances(img_normalized, prob_thresh=self.prob_thresh)
 
         return labels
     
     def train(self, num_epochs, updater=None):
-       # make thread model
-
+        
         json_name = os.path.join(self.patch_path, 'info.json')
 
         self.num_epochs = num_epochs
