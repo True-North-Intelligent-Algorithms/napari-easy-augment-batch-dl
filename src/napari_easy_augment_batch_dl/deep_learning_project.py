@@ -21,6 +21,7 @@ import glob
 from napari_easy_augment_batch_dl.base_model import BaseModel
 import inspect
 
+
 try:
     from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
 except ImportError:
@@ -41,6 +42,7 @@ try:
     from napari_easy_augment_batch_dl.yolo_sam_model import YoloSAMModel
 except ImportError:
     YoloSAMModel = None
+
 
 class DLModel:
     UNET = "U-Net"
@@ -119,22 +121,6 @@ class DeepLearningProject:
                 if im.shape[0]<=7:
                     im = np.transpose(im, (1,2,0))
         
-                #############################################################################################
-                # below is done for visualization purposes and maybe you should be done on Napari side?? 
-        
-                #if im.shape[2] > 3:
-                #im = im[:,:,:3]
-
-                '''
-                if im.shape[2] > 3:
-                    im = im[:,:,:3]
-                elif im.shape[2]<3:
-                    im = np.concatenate([im, np.zeros(im.shape[:2])[:, :, None]], axis=2)
-                '''
-                
-                # end below is done for visualization purposes and maybe you should be done on Napari side??
-                # #############################################################################################
-                            
             self.image_list.append(im)
         
         self.prediction_list = []
