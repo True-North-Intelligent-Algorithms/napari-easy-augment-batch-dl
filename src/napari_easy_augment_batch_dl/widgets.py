@@ -33,6 +33,9 @@ class LabeledSpinner(QWidget):
 
         self.setLayout(self.layout)
 
+    def setValue(self, value):
+        self.spinner.setValue(value)
+
 class LabeledCombo(QWidget):
     def __init__(self, label_text, items, change_value_method):
         super().__init__()
@@ -50,6 +53,11 @@ class LabeledCombo(QWidget):
         self.layout.addWidget(self.combo)
 
         self.setLayout(self.layout)
+
+    def setValue(self, value):
+        index = self.combo.findText(value)
+        if index >= 0:
+            self.combo.setCurrentIndex(index)
 
 class LabeledEdit(QWidget):
     def __init__(self, label_text, default_text, place_holder_text, change_value_method):
@@ -72,3 +80,6 @@ class LabeledEdit(QWidget):
         self.layout.addWidget(self.edit)
 
         self.setLayout(self.layout)
+
+    def setValue(self, value):
+        self.edit.setText(value)
