@@ -1,4 +1,3 @@
-import nonsense
 from napari_easy_augment_batch_dl.base_model import BaseModel
 import numpy as np
 import os
@@ -25,11 +24,12 @@ class MobileSAMModel(BaseModel):
         self.descriptor = "MobileSAM Model"
         self.boxes = True
                  
-    def predict(self, img: np.ndarray, imagesz=1024):
-        results = self.yolo_detecter.get_results(img, conf=self.conf, iou=0.8, imgsz=imagesz, max_det=10000)
+    def predict(self, img: np.ndarray):
+        results = self.yolo_detecter.get_results(img, conf=self.conf, iou= self.iou, imgsz=self.imagesz, max_det=10000)
         self.bbs=results[0].boxes.xyxy.cpu().numpy()
         stacked_labels = StackedLabels.from_yolo_results(self.bbs, None, img)
         segmented_stacked_labels = segment_from_stacked_labels(stacked_labels, "MobileSamV2")
+        segmented_stacked_labels.sort_largest_to_smallest()
         labels = segmented_stacked_labels.make_2d_labels(type="min")
         return labels, self.bbs
     

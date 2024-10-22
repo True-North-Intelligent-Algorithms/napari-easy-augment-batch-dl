@@ -642,7 +642,7 @@ class DeepLearningProject:
         model = self.get_model(network_type) 
         model.train(num_epochs, update)
 
-    def predict(self, n, network_type, update, imagesz=1024):
+    def predict(self, n, network_type, update):
         
         image = self.image_list[n]
             
@@ -654,7 +654,7 @@ class DeepLearningProject:
         if model.boxes == True:
 
             model = self.get_model(network_type)
-            prediction, results = model.predict(image, imagesz)
+            prediction, results = model.predict(image)
             boxes = xyxy_to_tltrbrbl(results, n)
 
             self.prediction_list[0][n] = prediction
