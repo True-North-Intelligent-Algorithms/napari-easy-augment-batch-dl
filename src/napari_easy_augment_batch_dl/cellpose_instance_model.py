@@ -134,6 +134,7 @@ class CellPoseInstanceModel(BaseModel):
         self.model_path = os.path.dirname(model_path)
 
         base_name = os.path.basename(model_path)
+        self.model_name = base_name
         self.pretrained_models[base_name] = self.model
 
     def set_optimizer(self, optimizer):
