@@ -124,14 +124,26 @@ class ParamWidget(QDialog):
         self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
 
     def sync_with_model(self):
-        
-        # model name
-        model_name = self.model.model_name
+        try:
+            # loop throush the harvested params and set the values in the gui fields
+            # (this code is a bit abstract but remember we added widgets for each field and stored them in self.fields)
+            for param_name, meta in self.harvested_params.items():
+                if hasattr(self.model, param_name):
+                    value = getattr(self.model, param_name)
+                    self.fields[param_name].setValue(value)
+                else:
+                    self.fields[param_name].setText("")
 
-        items = [self.pretrained_combo.combo.itemText(i) for i in range(self.pretrained_combo.combo.count())]
-
-        if model_name not in items:
-            self.pretrained_combo.combo.addItem(model_name)
-            self.model_names.append(model_name)
-            self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
-
+            # get model names in combo
+            model_names = [self.pretrained_combo.combo.itemText(i) for i in range(self.pretrained_combo.combo.count())]
+            
+            # get current model name
+            model_name = self.model.model_name
+            
+            # if current model name isn't in combo, add it
+            if model_name not in model_names:
+                self.pretrained_combo.combo.addItem(model_name)
+                self.model_names.append(model_name)
+                self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
+        except Exception as e:
+            print(e)
