@@ -627,6 +627,9 @@ class DeepLearningProject:
         if model_type == DLModel.STARDIST:
             model = self.models['Stardist Model']
             model.load_model_from_disk(pretrained_model)
+        if model_type == "CellPose Instance Model":
+            model = self.models['CellPose Instance Model']
+            model.load_model_from_disk(pretrained_model)
 
     def get_model(self, network_type):
         return self.models[network_type]
