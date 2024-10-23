@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from distributed import progress
 from skimage.io import imread, imsave
 import numpy as np
 from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name
@@ -677,7 +678,9 @@ class DeepLearningProject:
             for c in range(self.num_classes):
                 temp = [] 
                 for n in range(len(self.image_list)):
-                    prediction, boxes_ = self.predict(n, network_type, update)
+                    prediction, boxes_ = self.predict(n, network_type, None)
+                    progress = int((n/len(self.image_list))*100)
+                    update(f"Apply {network_type} to image "+str(n), progress)
                     temp.append(prediction)
                     self.object_boxes = self.object_boxes + boxes_
                     self.predicted_object_boxes = self.predicted_object_boxes + boxes_
