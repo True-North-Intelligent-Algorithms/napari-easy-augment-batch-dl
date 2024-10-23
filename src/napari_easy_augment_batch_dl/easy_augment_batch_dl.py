@@ -232,7 +232,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def update(self, message, progress=0):
         self.textBrowser_log.append(message)
-        self.progressBar.setValue(progress)
+        self.progressBar.setValue(int(progress))
 
     def update_thread(self, message, progress=0):
         if self.worker is not None:
@@ -564,12 +564,17 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.worker.finished.connect(self.worker.deleteLater)
             self.thread.finished.connect(self.thread.deleteLater)
             self.thread.finished.connect(self.enable_gui)
+            self.thread.finished.connect(self.training_finished)
 
             self.thread.start()
              
         else:
             self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
+            widget.sync_with_model()
 
+    def training_finished(self):
+        self.enable_gui()
+        widget = self.param_widgets[self.network_architecture_drop_down.currentText()]
         widget.sync_with_model()
 
     def predict_current_image(self):
@@ -578,13 +583,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         model_name = self.network_architecture_drop_down.currentText()
         show_boxes = self.deep_learning_project.models[model_name].boxes
-
-        model = self.deep_learning_project.models[model_name].model
-
-        if model == None:
-            QMessageBox.information(self, "Error", "Please load or a select a pretrained model first.")
-            return
-
+       
         if show_boxes == True:
             predictions, boxes = self.deep_learning_project.predict(n, model_name, self.update)
             
@@ -611,23 +610,35 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         model_name = self.network_architecture_drop_down.currentText()
         show_boxes = self.deep_learning_project.models[model_name].boxes
-
-        if show_boxes == True:
-
-            self.deep_learning_project.predict_all(model_name, self.update)
-
-            #self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
-            self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
-
-            predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
-            self.predictions[0].data = predictions
         
-        else:
-            self.deep_learning_project.predict_all(model_name, self.update)          
-            predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
+        thread = True
 
-            #self.viewer.add_labels(predictions, name='predictions')
-            self.predictions[0].data = predictions
+        if thread:
+            
+            self.thread = QThread()
+            self.worker = PyQt5WorkerThread(self.deep_learning_project.predict_all, model_name, self.update_thread)
+            self.worker.moveToThread(self.thread)
+            self.thread.started.connect(self.disable_gui)
+            self.thread.started.connect(self.worker.run)
+            self.worker.progress.connect(self.update)
+            self.worker.finished.connect(self.thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+            self.thread.finished.connect(self.enable_gui)
+            self.thread.finished.connect(lambda: self.predict_all_images_finished(show_boxes))
+            self.thread.start()
+       
+        else:
+            self.deep_learning_project.predict_all(model_name, self.update)
+            self.predict_all_images_finished(show_boxes)
+
+    def predict_all_images_finished(self, show_boxes):
+        
+        predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
+        self.predictions[0].data = predictions
+        
+        if show_boxes == True:
+            self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
 
     def disable_gui(self):
         pass
