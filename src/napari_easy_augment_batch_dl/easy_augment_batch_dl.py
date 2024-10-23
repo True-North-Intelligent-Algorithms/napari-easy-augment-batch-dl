@@ -8,6 +8,7 @@ import numpy as np
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.param_widget import ParamWidget
+from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -221,7 +222,14 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.current_file_name_label.setText(filename.name)
         
         self.viewer.dims.events.current_step.connect(index_changed)
-    
+
+        # try to create a sam model which will be used for creating labels from bounding boxes
+        try:
+            self.helper_sam_model = create_sam_model("MobileSamV2", 'cuda')
+        except Exception as e:
+            print(e)
+            self.helper_sam_model = None
+
     def update(self, message, progress=0):
         self.textBrowser_log.append(message)
         self.progressBar.setValue(progress)
@@ -309,6 +317,37 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_color="blue",
             edge_width=5,
         )
+
+        def handle_new_object_box(event):
+
+            # if new box added
+            if event.action == 'added':
+
+                # if we have a SAM helper model then use it to segment the box
+                if self.helper_sam_model is not None:
+
+                    box_ = []
+                
+                    box = self.object_boxes_layer.data[-1]
+                    z = int(box[0,0])
+                    
+                    # get x and y start and end because this is the format the SAM model expects
+                    ystart = int(np.min(box[:,1]))
+                    yend = int(np.max(box[:,1]))
+                    xstart = int(np.min(box[:,2]))
+                    xend = int(np.max(box[:,2]))
+                    box_.append([xstart, ystart, xend, yend])
+                    box_ = np.array(box_)
+
+                    # call the function that segments the bounding box
+                    temp = segment_from_bbox(self.images[z, :, :], box_, self.helper_sam_model, 'cuda')
+                    
+                    # get mask and then set the mask pixels that are above 0 to the max value of the labels layer (ie add a new label)
+                    temp = temp[0]['segmentation']
+                    mask = temp > 0
+                    max_ = self.viewer.layers['labels_0'].data[z, :, :].max()
+                    self.viewer.layers['labels_0'].data[z, :, :][mask] = max_ + 1
+                    self.viewer.layers['labels_0'].refresh()
 
         def handle_new_roi(event):
                     
@@ -411,6 +450,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predicted_object_boxes_layer.features = self.deep_learning_project.predicted_features
         
         self.boxes_layer.events.data.connect(handle_new_roi)
+        self.object_boxes_layer.events.data.connect(handle_new_object_box)
    
     def set_pretrained_model(self, model_path, model_type):
         widget = self.param_widgets[model_type]
