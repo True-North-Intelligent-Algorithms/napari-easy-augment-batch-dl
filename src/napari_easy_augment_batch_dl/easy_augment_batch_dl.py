@@ -237,7 +237,6 @@ class NapariEasyAugmentBatchDL(QWidget):
     def update_thread(self, message, progress=0):
         if self.worker is not None:
             self.counter = self.counter + 1
-            print('send signal to update ', self.counter)
             self.worker.progress.emit(message, progress)
         else:
             self.update(message, progress)
