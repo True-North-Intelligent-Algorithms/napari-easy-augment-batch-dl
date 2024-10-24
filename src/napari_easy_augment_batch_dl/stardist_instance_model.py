@@ -131,6 +131,8 @@ class StardistInstanceModel(BaseModel):
         model_name = os.path.basename(full_model_name)
 
         self.model = StarDist2D(config=None, name=model_name, basedir=model_path)
+        
+        self.model_name = model_name
 
         self.pretrained_models[model_name] = self.model
 

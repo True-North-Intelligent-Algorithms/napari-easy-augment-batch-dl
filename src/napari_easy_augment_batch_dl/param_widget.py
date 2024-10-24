@@ -144,6 +144,7 @@ class ParamWidget(QDialog):
             if model_name not in model_names:
                 self.pretrained_combo.combo.addItem(model_name)
                 self.model_names.append(model_name)
-                self.pretrained_combo.combo.setCurrentIndex(self.pretrained_combo.combo.count()-1)
+            
+            self.pretrained_combo.combo.setCurrentText(model_name)
         except Exception as e:
             print(e)
