@@ -8,7 +8,6 @@ import numpy as np
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.param_widget import ParamWidget
-from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -225,6 +224,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         # try to create a sam model which will be used for creating labels from bounding boxes
         try:
+            from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
             self.helper_sam_model = create_sam_model("MobileSamV2", 'cuda')
         except Exception as e:
             print(e)
