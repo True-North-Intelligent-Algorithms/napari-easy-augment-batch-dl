@@ -67,6 +67,10 @@ class CellPoseInstanceModel(BaseModel):
         
         # options for optimizers
         self.optimizers = ['adam', 'sgd']
+        
+        # we also have the normalizaton parameters
+        self.quantile_low = 0.01
+        self.quantile_high = 0.998
     
     def train(self, num_epochs, updater=None):
         add_trivial_channel = False
@@ -105,17 +109,15 @@ class CellPoseInstanceModel(BaseModel):
             channels=[self.chan_segment, self.chan2], 
             save_path=save_path, 
             n_epochs = self.num_epochs,
-            # TODO: make below GUI options
+            # TODO: make below GUI options? 
             #learning_rate=learning_rate, 
             #weight_decay=weight_decay, 
             #nimg_per_epoch=200,
             model_name=self.model_name)
 
     def predict(self, img: np.ndarray):
-        #img_normalized = quantile_normalization(img, quantile_low=0.003).astype(np.float32)
-        img_normalized = quantile_normalization(img).astype(np.float32)
-        #return self.model.eval(img_normalized, normalize=False, channels=[self.chan_segment, self.chan2], diameter = self.diameter, flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh)[0]
-        return self.model.eval(img_normalized, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh)[0]
+        img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high).astype(np.float32)
+        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh)[0]
 
     def get_model_names(self):
         return self.model_names 
