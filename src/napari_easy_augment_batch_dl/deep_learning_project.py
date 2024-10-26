@@ -1,6 +1,5 @@
 from pathlib import Path
 import os
-from distributed import progress
 from skimage.io import imread, imsave
 import numpy as np
 from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name
@@ -625,7 +624,7 @@ class DeepLearningProject:
     def set_pretrained_model(self, pretrained_model, model_type):
         # add this model to the model dictionary 
 
-        if model_type == DLModel.STARDIST:
+        if model_type == DLModel.STARDIST or model_type == "Stardist Model":
             model = self.models['Stardist Model']
             model.load_model_from_disk(pretrained_model)
         if model_type == "CellPose Instance Model":
