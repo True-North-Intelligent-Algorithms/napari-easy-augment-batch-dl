@@ -118,7 +118,9 @@ class CellPoseInstanceModel(BaseModel):
             model_name=self.model_name)
 
     def predict(self, img: np.ndarray):
-        img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high).astype(np.float32)
+        # this is a bit tricky... have to make sure normalization done during evaluation matches training
+        # TODO: Continue iterating and double checking this
+        img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high, channels=True).astype(np.float32)
         return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter)[0]
 
     def get_model_names(self):
