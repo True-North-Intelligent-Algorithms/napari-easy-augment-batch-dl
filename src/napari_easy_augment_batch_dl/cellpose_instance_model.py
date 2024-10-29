@@ -17,6 +17,7 @@ class CellPoseInstanceModel(BaseModel):
     flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
     chan2: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
+    niter: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100000, 'default': 200, 'step': 1})
 
     # second set of parameters have advanced True and training False and will be shown in the advanced popup dialog
 
@@ -48,6 +49,7 @@ class CellPoseInstanceModel(BaseModel):
         self.flow_thresh = 0.4
         self.chan_segment = 0
         self.chan2 = 0
+        self.niter = 200
         
         self.descriptor = "CellPose Instance Model"
         self.load_mode = LoadMode.File
@@ -117,7 +119,7 @@ class CellPoseInstanceModel(BaseModel):
 
     def predict(self, img: np.ndarray):
         img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high).astype(np.float32)
-        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh)[0]
+        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter)[0]
 
     def get_model_names(self):
         return self.model_names 
