@@ -43,6 +43,14 @@ try:
 except ImportError:
     YoloSAMModel = None
 
+import importlib
+
+def new_import(module_name, class_name):
+    # Dynamically import the module
+    module = importlib.import_module(module_name)
+
+    # Dynamically retrieve the class from the module
+    globals()[class_name] = getattr(module, class_name)
 
 class DLModel:
     UNET = "U-Net"
@@ -130,6 +138,48 @@ class DeepLearningProject:
         self.predicted_object_boxes = None
         self.features = None
         self.predicted_features = None
+
+
+
+        ###########################################################################################
+        ## POSSIBLE ALTERNITIVE APPROACH!!!
+        ## This code is an example of how to automatically discover models in a package
+        ###########################################################################################
+        '''
+        import pkgutil
+        import importlib
+        import inspect
+        from your_module import BaseMegaDLModel  # Replace with the actual path of BaseMegaDLModel
+
+        class ModelManager:
+            def __init__(self):
+                self.models = {}
+
+            def discover_models(self):
+                # Iterate through all installed modules
+                for module_info in pkgutil.iter_modules():
+                    try:
+                        # Import the module
+                        module = importlib.import_module(module_info.name)
+                        # Inspect the module for classes
+                        for name, obj in inspect.getmembers(module, inspect.isclass):
+                            # Check if it is a subclass of BaseMegaDLModel (but not BaseMegaDLModel itself)
+                            if issubclass(obj, BaseMegaDLModel) and obj is not BaseMegaDLModel:
+                                descriptor = getattr(obj, 'descriptor', None)
+                                if descriptor:
+                                    self.models[descriptor] = obj
+                    except Exception as e:
+                        # Log or handle errors (e.g., import errors or missing attributes)
+                        print(f"Error processing module {module_info.name}: {e}")
+
+        # Usage
+        manager = ModelManager()
+        manager.discover_models()
+
+        # self.models will now contain all discovered models keyed by their descriptor
+        print(manager.models)
+        '''
+        ###########################################################################################
 
         self.models = {} 
 
