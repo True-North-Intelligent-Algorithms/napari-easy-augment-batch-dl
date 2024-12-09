@@ -4,10 +4,11 @@ from napari_easy_augment_batch_dl.base_model import LoadMode
 from PyQt5.QtCore import Qt  # This brings in the Qt constants
 import os
 
-class ParamWidget(QDialog):
-    def __init__(self, model, parent=None):
-        super(ParamWidget, self).__init__(parent)
+class DeepLearningWidget(QDialog):
+    def __init__(self, model, parent=None, parent_path=None):
+        super(DeepLearningWidget, self).__init__(parent)
 
+        self.parent_path = parent_path
         self.model = model 
         self.harvested_params = {name: field.metadata for name, field in model.__dataclass_fields__.items() if field.metadata.get('harvest')}
         self.model_names = model.get_model_names()
@@ -106,10 +107,10 @@ class ParamWidget(QDialog):
 
         if self.model.load_mode == LoadMode.File:
             options = QFileDialog.Options()
-            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "All Files (*)", options=options)
+            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "All Files (*)", options=options, directory = self.parent_path)
         else:
             options = QFileDialog.Options()
-            file_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options)
+            file_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options, directory = self.parent_path)
         
         self.load_model_from_path(file_)
 

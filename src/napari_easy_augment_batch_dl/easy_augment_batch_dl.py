@@ -7,7 +7,7 @@ from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProje
 import numpy as np
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
-from napari_easy_augment_batch_dl.param_widget import ParamWidget
+from napari_easy_augment_batch_dl.deep_learning_widget import DeepLearningWidget
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -246,23 +246,23 @@ class NapariEasyAugmentBatchDL(QWidget):
         options = QFileDialog.Options()
         options |= QFileDialog.ReadOnly
         
-        image_path = QFileDialog.getExistingDirectory(
+        parent_path = QFileDialog.getExistingDirectory(
             self,
             "Select image directory",
             "",
             options=options,
         )
 
-        self.load_image_directory(image_path)
+        self.load_image_directory(parent_path)
     
-    def load_image_directory(self, image_path):
-        image_path = Path(image_path)
+    def load_image_directory(self, parent_path):
+        self.parent_path = Path(parent_path)
 
-        files = list(image_path.glob('*.jpg'))
-        files = files+list(image_path.glob('*.jpeg'))
-        files = files+list(image_path.glob('*.tif'))
-        files = files+list(image_path.glob('*.tiff'))
-        files = files+list(image_path.glob('*.png'))
+        files = list(self.parent_path.glob('*.jpg'))
+        files = files+list(self.parent_path.glob('*.jpeg'))
+        files = files+list(self.parent_path.glob('*.tif'))
+        files = files+list(self.parent_path.glob('*.tiff'))
+        files = files+list(self.parent_path.glob('*.png'))
 
         if len(files) == 0:
             QMessageBox.information(self, "Error", "No images found in the selected directory. Please select a directory with images.")
@@ -270,7 +270,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         # check if json exists
         
-        if (image_path / 'info.json').exists():
+        if (self.parent_path / 'info.json').exists():
             # pre-existing project num classes will be read from json
             num_classes = -1
             pass
@@ -278,14 +278,13 @@ class NapariEasyAugmentBatchDL(QWidget):
         else:
             num_classes, ok = QInputDialog.getInt(self, "Number of Classes", "Enter the number of classes (less than 8):", 1, 1, 8)
 
-        self.deep_learning_project = DeepLearningProject(image_path, num_classes)
-        self.param_widgets = {}
-
+        self.deep_learning_project = DeepLearningProject(self.parent_path, num_classes)
+        self.deep_learning_widgets = {}
 
         for key, obj in self.deep_learning_project.models.items():
             try:
-                temp1 = ParamWidget(obj)
-                self.param_widgets[key] = temp1
+                temp1 = DeepLearningWidget(obj, parent_path = str(self.parent_path))
+                self.deep_learning_widgets[key] = temp1
                 self.network_architecture_drop_down.addItem(obj.descriptor)
                 self.stacked_model_params_layout.addWidget(temp1.prediction_widget)
             except Exception as e:
@@ -452,7 +451,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.object_boxes_layer.events.data.connect(handle_new_object_box)
    
     def set_pretrained_model(self, model_path, model_type):
-        widget = self.param_widgets[model_type]
+        widget = self.deep_learning_widgets[model_type]
         widget.load_model_from_path(model_path) 
 
     def save_results(self):
@@ -527,7 +526,7 @@ class NapariEasyAugmentBatchDL(QWidget):
     def perform_training(self):
         self.textBrowser_log.append("Training network...")
         
-        widget = self.param_widgets[self.network_architecture_drop_down.currentText()]
+        widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
         dialog = widget.train_dialog
         dialog.exec_()
 
@@ -573,7 +572,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def training_finished(self):
         self.enable_gui()
-        widget = self.param_widgets[self.network_architecture_drop_down.currentText()]
+        widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
         widget.sync_with_model()
 
     def predict_current_image(self):
