@@ -87,7 +87,7 @@ class StardistInstanceModel(BaseModel):
         
         json_name = os.path.join(self.patch_path, 'info.json')
 
-        self.num_epochs = num_epochs
+        num_epochs = self.num_epochs
 
         if os.path.exists(json_name):
             with open(json_name, 'r') as f:
@@ -100,7 +100,7 @@ class StardistInstanceModel(BaseModel):
                     n_channel_in = 1
                     add_trivial_channel = True
             
-            model_name = self.generate_model_name('stardist')
+            model_name = self.generate_model_name(self.model_name)
 
             # if model is None create one            
             if self.model is None:
