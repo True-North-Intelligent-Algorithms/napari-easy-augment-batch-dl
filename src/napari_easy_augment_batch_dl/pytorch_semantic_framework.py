@@ -1,5 +1,5 @@
 import numpy as np
-from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
+from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
 from tifffile import imread
 import json
 from napari_easy_augment_batch_dl.pytorch_semantic_dataset import PyTorchSemanticDataset
@@ -14,7 +14,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 
 @dataclass
-class PytorchSemanticModel(BaseModel):
+class PytorchSemanticFramework(BaseFramework):
 
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     

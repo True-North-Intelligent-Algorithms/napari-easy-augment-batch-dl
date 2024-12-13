@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
+from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
 import numpy as np
 from stardist.models import StarDist2D, Config2D
 import os
@@ -33,7 +33,7 @@ class CustomCallback(keras.callbacks.Callback):
             self.updater(f"Starting epoch {epoch}", percent_done)
 
 @dataclass
-class StardistInstanceModel(BaseModel):
+class StardistInstanceFramework(BaseFramework):
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     nms_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     scale: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 100.0, 'default': 1.0, 'step': 1.0})

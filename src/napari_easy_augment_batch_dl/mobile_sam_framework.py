@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_model import BaseModel
+from napari_easy_augment_batch_dl.base_framework import BaseFramework
 import numpy as np
 import os
 from segment_everything.prompt_generator import YoloDetector
@@ -8,7 +8,7 @@ from segment_everything.detect_and_segment import segment_from_stacked_labels
 from dataclasses import dataclass, field
 
 @dataclass
-class MobileSAMModel(BaseModel):
+class MobileSAMFramework(BaseFramework):
 
     conf: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})

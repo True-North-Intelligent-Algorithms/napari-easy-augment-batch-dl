@@ -18,30 +18,30 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
 import pandas as pd
 import yaml
 import glob 
-from napari_easy_augment_batch_dl.base_model import BaseModel
+from napari_easy_augment_batch_dl.base_framework import BaseFramework
 import inspect
 
 
 try:
-    from napari_easy_augment_batch_dl.pytorch_semantic_model import PytorchSemanticModel
+    from napari_easy_augment_batch_dl.pytorch_semantic_framework import PytorchSemanticFramework
 except ImportError:
-    PytorchSemanticModel = None
+    PytorchSemanticFramework = None
 try:
-    from napari_easy_augment_batch_dl.stardist_instance_model import StardistInstanceModel
+    from napari_easy_augment_batch_dl.stardist_instance_framework import StardistInstanceFramework
 except:
-    StardistInstanceModel = None
+    StardistInstanceFramework = None
 try:
-    from napari_easy_augment_batch_dl.cellpose_instance_model import CellPoseInstanceModel
+    from napari_easy_augment_batch_dl.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
-    CellPoseInstanceModel = None
+    CellPoseInstanceFramework = None
 try:
-    from napari_easy_augment_batch_dl.mobile_sam_model import MobileSAMModel
+    from napari_easy_augment_batch_dl.mobile_sam_framework import MobileSAMFramework
 except ImportError:
-    MobileSAMModel = None
+    MobileSAMFramework = None
 try:
-    from napari_easy_augment_batch_dl.yolo_sam_model import YoloSAMModel
+    from napari_easy_augment_batch_dl.yolo_sam_framework import YoloSAMFramework
 except ImportError:
-    YoloSAMModel = None
+    YoloSAMFramework = None
 
 import importlib
 
@@ -186,7 +186,7 @@ class DeepLearningProject:
         # look for models derived from 'BaseModel' and add them to the models dictionary
         for name, obj in globals().items():  
         
-            if inspect.isclass(obj) and issubclass(obj, BaseModel) and obj is not BaseModel:
+            if inspect.isclass(obj) and issubclass(obj, BaseFramework) and obj is not BaseFramework:
                 print('found class ', name)
                 try:
                     instance = obj(self.patch_path, self.model_path, self.num_classes)

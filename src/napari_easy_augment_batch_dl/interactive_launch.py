@@ -31,6 +31,12 @@ elif test_dataset == "multi_uclear":
     parent_path = r'D:\images\tnia-python-images\imagesc\2024_10_07_cellpose_multi_nuclear'
 
 parent_path = r'D:\images\tnia-python-images\imagesc\2024_10_09_spindle_shaped_cells'
+parent_path =r'D:\images\tnia-python-images\\imagesc\\2024_10_17_thin_section'
+
+data_path = r'C:\Users\bnort\work\ImageJ2022\tnia\notebooks-and-napari-widgets-for-dl\data'
+parent_path = os.path.join(data_path, 'ladybugs1')
+
+parent_path = r'C:\Users\bnort\Documents\bcs-stardist\images\Columbia_Semantic'
 
 batch_dl.load_image_directory(parent_path)
 

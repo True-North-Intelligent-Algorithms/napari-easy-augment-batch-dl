@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
+from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
 import numpy as np
 import os
 from segment_everything.prompt_generator import YoloDetector
@@ -9,7 +9,7 @@ import sys
 from dataclasses import dataclass, field
 
 @dataclass
-class YoloSAMModel(BaseModel):
+class YoloSAMFramework(BaseFramework):
 
     conf: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})

@@ -1,6 +1,6 @@
 from qtpy.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget, QFileDialog
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo, LabeledEdit
-from napari_easy_augment_batch_dl.base_model import LoadMode
+from napari_easy_augment_batch_dl.base_framework import LoadMode
 from PyQt5.QtCore import Qt  # This brings in the Qt constants
 import os
 
@@ -8,6 +8,7 @@ class DeepLearningWidget(QDialog):
     def __init__(self, model, parent=None, parent_path=None):
         super(DeepLearningWidget, self).__init__(parent)
 
+        # parent path of the project where images and deep learning artifacts are stored
         self.parent_path = parent_path
         self.model = model 
         self.harvested_params = {name: field.metadata for name, field in model.__dataclass_fields__.items() if field.metadata.get('harvest')}

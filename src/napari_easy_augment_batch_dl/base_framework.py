@@ -5,7 +5,7 @@ class LoadMode:
     Directory = 1
     File=2
 
-class BaseModel:
+class BaseFramework:
     def __init__(self, patch_path='', model_path='', num_classes=1):
         self.model_path = model_path
         self.num_classes = num_classes

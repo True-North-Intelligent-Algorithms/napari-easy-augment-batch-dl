@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_model import BaseModel, LoadMode
+from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
 import numpy as np
 from tnia.deeplearning.dl_helper import collect_training_data
 from cellpose import models, io
@@ -7,7 +7,7 @@ from tnia.deeplearning.dl_helper import quantile_normalization
 import os
 
 @dataclass
-class CellPoseInstanceModel(BaseModel):
+class CellPoseInstanceFramework(BaseFramework):
     
     # below are the parameters that are harvested for automatic GUI generation
 
