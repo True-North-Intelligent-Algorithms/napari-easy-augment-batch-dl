@@ -8,6 +8,12 @@ import numpy as np
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.deep_learning_widget import DeepLearningWidget
+from napari_easy_augment_batch_dl.bounding_box_util import naparixyzbb_to_xyxy
+
+try:
+    from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
+except Exception as e:
+    print(e)
 
 class NapariEasyAugmentBatchDL(QWidget):
 
@@ -322,7 +328,6 @@ class NapariEasyAugmentBatchDL(QWidget):
             if event.action == 'added':
 
                 # if we have a SAM helper model then use it to segment the box
-                if self.helper_sam_model is not None:
 
                     box_ = []
                 
@@ -337,15 +342,27 @@ class NapariEasyAugmentBatchDL(QWidget):
                     box_.append([xstart, ystart, xend, yend])
                     box_ = np.array(box_)
 
-                    # call the function that segments the bounding box
-                    temp = segment_from_bbox(self.images[z, :, :], box_, self.helper_sam_model, 'cuda')
+                    if self.helper_sam_model is not None:
+                        # call the function that segments the bounding box
+                        temp = segment_from_bbox(self.images[z, :, :], box_, self.helper_sam_model, 'cuda')
+                        
+                        # get mask and then set the mask pixels that are above 0 to the max value of the labels layer (ie add a new label)
+                        temp = temp[0]['segmentation']
+                        mask = temp > 0
+                        max_ = self.viewer.layers['labels_0'].data[z, :, :].max()
+                        self.viewer.layers['labels_0'].data[z, :, :][mask] = max_ + 1
+                        self.viewer.layers['labels_0'].refresh()
+                    else:
+                        roi = np.s_[ystart:yend, xstart:xend]
+                        roi2 = np.s_[z, ystart:yend, xstart:xend]
+                        pred = self.deep_learning_project.predict_roi(z, self.network_architecture_drop_down.currentText(), self.update, roi)
+                                
+                        self.labels[0].data[roi2] = pred
+                        self.labels[0].refresh()              
                     
-                    # get mask and then set the mask pixels that are above 0 to the max value of the labels layer (ie add a new label)
-                    temp = temp[0]['segmentation']
-                    mask = temp > 0
-                    max_ = self.viewer.layers['labels_0'].data[z, :, :].max()
-                    self.viewer.layers['labels_0'].data[z, :, :][mask] = max_ + 1
-                    self.viewer.layers['labels_0'].refresh()
+                #else:
+                #    bbox_ = naparixyzbb_to_xyxy(self.object_boxes_layer.data[-1])
+                #    print("No SAM model found. Please install segment-everything to use this feature.")
 
         def handle_new_roi(event):
                     

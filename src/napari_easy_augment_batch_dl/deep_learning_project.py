@@ -692,6 +692,17 @@ class DeepLearningProject:
         model = self.get_model(network_type) 
         model.train(num_epochs, update)
 
+    def predict_roi(self, n, network_type, update, roi):
+        image = self.image_list[n][roi]
+        model = self.models[network_type]
+
+        if update is not None:
+            update(f"Apply {network_type} to image "+str(n)+"...")
+
+        prediction = model.predict(image)
+
+        return prediction
+         
     def predict(self, n, network_type, update):
         
         image = self.image_list[n]

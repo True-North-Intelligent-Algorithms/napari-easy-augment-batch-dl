@@ -194,3 +194,16 @@ def xyxy_to_tltrbrbl(boxes, n):
         boxes_.append(bbox)
     return boxes_
  
+def naparixyzbb_to_xyxy(box):
+    z = int(box[0,0])
+    
+    # get x and y start and end because this is the format the SAM model expects
+    ystart = int(np.min(box[:,1]))
+    yend = int(np.max(box[:,1]))
+    xstart = int(np.min(box[:,2]))
+    xend = int(np.max(box[:,2]))
+    box_.append([xstart, ystart, xend, yend])
+    box_ = np.array(box_)
+
+    return box_
+
