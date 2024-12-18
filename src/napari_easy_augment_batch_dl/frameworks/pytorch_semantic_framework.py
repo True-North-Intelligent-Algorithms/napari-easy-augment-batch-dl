@@ -1,8 +1,8 @@
 import numpy as np
-from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 from tifffile import imread
 import json
-from napari_easy_augment_batch_dl.pytorch_semantic_dataset import PyTorchSemanticDataset
+from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_dataset import PyTorchSemanticDataset
 from torch.utils.data import DataLoader
 from monai.networks.nets import BasicUNet
 import torch

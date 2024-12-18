@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from tnia.deeplearning.dl_helper import collect_training_data
 from cellpose import models, io

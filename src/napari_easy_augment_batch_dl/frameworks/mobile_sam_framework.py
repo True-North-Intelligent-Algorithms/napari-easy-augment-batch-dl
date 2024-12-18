@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_framework import BaseFramework
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import numpy as np
 import os
 from segment_everything.prompt_generator import YoloDetector

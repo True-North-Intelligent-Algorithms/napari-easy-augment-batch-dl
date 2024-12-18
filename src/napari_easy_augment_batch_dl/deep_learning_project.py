@@ -18,28 +18,28 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
 import pandas as pd
 import yaml
 import glob 
-from napari_easy_augment_batch_dl.base_framework import BaseFramework
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import inspect
 
 
 try:
-    from napari_easy_augment_batch_dl.pytorch_semantic_framework import PytorchSemanticFramework
+    from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
 except ImportError:
     PytorchSemanticFramework = None
 try:
-    from napari_easy_augment_batch_dl.stardist_instance_framework import StardistInstanceFramework
+    from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     StardistInstanceFramework = None
 try:
-    from napari_easy_augment_batch_dl.cellpose_instance_framework import CellPoseInstanceFramework
+    from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
 try:
-    from napari_easy_augment_batch_dl.mobile_sam_framework import MobileSAMFramework
+    from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
 except ImportError:
     MobileSAMFramework = None
 try:
-    from napari_easy_augment_batch_dl.yolo_sam_framework import YoloSAMFramework
+    from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
 

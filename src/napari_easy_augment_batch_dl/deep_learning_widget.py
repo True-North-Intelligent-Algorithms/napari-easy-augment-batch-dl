@@ -1,6 +1,6 @@
 from qtpy.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget, QFileDialog
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo, LabeledEdit
-from napari_easy_augment_batch_dl.base_framework import LoadMode
+from napari_easy_augment_batch_dl.frameworks.base_framework import LoadMode
 from PyQt5.QtCore import Qt  # This brings in the Qt constants
 import os
 

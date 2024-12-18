@@ -1,4 +1,4 @@
-from napari_easy_augment_batch_dl.base_framework import BaseFramework, LoadMode
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from stardist.models import StarDist2D, Config2D
 import os
