@@ -13,6 +13,7 @@ class CellPoseInstanceFramework(BaseFramework):
 
     # first set of parameters have advanced False and training False and will be shown in the main dialog
     diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 500.0, 'default': 30.0, 'step': 1.0})
+    bsize_pred: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 128, 'max': 2048, 'default': 224, 'step': 1})
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
@@ -23,9 +24,9 @@ class CellPoseInstanceFramework(BaseFramework):
 
     # third set of parameters have advanced False and training True and will be shown in the training popup dialog
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+    bsize_train: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 128, 'max': 2048, 'default': 224, 'step': 1})
+    rescale: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'cyto3', 'step': 1})
-
-
 
     def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model: str = None):
         super().__init__(patch_path, model_path, num_classes)
@@ -45,6 +46,7 @@ class CellPoseInstanceFramework(BaseFramework):
 
         # set defaults for parameters
         self.diameter = 30
+        self.bsize_pred = 224
         self.prob_thresh = 0.0
         self.flow_thresh = 0.4
         self.chan_segment = 0
@@ -111,6 +113,9 @@ class CellPoseInstanceFramework(BaseFramework):
             channels=[self.chan_segment, self.chan2], 
             save_path=save_path, 
             n_epochs = self.num_epochs,
+            rescale=self.rescale,
+            normalize = False,
+            bsize = self.bsize,
             # TODO: make below GUI options? 
             #learning_rate=learning_rate, 
             #weight_decay=weight_decay, 
@@ -121,7 +126,7 @@ class CellPoseInstanceFramework(BaseFramework):
         # this is a bit tricky... have to make sure normalization done during evaluation matches training
         # TODO: Continue iterating and double checking this
         img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high, channels=True).astype(np.float32)
-        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter)[0]
+        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter, bsize=self.bsize_pred)[0]
 
     def get_model_names(self):
         return self.model_names 
