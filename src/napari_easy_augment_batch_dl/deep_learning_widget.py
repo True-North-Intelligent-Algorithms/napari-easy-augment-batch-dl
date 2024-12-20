@@ -43,7 +43,6 @@ class DeepLearningWidget(QDialog):
             elif meta['type'] == 'string':
                 field = QLineEdit()
                 field.setPlaceholderText("Enter a string")
-
             elif meta['type'] == 'bool':
                 field = QCheckBox(param_name)
                 field.setChecked(meta.get('default', False))
@@ -113,7 +112,7 @@ class DeepLearningWidget(QDialog):
 
         if self.model.load_mode == LoadMode.File:
             options = QFileDialog.Options()
-            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File", "", "All Files (*)", options=options, directory = self.parent_path)
+            file_, _ = QFileDialog.getOpenFileName(self, "Select Model File", self.parent_path, "All Files (*)", options=options)
         else:
             options = QFileDialog.Options()
             file_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options, directory = self.parent_path)
