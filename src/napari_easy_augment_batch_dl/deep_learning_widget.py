@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget, QFileDialog
+from qtpy.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QWidget, QFileDialog, QCheckBox
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo, LabeledEdit
 from napari_easy_augment_batch_dl.frameworks.base_framework import LoadMode
 from PyQt5.QtCore import Qt  # This brings in the Qt constants
@@ -43,6 +43,11 @@ class DeepLearningWidget(QDialog):
             elif meta['type'] == 'string':
                 field = QLineEdit()
                 field.setPlaceholderText("Enter a string")
+
+            elif meta['type'] == 'bool':
+                field = QCheckBox(param_name)
+                field.setChecked(meta.get('default', False))
+                field.stateChanged.connect(lambda state, name=param_name: setattr(self.model, name, state == Qt.Checked))
             else:
                 #field = QLineEdit()
 
