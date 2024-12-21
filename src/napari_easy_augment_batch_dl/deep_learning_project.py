@@ -20,7 +20,7 @@ import yaml
 import glob 
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import inspect
-
+import zarr
 
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
@@ -42,6 +42,11 @@ try:
     from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
+
+try:
+    from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
+except ImportError:
+    RandomForestFramework = None
 
 import importlib
 
@@ -88,6 +93,9 @@ class DeepLearningProject:
         self.yolo_patch_path = Path(parent_path / r'yolo_patches')
         self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
         self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
+
+        # path for machine learning
+        self.ml_features_path = Path(parent_path / r'ml_features')
 
         self.yolo_predictions = Path(parent_path / r'yolo_predictions')
 
@@ -313,6 +321,22 @@ class DeepLearningProject:
                 for image in self.image_list:
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
+
+                
+                max_y = max(image.shape[0] for image in self.image_list)
+                max_x = max(image.shape[1] for image in self.image_list)
+
+
+            ml_labels_shape = (len(self.image_list), max_y, max_x)
+            # Create a prediction layer
+            self.ml_labels_data = zarr.open(
+                f"{self.ml_features_path}/features",
+                mode='a',
+                shape=ml_labels_shape,
+                dtype='i4',
+                dimension_separator="/",)
+
+
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
         # Get a list of all files in the directory

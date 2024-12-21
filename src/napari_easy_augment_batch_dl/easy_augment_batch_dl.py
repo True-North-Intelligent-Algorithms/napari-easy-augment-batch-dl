@@ -314,6 +314,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.viewer.add_labels(temp, name='predictions_'+str(c))
             self.predictions.append(self.viewer.layers['predictions_'+str(c)])
 
+        #ml_labels = self.deep_learning_project.ml_labels_data
+        #self.viewer.add_labels(ml_labels, name='ml_labels')
+
         self.boxes_layer = self.viewer.add_shapes(
             ndim=3,
             name="Label box",
