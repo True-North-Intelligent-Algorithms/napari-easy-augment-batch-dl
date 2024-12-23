@@ -120,17 +120,17 @@ class DeepLearningProject:
         if not os.path.exists(self.yolo_predictions):
             os.mkdir(self.yolo_predictions)
                     
-        self.files = list(self.image_path.glob('*.jpg'))
-        self.files = self.files+list(self.image_path.glob('*.jpeg'))
-        self.files = self.files+list(self.image_path.glob('*.tif'))
-        self.files = self.files+list(self.image_path.glob('*.tiff'))
-        self.files = self.files+list(self.image_path.glob('*.png'))
+        self.image_file_list = list(self.image_path.glob('*.jpg'))
+        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.jpeg'))
+        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tif'))
+        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tiff'))
+        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.png'))
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
     
         self.image_list = []
-        for index in range(len(self.files)):
-            im = imread(self.files[index])
+        for index in range(len(self.image_file_list)):
+            im = imread(self.image_file_list[index])
 
             if len(im.shape) == 3:
                 # change channel to be last dimension       
@@ -218,7 +218,7 @@ class DeepLearningProject:
                 json_names = list(Path(self.image_label_paths[0]).glob('*.json'))
 
                 n=0            
-                for image_name, image in zip(self.files, self.image_list):
+                for image_name, image in zip(self.image_file_list, self.image_list):
                     image_base_name = image_name.name.split('.')[0]
                     
                     # get all label names for this image
@@ -294,7 +294,7 @@ class DeepLearningProject:
 
             # loop loading the yolo bounding boxes.  For each image the yolo bounding boxes are stored in a text file 
             n=0
-            for image_name, image in zip(self.files, self.image_list):
+            for image_name, image in zip(self.image_file_list, self.image_list):
                 
                 image_base_name = image_name.name.split('.')[0]
 
@@ -325,6 +325,7 @@ class DeepLearningProject:
                 
                 max_y = max(image.shape[0] for image in self.image_list)
                 max_x = max(image.shape[1] for image in self.image_list)
+
 
 
             ml_labels_shape = (len(self.image_list), max_y, max_x)
@@ -375,7 +376,7 @@ class DeepLearningProject:
             try:
                 z = int(box[0,0])
 
-                name = self.files[z].name.split('.')[0]
+                name = self.image_file_list[z].name.split('.')[0]
 
                 # get rid of first column (z axis)
                 # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget codee
@@ -387,11 +388,11 @@ class DeepLearningProject:
                 xend = int(np.max(box[:,1]))
 
                 # add this bounding box to the dataframe
-                df_temp = pd.DataFrame([{'file_name': self.files[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
+                df_temp = pd.DataFrame([{'file_name': self.image_file_list[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
                 df_bounding_boxes = pd.concat([df_bounding_boxes,df_temp], ignore_index=True) 
 
                 #print('bounding box is',ystart, yend, xstart, xend)
-                print('image file is ', self.files[z])
+                print('image file is ', self.image_file_list[z])
 
                 if np.ndim(self.image_list[z]) == 3:
                     im = self.image_list[z][ystart:yend, xstart:xend, :]
@@ -456,7 +457,7 @@ class DeepLearningProject:
         if not annotation_class_dir.exists():
             annotation_class_dir.mkdir(parents=True)
 
-        base_name = self.files[z].name.split('.')[0]
+        base_name = self.image_file_list[z].name.split('.')[0]
         
         full_base_name = annotation_class_dir / (base_name+'.tif')
 
@@ -465,7 +466,7 @@ class DeepLearningProject:
             return full_base_name
         else:
             # base name will be created using stem, so we handle extra '.' before the extension
-            base_name = self.files[z].stem
+            base_name = self.image_file_list[z].stem
             full_base_name = annotation_class_dir / (base_name+'.tif')
             return full_base_name
 
@@ -474,7 +475,7 @@ class DeepLearningProject:
         if not prediction_class_dir.exists():
             prediction_class_dir.mkdir(parents=True)
 
-        base_name = self.files[z].name.split('.')[0]
+        base_name = self.image_file_list[z].name.split('.')[0]
 
         full_base_name = prediction_class_dir / (base_name+'.tif')
 
@@ -483,7 +484,7 @@ class DeepLearningProject:
             return full_base_name
         else:
             # base name will be created using stem, so we handle extra '.' before the extension
-            base_name = self.files[z].stem
+            base_name = self.image_file_list[z].stem
             full_base_name = prediction_class_dir / (base_name+'.tif')
             return full_base_name
          
@@ -506,7 +507,7 @@ class DeepLearningProject:
             if len(filtered_object_boxes) == 0:
                 continue
             
-            print(self.files[n])
+            print(self.image_file_list[n])
             print(filtered_object_boxes)
 
             im = self.image_list[n]
@@ -514,7 +515,7 @@ class DeepLearningProject:
             image_width = im.shape[1]                
             
             # create text file for image n
-            base_name = self.files[n].name.split('.')[0]
+            base_name = self.image_file_list[n].name.split('.')[0]
             yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
             boxes_xywhn = []
             with open(yolo_name, 'w') as f:
@@ -548,7 +549,7 @@ class DeepLearningProject:
         for box in boxes:
             z = int(box[0,0])
 
-            name = self.files[z].name.split('.')[0]
+            name = self.image_file_list[z].name.split('.')[0]
 
             # get rid of first column (z axis)
             box = box[:,1:]
@@ -672,10 +673,10 @@ class DeepLearningProject:
 
                     im = np.where(mask>0, im, np.mean(im)).astype(im.dtype)
                 
-                imsave(os.path.join(self.yolo_image_label_paths[0], self.files[n].name), im)
+                imsave(os.path.join(self.yolo_image_label_paths[0], self.image_file_list[n].name), im)
 
                 # create text file for image n
-                base_name = self.files[n].name.split('.')[0]
+                base_name = self.image_file_list[n].name.split('.')[0]
                 yolo_name = os.path.join(self.yolo_mask_label_paths[0],(base_name + '.txt'))
                 boxes_xywhn = []
                 with open(yolo_name, 'w') as f:
