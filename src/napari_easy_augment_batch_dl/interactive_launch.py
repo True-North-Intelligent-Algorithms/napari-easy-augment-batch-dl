@@ -1,9 +1,11 @@
 import napari
+viewer = napari.Viewer()
+
+
 import os
 from napari_easy_augment_batch_dl import easy_augment_batch_dl
 from napari_easy_augment_batch_dl.deep_learning_project import DLModel
 
-viewer = napari.Viewer()
 
 batch_dl = easy_augment_batch_dl.NapariEasyAugmentBatchDL(viewer)
 
@@ -37,6 +39,7 @@ data_path = r'C:\Users\bnort\work\ImageJ2022\tnia\notebooks-and-napari-widgets-f
 parent_path = os.path.join(data_path, 'ladybugs1')
 
 parent_path = r'C:\Users\bnort\Documents\bcs-stardist\images\Columbia_Semantic'
+parent_path = r'/home/bnorthan/bekonbits/images/Columbia_Semantic/'
 
 batch_dl.load_image_directory(parent_path)
 
@@ -61,10 +64,7 @@ try:
 except Exception as e:
     print('Exception occurred when loading model ', e)
 
-napari.run()
-
-
 model_path = os.path.join(parent_path, 'models')
 
 batch_dl.load_image_directory(parent_path)
-
+napari.run()
