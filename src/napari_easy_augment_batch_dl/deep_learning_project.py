@@ -22,6 +22,7 @@ from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import inspect
 import zarr
 
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
 except ImportError:
@@ -30,10 +31,12 @@ try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     StardistInstanceFramework = None
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
 except ImportError:
@@ -42,7 +45,7 @@ try:
     from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
-
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 except ImportError:
@@ -77,8 +80,6 @@ class DeepLearningProject:
                 self.num_classes = json_['num_classes']
         else:    
             self.num_classes = num_classes
-
-        self.image_folder = Path(parent_path)
 
         self.image_path = Path(parent_path)
         self.label_path = Path(parent_path / r'labels')
@@ -119,7 +120,9 @@ class DeepLearningProject:
 
         if not os.path.exists(self.yolo_predictions):
             os.mkdir(self.yolo_predictions)
-                    
+
+        # collect all images in the image path
+        # Note: this code loads all images in the directory.  This could be a problem if there are a large number of images                    
         self.image_file_list = list(self.image_path.glob('*.jpg'))
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.jpeg'))
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tif'))
@@ -127,11 +130,12 @@ class DeepLearningProject:
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.png'))
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
-    
+
         self.image_list = []
         for index in range(len(self.image_file_list)):
             im = imread(self.image_file_list[index])
 
+            # if the image is 3D and the first dimension is less than 7 assume the first dimension is the channel
             if len(im.shape) == 3:
                 # change channel to be last dimension       
                 if im.shape[0]<=7:
@@ -146,48 +150,6 @@ class DeepLearningProject:
         self.predicted_object_boxes = None
         self.features = None
         self.predicted_features = None
-
-
-
-        ###########################################################################################
-        ## POSSIBLE ALTERNITIVE APPROACH!!!
-        ## This code is an example of how to automatically discover models in a package
-        ###########################################################################################
-        '''
-        import pkgutil
-        import importlib
-        import inspect
-        from your_module import BaseMegaDLModel  # Replace with the actual path of BaseMegaDLModel
-
-        class ModelManager:
-            def __init__(self):
-                self.models = {}
-
-            def discover_models(self):
-                # Iterate through all installed modules
-                for module_info in pkgutil.iter_modules():
-                    try:
-                        # Import the module
-                        module = importlib.import_module(module_info.name)
-                        # Inspect the module for classes
-                        for name, obj in inspect.getmembers(module, inspect.isclass):
-                            # Check if it is a subclass of BaseMegaDLModel (but not BaseMegaDLModel itself)
-                            if issubclass(obj, BaseMegaDLModel) and obj is not BaseMegaDLModel:
-                                descriptor = getattr(obj, 'descriptor', None)
-                                if descriptor:
-                                    self.models[descriptor] = obj
-                    except Exception as e:
-                        # Log or handle errors (e.g., import errors or missing attributes)
-                        print(f"Error processing module {module_info.name}: {e}")
-
-        # Usage
-        manager = ModelManager()
-        manager.discover_models()
-
-        # self.models will now contain all discovered models keyed by their descriptor
-        print(manager.models)
-        '''
-        ###########################################################################################
 
         self.models = {} 
 
@@ -220,24 +182,20 @@ class DeepLearningProject:
                 n=0            
                 for image_name, image in zip(self.image_file_list, self.image_list):
                     image_base_name = image_name.name.split('.')[0]
+
+                    # the goal now is to get all the labels and json files describing the bounding box of the label
+                    # for this image.   
+                    # TODO: this code is fragile, if an image name is part of a another image name it will break
+                    # TODO:  REWORK and REVISIT
                     
-                    # get all label names for this image
-                    label_names_ = [x for x in label_names if image_base_name in x.name]
-
-                    # this code is fragile, if an image name is part of a another image name it will break
-                    # !  TODO:  REWORK
-                    # get all json names for this image
+                    # get all json names (the jsons contain the bounding box of the label) for this image
                     json_names_ = [x for x in json_names if image_base_name in x.name]
-
-                    # sort the label names and json names to make sure they correspond
-                    label_names_ = sorted(label_names_)
                     json_names_ = sorted(json_names_)
-
-                    label = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
                     #print('image base name is ', image_base_name)
 
-                    for label_name_, json_name_ in zip(label_names_, json_names_):
+                    # loop through all the jsons describing the bounding boxes and add them to the boxes list 
+                    for json_name_ in json_names_:
 
                         #print('label name is ', label_name_)
                         #print('json name is ', json_name_)
@@ -254,18 +212,19 @@ class DeepLearningProject:
                             bbox = x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n)
                             self.boxes.append(bbox)
 
-                            label_crop = imread(label_name_)
-                            label[y1:y2, x1:x2] = label_crop
-                            #rois.append([[x1, y1], [x2, y2]])
-
-                    labels_temp.append(label)
-
+                    # next add the annotions
+                    # NOTE: there is a subtle difference between an annotation and label
+                    # annotation: the image with object pixels labeled with an instance index
+                    # label: the regions of the annotation that are marked with a label bounding box
+                    # the idea is that we can use bounding boxes to quickly change which regions of the annotation are used for training
+                    # end NOTE
                     annotation_name = self.get_annotation_name(n, c)
+
                     # check if annotation_name exists
                     if os.path.exists(annotation_name):
                         annotation = imread(annotation_name)
                     else:
-                        annotation = label #np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
+                        annotation = np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16)
 
                     # check if prediction_name exists and if so load it
                     prediction_name = self.get_prediction_name(n, c)
@@ -277,7 +236,6 @@ class DeepLearningProject:
                     predictions_temp.append(prediction)
                     annotations_temp.append(annotation)
                     n = n+1
-
 
                 self.prediction_list.append(predictions_temp)
                 self.annotation_list.append(annotations_temp)                        
@@ -312,7 +270,7 @@ class DeepLearningProject:
                 n = n+1
 
             self.object_boxes = np.array(self.object_boxes)
-        # else this is a new project
+        # else this is a new project so just create a set of empty annotations and predictions
         else:
             for c in range(self.num_classes):
                 self.prediction_list.append([])
@@ -322,20 +280,20 @@ class DeepLearningProject:
                     self.prediction_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
                     self.annotation_list[c].append(np.zeros((image.shape[0], image.shape[1]), dtype=np.uint16))
 
-                
-                max_y = max(image.shape[0] for image in self.image_list)
-                max_x = max(image.shape[1] for image in self.image_list)
-
-
-
-            ml_labels_shape = (len(self.image_list), max_y, max_x)
-            # Create a prediction layer
-            self.ml_labels_data = zarr.open(
-                f"{self.ml_features_path}/features",
-                mode='a',
-                shape=ml_labels_shape,
-                dtype='i4',
-                dimension_separator="/",)
+            for image_name in self.image_file_list:
+                print(image_name)
+            
+        max_y = max(image.shape[0] for image in self.image_list)
+        max_x = max(image.shape[1] for image in self.image_list)
+        
+        ml_labels_shape = (len(self.image_list), max_y, max_x)
+        # Create a prediction layer
+        self.ml_labels_data = zarr.open(
+            f"{self.ml_features_path}/features",
+            mode='a',
+            shape=ml_labels_shape,
+            dtype='i4',
+            dimension_separator="/",)
 
 
     # TODO: move to a utility class 
