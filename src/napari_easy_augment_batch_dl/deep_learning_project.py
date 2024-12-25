@@ -409,43 +409,28 @@ class DeepLearningProject:
 
         # save bouning box info to a csv file
         df_bounding_boxes.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
-
-    def get_annotation_name(self, z, c):
-        annotation_class_dir = self.annotation_path / f'class_{c}'
-        if not annotation_class_dir.exists():
-            annotation_class_dir.mkdir(parents=True)
+        
+    def get_file_name(self, path, z, c):
+        class_dir = path / f'class_{c}'
+        if not class_dir.exists():
+            class_dir.mkdir(parents=True)
 
         base_name = self.image_file_list[z].name.split('.')[0]
-        
-        full_base_name = annotation_class_dir / (base_name+'.tif')
+        full_base_name = class_dir / (base_name + '.tif')
 
-        # does full base name exist?
         if full_base_name.exists():
             return full_base_name
         else:
-            # base name will be created using stem, so we handle extra '.' before the extension
             base_name = self.image_file_list[z].stem
-            full_base_name = annotation_class_dir / (base_name+'.tif')
-            return full_base_name
+            full_base_name = class_dir / (base_name + '.tif')
+            return full_base_name 
+        
+    def get_annotation_name(self, z, c):
+        return self.get_file_name(self.annotation_path, z, c)
 
     def get_prediction_name(self, z, c):
-        prediction_class_dir = self.prediction_path / f'class_{c}'
-        if not prediction_class_dir.exists():
-            prediction_class_dir.mkdir(parents=True)
-
-        base_name = self.image_file_list[z].name.split('.')[0]
-
-        full_base_name = prediction_class_dir / (base_name+'.tif')
-
-        # does full base name exist?
-        if full_base_name.exists():
-            return full_base_name
-        else:
-            # base name will be created using stem, so we handle extra '.' before the extension
-            base_name = self.image_file_list[z].stem
-            full_base_name = prediction_class_dir / (base_name+'.tif')
-            return full_base_name
-         
+        return self.get_file_name(self.prediction_path, z, c)
+    
     def save_object_boxes(self, object_boxes, object_classes):
         for object_box in object_boxes:
             print('object box is ', object_box)    
