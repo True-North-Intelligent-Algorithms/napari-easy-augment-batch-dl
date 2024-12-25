@@ -130,12 +130,12 @@ def yolotxt_to_naparibb(yolo_txt_name, image_shape, n):
 
     Returns:
     - list: List of bounding boxes in the format required for Napari.
-    - features: A pandas DataFrame containing the class information for each bounding box.
+    - classes: A pandas DataFrame containing the class information for each bounding box.
     
     """
     
     object_boxes = []
-    features = pd.DataFrame(columns=['class'])            
+    classes = pd.DataFrame(columns=['class'])            
 
     # load yolo txt file
     with open(yolo_txt_name, 'r') as f:
@@ -166,9 +166,9 @@ def yolotxt_to_naparibb(yolo_txt_name, image_shape, n):
             # TODO: this format is useful for napari, but it make make sense to refactor this to the 
             # napari specific 'easy_augment_batch_dl' class
             df_new = pd.DataFrame([{'class': class_}])
-            features = pd.concat([features,df_new], ignore_index=True) 
+            classes = pd.concat([classes,df_new], ignore_index=True) 
 
-    return object_boxes, features
+    return object_boxes, classes
 
 def xyxy_to_tltrbrbl(boxes, n):
     """ Convert a list of bounding boxes in xyxy format to n-tltrbrbl format.

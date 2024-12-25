@@ -148,8 +148,8 @@ class DeepLearningProject:
         self.boxes = []
         self.object_boxes = None
         self.predicted_object_boxes = None
-        self.features = None
-        self.predicted_features = None
+        self.classes = None
+        self.predicted_classes = None
 
         self.models = {} 
 
@@ -248,7 +248,7 @@ class DeepLearningProject:
             self.object_boxes = []
             self.predicted_object_boxes = []
             
-            self.features = pd.DataFrame(columns=['class'])            
+            self.classes = pd.DataFrame(columns=['class'])            
 
             # loop loading the yolo bounding boxes.  For each image the yolo bounding boxes are stored in a text file 
             n=0
@@ -264,9 +264,9 @@ class DeepLearningProject:
                     n = n+1
                     continue
 
-                object_boxes, features = yolotxt_to_naparibb(yolo_txt_name, image.shape, n)
+                object_boxes, classes = yolotxt_to_naparibb(yolo_txt_name, image.shape, n)
                 self.object_boxes = self.object_boxes + object_boxes
-                self.features = pd.concat([self.features, features], ignore_index=True)
+                self.classes = pd.concat([self.classes, classes], ignore_index=True)
                 n = n+1
 
             self.object_boxes = np.array(self.object_boxes)

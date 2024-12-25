@@ -461,10 +461,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         if self.deep_learning_project.predicted_object_boxes is not None:
             self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
 
-        if self.deep_learning_project.features is not None:
-            self.object_boxes_layer.features = self.deep_learning_project.features
+        if self.deep_learning_project.classes is not None:
+            self.object_boxes_layer.features = self.deep_learning_project.classes
 
-        if self.deep_learning_project.predicted_features is not None:
+        if self.deep_learning_project.predicted_classes is not None:
             self.predicted_object_boxes_layer.features = self.deep_learning_project.predicted_features
         
         self.boxes_layer.events.data.connect(handle_new_roi)
