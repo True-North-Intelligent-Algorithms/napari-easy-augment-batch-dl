@@ -15,10 +15,10 @@ class YoloSAMFramework(BaseFramework):
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})
     imagesz: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10000, 'default': 1024, 'step': 1})
     
-    def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model_path: str = None):
-        super().__init__(patch_path, model_path, num_classes)
+    def __init__(self, parent_path: str,  num_classes: int, start_model_path: str = None):
+        super().__init__(parent_path, num_classes)
         #self.model = YoloDetector( 'yolov8m.pt', "RegularYOLO", 'cuda')
-        model_name = os.path.join(model_path, r'')
+        #model_name = os.path.join(model_path, r'')
         
         if start_model_path is not None:
             best_model_path = os.path.join(start_model_path, 'weights', 'best.pt')

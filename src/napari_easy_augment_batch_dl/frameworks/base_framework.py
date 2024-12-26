@@ -1,4 +1,5 @@
 from datetime import datetime
+import os 
 
 class LoadMode:
     NotLoadable = 0
@@ -6,10 +7,10 @@ class LoadMode:
     File=2
 
 class BaseFramework:
-    def __init__(self, patch_path='', model_path='', num_classes=1):
-        self.model_path = model_path
+    def __init__(self, parent_path, num_classes=1):
+        self.model_path = os.path.join(parent_path, 'models') 
         self.num_classes = num_classes
-        self.patch_path = patch_path
+        self.patch_path = os.path.join(parent_path, 'patches')
         self.model_name = 'notset'
         self.load_mode = LoadMode.NotLoadable
         self.boxes = False
@@ -32,7 +33,7 @@ class BaseFramework:
         return []
 
     def create_callback(self, updater):
-        pass
+        self.updater = updater
 
     def generate_model_name(self, base_name="model"):
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")

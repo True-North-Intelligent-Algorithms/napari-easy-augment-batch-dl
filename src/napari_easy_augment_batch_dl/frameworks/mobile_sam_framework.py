@@ -14,8 +14,8 @@ class MobileSAMFramework(BaseFramework):
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})
     imagesz: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10000, 'default': 1024, 'step': 1})
 
-    def __init__(self, patch_path: str, model_path: str, start_model_path: str = None):
-        super().__init__(patch_path, model_path, 1)
+    def __init__(self, parent_path, start_model_path: str = None):
+        super().__init__(parent_path, 1)
         self.yolo_detecter = YoloDetector(str(get_weights_path("ObjectAwareModel")), "ObjectAwareModelFromMobileSamV2", device='cuda')
         
         self.conf = 0.5

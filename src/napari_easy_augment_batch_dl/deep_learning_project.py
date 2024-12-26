@@ -95,11 +95,10 @@ class DeepLearningProject:
         self.yolo_patch_path = Path(parent_path / r'yolo_patches')
         self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
         self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
+        self.yolo_predictions = Path(parent_path / r'yolo_predictions')
 
         # path for machine learning
-        self.ml_features_path = Path(parent_path / r'ml_features')
-
-        self.yolo_predictions = Path(parent_path / r'yolo_predictions')
+        self.ml_path = Path(parent_path / r'ml')
 
         if not os.path.exists(self.patch_path):
             os.mkdir(self.patch_path)
@@ -160,7 +159,7 @@ class DeepLearningProject:
             if inspect.isclass(obj) and issubclass(obj, BaseFramework) and obj is not BaseFramework:
                 print('found class ', name)
                 try:
-                    instance = obj(self.patch_path, self.model_path, self.num_classes)
+                    instance = obj(self.parent_path, self.num_classes)
                     self.models[instance.descriptor] = instance
                     self.test = {name: field.metadata for name, field in obj.__dataclass_fields__.items() if field.metadata.get('harvest')}
 
@@ -287,8 +286,8 @@ class DeepLearningProject:
         max_y = max(image.shape[0] for image in self.image_list)
         max_x = max(image.shape[1] for image in self.image_list)
         
-        store = manage_zarr_store(os.path.join(self.ml_features_path,'features_363'), self.image_file_list, (max_y, max_x))
-        self.ml_labels_data = store['images']
+        ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
+        self.ml_labels_data = ml_labels_store['images']
 
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):

@@ -46,11 +46,9 @@ class StardistInstanceFramework(BaseFramework):
     
     model_names = ['notset', '2D_versatile_fluo', '2D_versatile_he']
 
-    def __init__(self, patch_path: str = '', model_path: str = '',  num_classes: int = 1, start_model_path: str = None):
-        super().__init__(patch_path, model_path, num_classes)
+    def __init__(self, parent_path: str = '',  num_classes: int = 1, start_model_path: str = None):
+        super().__init__(parent_path, num_classes)
 
-        self.model_path = model_path
-        
         if start_model_path is None:
             self.model = None
         else:

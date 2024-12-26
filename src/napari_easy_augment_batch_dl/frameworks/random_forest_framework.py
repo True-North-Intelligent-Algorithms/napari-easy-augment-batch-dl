@@ -6,11 +6,22 @@ from dataclasses import dataclass, field
 from skimage.feature import multiscale_basic_features
 from functools import partial
 import os 
-
+from napari_easy_augment_batch_dl.zarr_helper import get_zarr_store
 @dataclass
 class RandomForestFramework(BaseFramework):
 
-    def __init__(self, patch_path, model_name, num_classes):
+    default_feature_params = {
+        "sigma_min": 1,
+        "sigma_max": 5,
+        "intensity": True,
+        "edges": True,
+        "texture": True,
+    }
+
+    def __init__(self, parent_path, num_classes):
+        super().__init__(parent_path, num_classes)
+
+        self.ml_labels_path = os.path.join(parent_path, "ml", "ml_labels")
 
         self.load_mode = LoadMode.File
         self.descriptor = "Random Forest Model"
@@ -24,9 +35,18 @@ class RandomForestFramework(BaseFramework):
         self.updater = updater
     
     def train(self, num_epochs, updater=None):
-        self.extract_features(image, )
-    
+        updater('time to train the random forest')
+        store = get_zarr_store(self.ml_labels_path)
+        images = store['images']
+
+        for i in range(images.shape[0]):
+            image = images[i]
+
+            if image.sum() > 0:
+                updater(f"image {i} has sum {image.sum()}")
+
     def predict(self, image):
+        print('time to predict with the random forest')
         pass
     
     def load_model_from_disk(self, model_name):
@@ -53,15 +73,6 @@ class RandomForestFramework(BaseFramework):
         #features = features_func(np.squeeze(image))
         
         return features
-
-        example_feature_params = {
-            "sigma_min": 1,
-            "sigma_max": 5,
-            "intensity": True,
-            "edges": True,
-            "texture": True,
-        }
-
 
         features = extract_features(image, example_feature_params)
         features.shape

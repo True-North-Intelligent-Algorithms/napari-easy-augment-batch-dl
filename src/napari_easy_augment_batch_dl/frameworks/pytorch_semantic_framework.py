@@ -18,7 +18,11 @@ class PytorchSemanticFramework(BaseFramework):
 
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     
-    def __init__(self, patch_path, model_name, num_classes):
+    def __init__(self, parent_path, num_classes):
+        
+        super.__init__(parent_path, num_classes)
+        
+        '''
         # get path from model_name
         if os.path.isdir(model_name):
             self.model_path = model_name
@@ -27,6 +31,7 @@ class PytorchSemanticFramework(BaseFramework):
         else:
             self.model_path = os.path.dirname(model_name)
             self.model = torch.load(model_name )
+        '''
 
         self.model_name = self.generate_model_name(
             base_name="model"

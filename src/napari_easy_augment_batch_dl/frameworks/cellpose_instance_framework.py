@@ -28,8 +28,8 @@ class CellPoseInstanceFramework(BaseFramework):
     rescale: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'cyto3', 'step': 1})
 
-    def __init__(self, patch_path: str, model_path: str,  num_classes: int, start_model: str = None):
-        super().__init__(patch_path, model_path, num_classes)
+    def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
+        super().__init__(parent_path, num_classes)
 
         # start logger (to see training across epochs)
         logger = io.logger_setup()
