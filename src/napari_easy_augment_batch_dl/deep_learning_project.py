@@ -21,6 +21,7 @@ import glob
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import inspect
 import zarr
+from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 
 '''
 try:
@@ -286,15 +287,8 @@ class DeepLearningProject:
         max_y = max(image.shape[0] for image in self.image_list)
         max_x = max(image.shape[1] for image in self.image_list)
         
-        ml_labels_shape = (len(self.image_list), max_y, max_x)
-        # Create a prediction layer
-        self.ml_labels_data = zarr.open(
-            f"{self.ml_features_path}/features",
-            mode='a',
-            shape=ml_labels_shape,
-            dtype='i4',
-            dimension_separator="/",)
-
+        store = manage_zarr_store(os.path.join(self.ml_features_path,'features_363'), self.image_file_list, (max_y, max_x))
+        self.ml_labels_data = store['images']
 
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
