@@ -3,6 +3,13 @@ import numpy as np
 from numcodecs import JSON
 import os
 
+
+def get_zarr_store(zarr_path):
+    
+    z = zarr.open(zarr_path, mode='r+')
+
+    return z
+
 def manage_zarr_store(zarr_path, file_names, image_shape=(256, 256)):
     """
     Manage a Zarr store based on the current file names.
