@@ -18,12 +18,11 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
 import pandas as pd
 import yaml
 import glob 
-from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
 import inspect
 import zarr
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
 except ImportError:
@@ -32,12 +31,10 @@ try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     StardistInstanceFramework = None
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
 except ImportError:
@@ -46,7 +43,6 @@ try:
     from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 except ImportError:
@@ -100,6 +96,7 @@ class DeepLearningProject:
         # path for machine learning
         self.ml_path = Path(parent_path / r'ml')
 
+        # make paths if they don't exist
         if not os.path.exists(self.patch_path):
             os.mkdir(self.patch_path)
         if not os.path.exists(self.model_path):
@@ -172,11 +169,9 @@ class DeepLearningProject:
 
             # load the label boxes.  
             for c in range(self.num_classes):
-                labels_temp = []
                 predictions_temp = []
                 annotations_temp = []
                 
-                label_names = list(Path(self.mask_label_paths[c]).glob('*.tif'))
                 json_names = list(Path(self.image_label_paths[0]).glob('*.json'))
 
                 n=0            
@@ -212,7 +207,7 @@ class DeepLearningProject:
                             bbox = x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n)
                             self.boxes.append(bbox)
 
-                    # next add the annotions
+                    # next add the annotations
                     # NOTE: there is a subtle difference between an annotation and label
                     # annotation: the image with object pixels labeled with an instance index
                     # label: the regions of the annotation that are marked with a label bounding box
@@ -286,8 +281,16 @@ class DeepLearningProject:
         max_y = max(image.shape[0] for image in self.image_list)
         max_x = max(image.shape[1] for image in self.image_list)
         
+        if len(self.image_list[0].shape) == 3:
+            max_channels = max(image.shape[2] for image in self.image_list)
+        else:
+            max_channels = 1
+ 
         ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
-        self.ml_labels_data = ml_labels_store['images']
+        ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12))
+        
+        self.ml_labels = ml_labels_store['images']
+        self.ml_features = ml_features_store['images']
 
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
@@ -400,7 +403,7 @@ class DeepLearningProject:
 
             z = z + 1
 
-        # save bouning box info to a csv file
+        # save bounding box info to a csv file
         df_bounding_boxes.to_csv(os.path.join(self.label_path, 'training_labels.csv'), index=False)
         
     def get_file_name(self, path, z, c):
@@ -650,7 +653,7 @@ class DeepLearningProject:
         if update is not None:
             update(f"Training {network_type} model...", 0)
         
-        model = self.get_model(network_type) 
+        model = self.get_model(network_type)
         model.train(num_epochs, update)
 
     def predict_roi(self, n, network_type, update, roi):

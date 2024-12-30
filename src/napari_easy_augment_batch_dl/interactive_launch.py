@@ -1,11 +1,9 @@
 import napari
 viewer = napari.Viewer()
 
-
 import os
 from napari_easy_augment_batch_dl import easy_augment_batch_dl
 from napari_easy_augment_batch_dl.deep_learning_project import DLModel
-
 
 batch_dl = easy_augment_batch_dl.NapariEasyAugmentBatchDL(viewer)
 
@@ -38,9 +36,6 @@ parent_path =r'D:\images\tnia-python-images\\imagesc\\2024_10_17_thin_section'
 data_path = r'C:\Users\bnort\work\ImageJ2022\tnia\notebooks-and-napari-widgets-for-dl\data'
 parent_path = os.path.join(data_path, 'ladybugs1')
 
-parent_path = r'C:\Users\bnort\Documents\bcs-stardist\images\Columbia_Semantic'
-parent_path = r'/home/bnorthan/bekonbits/images/Columbia_Semantic/'
-
 batch_dl.load_image_directory(parent_path)
 
 # load the model that goes with the test
@@ -66,5 +61,4 @@ except Exception as e:
 
 model_path = os.path.join(parent_path, 'models')
 
-batch_dl.load_image_directory(parent_path)
 napari.run()

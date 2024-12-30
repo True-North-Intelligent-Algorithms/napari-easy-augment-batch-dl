@@ -9,7 +9,8 @@ from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_origin
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.deep_learning_widget import DeepLearningWidget
 from napari_easy_augment_batch_dl.bounding_box_util import naparixyzbb_to_xyxy
-
+from napari_easy_augment_batch_dl.frameworks.training_features import TrainingFeatures
+from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 try:
     from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
 except Exception as e:
@@ -314,8 +315,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.viewer.add_labels(temp, name='predictions_'+str(c))
             self.predictions.append(self.viewer.layers['predictions_'+str(c)])
 
-        ml_labels = self.deep_learning_project.ml_labels_data
-        self.viewer.add_labels(ml_labels, name='ml_labels')
+        self.ml_labels = self.deep_learning_project.ml_labels
+        self.ml_features = self.deep_learning_project.ml_features
+        self.viewer.add_labels(self.ml_labels, name='ml_labels')
 
         self.boxes_layer = self.viewer.add_shapes(
             ndim=3,
@@ -324,6 +326,12 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_color="blue",
             edge_width=5,
         )
+
+        try:
+            temp = self.deep_learning_project.models["Random Forest Model"]
+            temp.create_features(self.images, self.ml_labels, self.ml_features)
+        except Exception as e:
+            print(e)
 
         def handle_new_object_box(event):
 

@@ -6,8 +6,13 @@ class LoadMode:
     Directory = 1
     File=2
 
+class TrainMode:
+    Patches = 0
+    Pixels = 1
+
 class BaseFramework:
     def __init__(self, parent_path, num_classes=1):
+        self.parent_path = parent_path
         self.model_path = os.path.join(parent_path, 'models') 
         self.num_classes = num_classes
         self.patch_path = os.path.join(parent_path, 'patches')
@@ -16,6 +21,7 @@ class BaseFramework:
         self.boxes = False
         self.builtin_names = []
         self.pretrained_models = {}
+        self.train_mode = TrainMode.Patches
 
     def set_model(self, model):
         self.model = model
