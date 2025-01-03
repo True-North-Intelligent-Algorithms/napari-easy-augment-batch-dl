@@ -12,6 +12,7 @@ from napari_easy_augment_batch_dl.frameworks.training_features import TrainingFe
 from sklearn.ensemble import RandomForestClassifier
 from skimage import future
 import dask.array as da
+from tnia.machinelearning.random_forest_helper import extract_features_sequence, extract_features
 
 @dataclass
 class RandomForestFramework(BaseFramework):
@@ -48,7 +49,7 @@ class RandomForestFramework(BaseFramework):
         self.images = images
         self.labels = labels
         self.features = features
-        self.training_features = TrainingFeatures(self.images, self.labels, self.features)
+        #self.training_features = TrainingFeatures(self.images, self.labels, self.features)
 
         #self.dask_image = da.from_zarr(self.images)
         self.dask_labels = da.from_zarr(self.labels)
@@ -64,48 +65,22 @@ class RandomForestFramework(BaseFramework):
         updater('image size is {}'.format(self.images.shape))
         updater('feature size is {}'.format(self.features.shape))
 
-        for i in range(self.images.shape[0]):
-            image = self.images[i]
-            label = self.labels[i]
+        updater('calculate features')
 
-            if label.sum() > 0:
-                updater(f"image {i} has shape {image.shape}")
-                updater(f"labels {i} has sum {label.sum()}")
-                
-                if self.features[i,:,:,:].sum() == 0:
-                    updater(f"extracting features for image {i}")
-                    self.features[i,:,:,:] = self.extract_features(image, self.default_feature_params)
-                else:
-                    updater(f"features {i} already exist")
-
-        '''
-        mask = self.dask_labels>0
-        indices = da.nonzero(mask.flatten())
-        indices=indices + (slice(None),)
-
-        features_ = self.dask_features[indices]
-        # We shift labels - 1 because background is 0 and has special meaning, but models need to start at 0
-        labels_ = self.dask_labels[self.dask_labels > 0] - 1
-        '''
-        mask = self.labels[:] > 0
-        features_ = self.features[:]
-        features_ = features_[mask]
-
-        labels_ = self.labels[:]
-        labels_ = labels_[mask] - 1
-
-        self.clf.fit(features_, labels_)
+        label_vector, features_vector = extract_features_sequence(self.images, self.labels, self.features)
+        
+        self.clf.fit(features_vector, label_vector-1)
 
     def predict(self, image):
-        print('time to predict with the random forest')
-        features = self.extract_features(image, self.default_feature_params)
-        model = self.clf
-        prediction = future.predict_segmenter(features.reshape(-1, features.shape[-1]), model).reshape(features.shape[:-1]) + 1
 
-        return np.transpose(prediction)
-        
-        pass
-    
+        features = extract_features(image)
+
+        features = features.astype(np.float32)
+
+        prediction = future.predict_segmenter(features.reshape(-1, features.shape[-1]), self.clf).reshape(features.shape[:-1]) + 1
+        prediction = np.squeeze(prediction).astype(np.uint32)
+        return prediction
+   
     def load_model_from_disk(self, model_name):
         pass
 
