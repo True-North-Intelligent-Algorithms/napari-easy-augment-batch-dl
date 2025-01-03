@@ -287,7 +287,7 @@ class DeepLearningProject:
             max_channels = 1
  
         ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
-        ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12))
+        ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12), dtype='f4')
         
         self.ml_labels = ml_labels_store['images']
         self.ml_features = ml_features_store['images']

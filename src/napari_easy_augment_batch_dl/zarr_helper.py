@@ -10,7 +10,7 @@ def get_zarr_store(zarr_path):
 
     return z
 
-def manage_zarr_store(zarr_path, file_names, image_shape=(256, 256)):
+def manage_zarr_store(zarr_path, file_names, image_shape=(256, 256), dtype='i4'):
     """
     Manage a Zarr store based on the current file names.
     
@@ -38,7 +38,7 @@ def manage_zarr_store(zarr_path, file_names, image_shape=(256, 256)):
             'images',
             shape=(num_file_names, *image_shape),
             #chunks=(1, *image_shape),
-            dtype='i4',
+            dtype=dtype,
             fill_value=0,
             #compressor=zarr.Blosc(cname='zstd', clevel=5, shuffle=2)
         )
