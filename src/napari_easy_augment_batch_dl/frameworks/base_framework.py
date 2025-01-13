@@ -11,6 +11,12 @@ class TrainMode:
     Pixels = 1
 
 class BaseFramework:
+    registry = {}
+
+    @classmethod
+    def register_framework(cls, name, framework):
+        cls.registry[name] = framework
+
     def __init__(self, parent_path, num_classes=1):
         self.parent_path = parent_path
         self.model_path = os.path.join(parent_path, 'models') 

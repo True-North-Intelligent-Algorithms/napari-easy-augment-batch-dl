@@ -1,3 +1,4 @@
+from unittest.mock import Base
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from tnia.deeplearning.dl_helper import collect_training_data
@@ -53,7 +54,7 @@ class CellPoseInstanceFramework(BaseFramework):
         self.chan2 = 0
         self.niter = 200
         
-        self.descriptor = "CellPose Instance Model"
+        self.descriptor = "CellPose Instance Framework"
         self.load_mode = LoadMode.File
         
         self.num_epochs = 100
@@ -150,3 +151,5 @@ class CellPoseInstanceFramework(BaseFramework):
 
     def set_optimizer(self, optimizer):
         self.sgd = optimizer == 'sgd'
+
+BaseFramework.register_framework('CellPoseInstanceFramework', CellPoseInstanceFramework)

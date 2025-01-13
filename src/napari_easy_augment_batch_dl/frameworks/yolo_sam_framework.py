@@ -81,3 +81,5 @@ class YoloSAMFramework(BaseFramework):
     def load_model_from_disk(self, model_path):
         best_model_path = os.path.join(model_path, 'weights', 'best.pt')
         self.model = YoloDetector(best_model_path, "loaded YOLO", device='cuda')
+
+BaseFramework.register_framework('YoloSAMFramework', YoloSAMFramework)

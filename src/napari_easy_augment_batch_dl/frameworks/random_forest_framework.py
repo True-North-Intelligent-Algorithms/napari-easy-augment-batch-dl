@@ -1,3 +1,4 @@
+from unittest.mock import Base
 import numpy as np
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode, TrainMode
 from tifffile import imread
@@ -107,5 +108,7 @@ class RandomForestFramework(BaseFramework):
                 features = np.concatenate((features, features_temp), axis=2)
         
         return features
+    
+BaseFramework.register_framework("RandomForestFramework", RandomForestFramework)
 
 

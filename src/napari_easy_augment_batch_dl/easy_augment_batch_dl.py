@@ -229,6 +229,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.viewer.dims.events.current_step.connect(index_changed)
 
+        # comment out for now TODO:  Revisit interactive segmentation
+        '''
         # try to create a sam model which will be used for creating labels from bounding boxes
         try:
             from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
@@ -236,7 +238,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         except Exception as e:
             print(e)
             self.helper_sam_model = None
-
+        '''
     def update(self, message, progress=0):
         self.textBrowser_log.append(message)
         self.progressBar.setValue(int(progress))
@@ -288,7 +290,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.deep_learning_project = DeepLearningProject(self.parent_path, num_classes)
         self.deep_learning_widgets = {}
 
-        for key, obj in self.deep_learning_project.models.items():
+        for key, obj in self.deep_learning_project.frameworks.items():
             try:
                 temp1 = DeepLearningWidget(obj, parent_path = str(self.parent_path))
                 self.deep_learning_widgets[key] = temp1
@@ -328,7 +330,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         )
 
         try:
-            temp = self.deep_learning_project.models["Random Forest Model"]
+            temp = self.deep_learning_project.frameworks["Random Forest Model"]
             temp.create_features(self.images, self.ml_labels, self.ml_features)
         except Exception as e:
             print(e)
@@ -539,7 +541,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         # if yolo
 
         model_name = self.network_architecture_drop_down.currentText()
-        if self.deep_learning_project.models[model_name].boxes ==True:
+        if self.deep_learning_project.frameworks[model_name].boxes ==True:
 
         #if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
             classes = self.object_boxes_layer.features['class'].to_numpy()
@@ -608,7 +610,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         n = self.viewer.dims.current_step[0]
         
         model_name = self.network_architecture_drop_down.currentText()
-        show_boxes = self.deep_learning_project.models[model_name].boxes
+        show_boxes = self.deep_learning_project.frameworks[model_name].boxes
        
         if show_boxes == True:
             predictions, boxes = self.deep_learning_project.predict(n, model_name, self.update)
@@ -635,7 +637,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.textBrowser_log.append("Predicting all images...")
 
         model_name = self.network_architecture_drop_down.currentText()
-        show_boxes = self.deep_learning_project.models[model_name].boxes
+        show_boxes = self.deep_learning_project.frameworks[model_name].boxes
         
         thread = True
 

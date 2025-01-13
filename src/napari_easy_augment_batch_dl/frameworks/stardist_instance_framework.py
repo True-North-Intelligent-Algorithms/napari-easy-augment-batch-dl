@@ -1,3 +1,4 @@
+from unittest.mock import Base
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from stardist.models import StarDist2D, Config2D
@@ -136,4 +137,6 @@ class StardistInstanceFramework(BaseFramework):
 
     def set_builtin_model(self, model_name):
         StarDist2D.from_pretrained(model_name)
+
+BaseFramework.register_framework('StardistInstanceFramework', StardistInstanceFramework)
 

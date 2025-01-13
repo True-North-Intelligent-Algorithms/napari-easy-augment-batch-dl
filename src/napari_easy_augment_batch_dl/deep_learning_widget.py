@@ -139,7 +139,10 @@ class DeepLearningWidget(QDialog):
                     self.fields[param_name].setValue(value)
                 else:
                     self.fields[param_name].setText("")
+        except Exception as e:
+            print(e)
 
+        try:
             # get model names in combo
             model_names = [self.pretrained_combo.combo.itemText(i) for i in range(self.pretrained_combo.combo.count())]
             

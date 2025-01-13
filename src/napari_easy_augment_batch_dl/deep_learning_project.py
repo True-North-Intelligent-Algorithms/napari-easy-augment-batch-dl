@@ -25,8 +25,10 @@ from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
-except ImportError:
+except ImportError as e:
+    print(f"Pytorch Semantic Framework ImportError occurred: {e}")
     PytorchSemanticFramework = None
+
 try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
@@ -35,6 +37,8 @@ try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
+
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
 except ImportError:
@@ -43,6 +47,7 @@ try:
     from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 except ImportError:
@@ -148,21 +153,17 @@ class DeepLearningProject:
         self.classes = None
         self.predicted_classes = None
 
-        self.models = {} 
+        self.frameworks = {} 
 
-        # look for models derived from 'BaseModel' and add them to the models dictionary
-        for name, obj in globals().items():  
-        
-            if inspect.isclass(obj) and issubclass(obj, BaseFramework) and obj is not BaseFramework:
-                print('found class ', name)
-                try:
-                    instance = obj(self.parent_path, self.num_classes)
-                    self.models[instance.descriptor] = instance
-                    self.test = {name: field.metadata for name, field in obj.__dataclass_fields__.items() if field.metadata.get('harvest')}
-
-                    self.temp_model_names = instance.get_model_names()
-                except Exception as e:
-                    print(f"Error instantiating class {name}: {e}")
+        # models derived from BaseFramework should be registered when imported
+        # so add them to the frameworks collection
+        for framework_name in BaseFramework.registry:
+            print('found framework is ', framework_name)
+            try:
+                instance = BaseFramework.registry[framework_name](self.parent_path, self.num_classes)
+                self.frameworks[instance.descriptor] = instance
+            except Exception as e:
+                print(f"Error instantiating class {framework_name}: {e}")
 
         # if there is already a json file this is a pre-existing project                
         if os.path.exists(json_name):
@@ -639,14 +640,14 @@ class DeepLearningProject:
         # add this model to the model dictionary 
 
         if model_type == DLModel.STARDIST or model_type == "Stardist Model":
-            model = self.models['Stardist Model']
+            model = self.frameworks['Stardist Model']
             model.load_model_from_disk(pretrained_model)
         if model_type == "CellPose Instance Model":
-            model = self.models['CellPose Instance Model']
+            model = self.frameworks['CellPose Instance Model']
             model.load_model_from_disk(pretrained_model)
 
     def get_model(self, network_type):
-        return self.models[network_type]
+        return self.frameworks[network_type]
 
     def perform_training(self, network_type, num_epochs, update):
 
@@ -658,7 +659,7 @@ class DeepLearningProject:
 
     def predict_roi(self, n, network_type, update, roi):
         image = self.image_list[n][roi]
-        model = self.models[network_type]
+        model = self.frameworks[network_type]
 
         if update is not None:
             update(f"Apply {network_type} to image "+str(n)+"...")
@@ -674,7 +675,7 @@ class DeepLearningProject:
         if update is not None:
             update(f"Apply {network_type} to image "+str(n)+"...")
         
-        model = self.models[network_type]
+        model = self.frameworks[network_type]
 
         if model.boxes == True:
 
@@ -693,7 +694,7 @@ class DeepLearningProject:
             return prediction
             
     def predict_all(self, network_type, update):
-        model = self.models[network_type]
+        model = self.frameworks[network_type]
         
         if model.boxes == True:
             self.object_boxes = []

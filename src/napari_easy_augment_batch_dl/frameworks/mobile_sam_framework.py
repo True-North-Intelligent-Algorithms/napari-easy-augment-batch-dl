@@ -36,4 +36,6 @@ class MobileSAMFramework(BaseFramework):
     def train(self, num_epochs, updater=None):
         # raise not implemented error
         raise NotImplementedError("This model is not trainable")
+
+BaseFramework.register_framework('MobileSAMFramework', MobileSAMFramework)
          
