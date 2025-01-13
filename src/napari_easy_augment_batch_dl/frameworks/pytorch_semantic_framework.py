@@ -1,4 +1,5 @@
 import numpy as np
+from sympy import im
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 from tifffile import imread
 import json
@@ -12,16 +13,20 @@ from torchvision.transforms import v2
 import os
 from datetime import datetime
 from dataclasses import dataclass, field
+from pathlib import Path
 
 @dataclass
 class PytorchSemanticFramework(BaseFramework):
 
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     
-    def __init__(self, parent_path, num_classes):
+    sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
+    model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
+    
+    def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
+        super().__init__(parent_path, num_classes)
         
-        super.__init__(parent_path, num_classes)
-        
+        self.model = None
         '''
         # get path from model_name
         if os.path.isdir(model_name):
@@ -37,11 +42,15 @@ class PytorchSemanticFramework(BaseFramework):
             base_name="model"
         )
         
-        super().__init__(patch_path, self.model_path, num_classes)
+        #super().__init__(patch_path, self.model_path, num_classes)
 
-        self.threshold = 0.5
+        #self.threshold = 0.5
+        self.semantic_thresh = 0.0
         self.descriptor = "Pytorch Semantic Model"
         self.load_mode = LoadMode.File
+        self.sparse = True
+        
+        self.model_name = self.generate_model_name('semantic')
 
     def generate_model_name(self, base_name="model"):
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -53,6 +62,8 @@ class PytorchSemanticFramework(BaseFramework):
         pass
     
     def train(self, num_epochs, updater=None):
+
+        patch_path = Path(self.patch_path)
         
         if updater is None:
             updater = self.updater
@@ -66,7 +77,7 @@ class PytorchSemanticFramework(BaseFramework):
         device = torch.device("cuda" if use_cuda else "cpu")  # "cuda:0" ... default device, "cuda:1" would be GPU index 1, "cuda:2" etc
         print("number of devices:", ndevices, "\tchosen device:", device, "\tuse_cuda=", use_cuda)
 
-        with open(self.patch_path / 'info.json', 'r') as json_file:
+        with open(patch_path / 'info.json', 'r') as json_file:
             data = json.load(json_file)
             sub_sample = data.get('sub_sample',1)
             print('sub_sample',sub_sample)
@@ -78,8 +89,8 @@ class PytorchSemanticFramework(BaseFramework):
             print('num_truths',num_truths)
 
 
-        image_patch_path = self.patch_path / 'input0'
-        label_patch_path = self.patch_path / 'ground truth0'
+        image_patch_path = patch_path / 'input0'
+        label_patch_path = patch_path / 'ground truth0'
 
         from glob import glob
 
@@ -95,13 +106,13 @@ class PytorchSemanticFramework(BaseFramework):
         else:
             num_in_channels=3
 
-        assert self.patch_path.exists(), f"root directory with images and masks {self.patch_path} does not exist"
+        assert patch_path.exists(), f"root directory with images and masks {patch_path} does not exist"
 
-        X = sorted(self.patch_path.rglob('**/input0/*.tif'))
+        X = sorted(patch_path.rglob('**/input0/*.tif'))
 
         Y = []
         for i in range(num_truths):
-            Y.append(sorted(self.patch_path.rglob(f'**/ground truth{i}/*.tif')))
+            Y.append(sorted(patch_path.rglob(f'**/ground truth{i}/*.tif')))
 
         train_data = PyTorchSemanticDataset(
             image_files=X,
@@ -115,13 +126,25 @@ class PytorchSemanticFramework(BaseFramework):
 
         train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 
+        # there is an inconstency in how different classes can be defined
+        # 1. every class has it's own label image
+        # 2. every class has a unique value in the label image
+        # When I wrote a lot of this code I was thinking of the first case, but now see the second may be easier for the user
+        # so number of output channels is the max of the truth image
+
+        first_label = imread(Y[0][0])
+        num_classes = first_label.max()
+
+        if not self.sparse:
+            num_classes += 1
+
         if self.model == None:
             self.model = BasicUNet(
                 spatial_dims=2,
                 in_channels=num_in_channels,
-                out_channels=num_truths,
+                out_channels=num_classes,
                 #features=[16, 16, 32, 64, 128, 16],
-                act="relu",
+                act="softmax",
                 #norm="batch",
                 dropout=0.25,
             )
@@ -138,17 +161,23 @@ class PytorchSemanticFramework(BaseFramework):
         # BCEWithLogitsLoss combines sigmoid + BCELoss for better
         # numerical stability. It expects raw unnormalized scores as input which are shaped like 
         # B x C x W x D
-        loss_function = torch.nn.BCEWithLogitsLoss(reduction="mean")
+        #loss_function = torch.nn.BCEWithLogitsLoss(reduction="mean")
+        loss_function = torch.nn.CrossEntropyLoss(ignore_index=-1)
 
         for epoch in range(1, num_epochs + 1):
             for batch_idx, (X, y) in enumerate(train_loader):
                 # the inputs and labels have to be on the same device as the model
+                if self.sparse:
+                    #y = y.astype(np.int64)
+                    y = y-1
+
                 X, y = X.to(device), y.to(device)
                 
                 optimizer.zero_grad()
 
                 prediction_logits = self.model(X)
                 
+                y = torch.squeeze(y,1)
                 batch_loss = loss_function(prediction_logits, y)
 
                 batch_loss.backward()
@@ -169,7 +198,7 @@ class PytorchSemanticFramework(BaseFramework):
                     if updater is not None:
                         progress = int(epoch/num_epochs*100)
                         updater(f"Epoch {epoch} Batch {batch_idx} Loss {batch_loss.item()}", progress)
-        torch.save(self.model, self.model_path / self.model_name)
+        torch.save(self.model, Path(self.model_path) / self.model_name)
 
     def predict(self, image):
         device = torch.device("cuda")
@@ -202,11 +231,22 @@ class PytorchSemanticFramework(BaseFramework):
         y = self.model(x)
 
         prediction = y.cpu().detach()[0, 0].numpy()
-        binary = prediction > self.threshold 
+        prediction = y.cpu().detach().numpy()
+        prediction = np.squeeze(prediction)
 
-        return binary
+        c1 = (prediction[0]> prediction[1]) & (prediction[0]> prediction[2])
+        c2 = (prediction[1]> prediction[0]) & (prediction[1]> prediction[2])
+        c3 = (prediction[2]> prediction[0]) & (prediction[2]> prediction[1])
+
+        prediction = c1+2*c2+3*c3
+
+        return prediction
 
     def load_model_from_disk(self, model_name):
-            self.model = torch.load(model_name)
+        self.model = torch.load(model_name)
+        base_name = os.path.basename(model_name)
+        self.pretrained_models[base_name] = self.model
+
+BaseFramework.register_framework('PytorchSemanticFramework', PytorchSemanticFramework)
 
 

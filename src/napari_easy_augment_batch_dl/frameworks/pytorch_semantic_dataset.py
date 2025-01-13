@@ -46,25 +46,38 @@ class PyTorchSemanticDataset():
                 # dtype uint8, destroying the 0/1 labelling which we want to avoid.
                 # label = fill_label_holes(label)
                 
+                '''
                 labels_binary = []
 
                 for label in labels:
                     label_binary = np.zeros_like(label).astype(np.float32)
                     label_binary[label != 0] = 1.
                     labels_binary.append(label_binary)
-
+                '''
                 # convert to torch tensor: adds an artificial color channel in the front
                 # and scales inputs to have same size as samples tend to differ in image
                 # resolutions
+                '''
                 image = tensor_transform(image)
                 labels_binary = np.stack(labels_binary, axis=2)
                 label = tensor_transform(labels_binary)
+                '''
+                # add channel dim for network
+                if len(image.shape) == 2:
+                    image = np.expand_dims(image, axis=0)
+                elif len(image.shape) == 3:
+                    image = np.transpose(image, axes=(-1, *range(image.ndim - 1)))
 
+                label = np.expand_dims(labels[0], axis=0)
+                
                 self.images.append(image)
                 self.labels.append(label)
 
-            self.images = torch.stack(self.images)
-            self.labels = torch.stack(self.labels)
+            # not a tensor yet?  Dataloader takes care of that?
+            #self.images = torch.stack(self.images)
+            #self.labels = torch.stack(self.labels)
+            self.images = np.stack(self.images)
+            self.labels = np.stack(self.labels).astype(np.int64)
     
     def __getitem__(self, idx):
         return self.images[idx], self.labels[idx]
