@@ -141,7 +141,7 @@ class CellPoseInstanceFramework(BaseFramework):
 
         base_name = os.path.basename(model_path)
         self.model_name = base_name
-        self.pretrained_models[base_name] = self.model
+        self.model_dictionary[base_name] = self.model
 
     def set_optimizer(self, optimizer):
         self.sgd = optimizer == 'sgd'

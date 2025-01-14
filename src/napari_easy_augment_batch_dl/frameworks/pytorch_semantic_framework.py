@@ -246,7 +246,7 @@ class PytorchSemanticFramework(BaseFramework):
     def load_model_from_disk(self, model_name):
         self.model = torch.load(model_name)
         base_name = os.path.basename(model_name)
-        self.pretrained_models[base_name] = self.model
+        self.model_dictionary[base_name] = self.model
 
 BaseFramework.register_framework('PytorchSemanticFramework', PytorchSemanticFramework)
 

@@ -133,7 +133,7 @@ class StardistInstanceFramework(BaseFramework):
         
         self.model_name = model_name
 
-        self.pretrained_models[model_name] = self.model
+        self.model_dictionary[model_name] = self.model
 
     def set_builtin_model(self, model_name):
         StarDist2D.from_pretrained(model_name)

@@ -26,7 +26,7 @@ class BaseFramework:
         self.load_mode = LoadMode.NotLoadable
         self.boxes = False
         self.builtin_names = []
-        self.pretrained_models = {}
+        self.model_dictionary = {}
         self.train_mode = TrainMode.Patches
 
     def train(self, updater=None):
@@ -52,7 +52,7 @@ class BaseFramework:
     def set_pretrained_model(self, model_name):
         if model_name != 'notset':
 
-            model = self.pretrained_models.get(model_name, None)
+            model = self.model_dictionary.get(model_name, None)
 
             if model is None:
 
@@ -60,7 +60,7 @@ class BaseFramework:
                 if model_name in self.builtin_names:
                     #self.model = models.CellposeModel(gpu=True, model_type=model_name)
                     self.set_builtin_model(model_name)
-                    self.pretrained_models[model_name] = self.model
+                    self.model_dictionary[model_name] = self.model
             else:
                 self.model = model
 
