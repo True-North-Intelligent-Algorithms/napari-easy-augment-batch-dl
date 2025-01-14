@@ -13,6 +13,8 @@ class MobileSAMFramework(BaseFramework):
     conf: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})
     imagesz: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10000, 'default': 1024, 'step': 1})
+    
+    num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
 
     def __init__(self, parent_path, start_model_path: str = None):
         super().__init__(parent_path, 1)
@@ -33,7 +35,7 @@ class MobileSAMFramework(BaseFramework):
         labels = segmented_stacked_labels.make_2d_labels(type="min")
         return labels, self.bbs
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
         # raise not implemented error
         raise NotImplementedError("This model is not trainable")
 

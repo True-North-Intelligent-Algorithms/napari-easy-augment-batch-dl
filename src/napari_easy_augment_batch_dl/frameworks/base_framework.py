@@ -29,10 +29,7 @@ class BaseFramework:
         self.pretrained_models = {}
         self.train_mode = TrainMode.Patches
 
-    def set_model(self, model):
-        self.model = model
-
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
         pass
 
     def predict(self, image):

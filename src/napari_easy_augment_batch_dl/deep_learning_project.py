@@ -649,13 +649,13 @@ class DeepLearningProject:
     def get_model(self, network_type):
         return self.frameworks[network_type]
 
-    def perform_training(self, network_type, num_epochs, update):
+    def perform_training(self, network_type, update):
 
         if update is not None:
             update(f"Training {network_type} model...", 0)
         
         model = self.get_model(network_type)
-        model.train(num_epochs, update)
+        model.train(update)
 
     def predict_roi(self, n, network_type, update, roi):
         image = self.image_list[n][roi]

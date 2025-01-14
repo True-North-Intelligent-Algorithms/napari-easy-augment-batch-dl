@@ -15,6 +15,8 @@ class YoloSAMFramework(BaseFramework):
     iou: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.8, 'step': 0.1})
     imagesz: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10000, 'default': 1024, 'step': 1})
     
+    num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+    
     def __init__(self, parent_path: str,  num_classes: int, start_model_path: str = None):
         super().__init__(parent_path, num_classes)
         #self.model = YoloDetector( 'yolov8m.pt', "RegularYOLO", 'cuda')
@@ -44,7 +46,7 @@ class YoloSAMFramework(BaseFramework):
         self.updater = updater
         pass
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
         #if 'ultralytics' in sys.modules:
         #    del sys.modules['ultralytics']
         from ultralytics import YOLO
@@ -64,7 +66,7 @@ class YoloSAMFramework(BaseFramework):
         results = self.custom_model.train(data=yaml_name,
             project=project_path,
             name=name,
-            epochs=num_epochs,
+            epochs=self.num_epochs,
             patience=0, #I am setting patience=0 to disable early stopping.
             batch=50,
             workers=1,

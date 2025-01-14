@@ -21,6 +21,7 @@ class PytorchSemanticFramework(BaseFramework):
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     
     sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
+    num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
     
     def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
@@ -61,7 +62,7 @@ class PytorchSemanticFramework(BaseFramework):
         self.updater = updater
         pass
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
 
         patch_path = Path(self.patch_path)
         
@@ -164,7 +165,7 @@ class PytorchSemanticFramework(BaseFramework):
         #loss_function = torch.nn.BCEWithLogitsLoss(reduction="mean")
         loss_function = torch.nn.CrossEntropyLoss(ignore_index=-1)
 
-        for epoch in range(1, num_epochs + 1):
+        for epoch in range(1, self.num_epochs + 1):
             for batch_idx, (X, y) in enumerate(train_loader):
                 # the inputs and labels have to be on the same device as the model
                 if self.sparse:
@@ -196,7 +197,7 @@ class PytorchSemanticFramework(BaseFramework):
                         batch_loss.item(),
                     )
                     if updater is not None:
-                        progress = int(epoch/num_epochs*100)
+                        progress = int(epoch/self.num_epochs*100)
                         updater(f"Epoch {epoch} Batch {batch_idx} Loss {batch_loss.item()}", progress)
         torch.save(self.model, Path(self.model_path) / self.model_name)
 

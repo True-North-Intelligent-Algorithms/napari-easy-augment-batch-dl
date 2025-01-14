@@ -77,7 +77,7 @@ class CellPoseInstanceFramework(BaseFramework):
         self.quantile_low = 0.01
         self.quantile_high = 0.998
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
         add_trivial_channel = False
         X, Y = collect_training_data(self.patch_path, sub_sample=1, downsample=False, normalize_input=False, add_trivial_channel = add_trivial_channel, relabel=True)
 
@@ -91,14 +91,8 @@ class CellPoseInstanceFramework(BaseFramework):
         X_test = X_[int(len(X_)*train_percentage):]
         Y_test = Y_[int(len(Y_)*train_percentage):]
 
-        print(X_train[0].shape)
-        print(Y_train[0].shape)
-
-        #print(help(self.model.train_seg))
-
         if self.model is None:
             self.model = models.CellposeModel(gpu=True, model_type=None)
-
 
         # if self.model path ends with models
         if os.path.basename(self.model_path)=='models':

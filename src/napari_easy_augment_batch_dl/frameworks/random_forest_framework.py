@@ -59,7 +59,7 @@ class RandomForestFramework(BaseFramework):
     def create_callback(self, updater):
         self.updater = updater
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
 
         updater('time to train the random forest')
 

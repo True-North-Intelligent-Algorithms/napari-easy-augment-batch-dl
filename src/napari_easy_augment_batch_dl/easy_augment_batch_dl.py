@@ -560,8 +560,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         dialog = widget.train_dialog
         dialog.exec_()
 
-        num_epochs = self.number_epochs_spin_box.value()
-
         # TODO: work out how to handle augmentation before training
         # perform another round of augmentation before training
         # The user also has the option to perform augmentation before training as to customize the augmented data
@@ -583,7 +581,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.thread = QThread()
             model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
             model.create_callback(self.update_thread)
-            self.worker = PyQt5WorkerThread(self.deep_learning_project.perform_training, self.network_architecture_drop_down.currentText(), num_epochs, None)
+            self.worker = PyQt5WorkerThread(self.deep_learning_project.perform_training, self.network_architecture_drop_down.currentText(), None)
             self.worker.moveToThread(self.thread)
             self.thread.started.connect(self.disable_gui)
             self.thread.started.connect(self.worker.run)
@@ -597,7 +595,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.thread.start()
              
         else:
-            self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), num_epochs, self.update)
+            self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), self.update)
             widget.sync_with_model()
 
     def training_finished(self):

@@ -82,7 +82,7 @@ class StardistInstanceFramework(BaseFramework):
 
         return labels
     
-    def train(self, num_epochs, updater=None):
+    def train(self, updater=None):
         
         json_name = os.path.join(self.patch_path, 'info.json')
 
