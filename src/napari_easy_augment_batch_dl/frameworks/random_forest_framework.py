@@ -61,12 +61,12 @@ class RandomForestFramework(BaseFramework):
     
     def train(self, updater=None):
 
-        updater('time to train the random forest')
+        updater('Training random forest')
 
         updater('image size is {}'.format(self.images.shape))
         updater('feature size is {}'.format(self.features.shape))
 
-        updater('calculate features')
+        updater('calculating features')
 
         label_vector, features_vector = extract_features_sequence(self.images, self.labels, self.features)
         
