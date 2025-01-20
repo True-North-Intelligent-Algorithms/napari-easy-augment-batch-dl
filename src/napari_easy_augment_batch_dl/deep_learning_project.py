@@ -33,11 +33,13 @@ try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     StardistInstanceFramework = None
+
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
-
+'''
 '''
 try:
     from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
@@ -286,13 +288,16 @@ class DeepLearningProject:
             max_channels = max(image.shape[2] for image in self.image_list)
         else:
             max_channels = 1
- 
-        ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
-        ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12), dtype='f4')
-        
-        self.ml_labels = ml_labels_store['images']
-        self.ml_features = ml_features_store['images']
 
+        try:
+            ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
+            ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12), dtype='f4')
+            
+            self.ml_labels = ml_labels_store['images']
+            self.ml_features = ml_features_store['images']
+        except Exception as e:
+            print(f"Error creating ml labels and features: {e}")
+            
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
         # Get a list of all files in the directory
