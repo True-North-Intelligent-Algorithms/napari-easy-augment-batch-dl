@@ -67,7 +67,7 @@ def manage_zarr_store(zarr_path, file_names, image_shape=(256, 256), dtype='i4')
         existing_filenames = list(z['filenames'][:])
         existing_num_files = len(existing_filenames)
         
-        if existing_num_files == num_file_names and existing_filenames == file_names_str:
+        if existing_num_files == num_file_names:  #and existing_filenames == file_names_str:
             # Case 2: Same number of files, no changes
             print("Zarr store already up-to-date.")
         

@@ -317,9 +317,6 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.viewer.add_labels(temp, name='predictions_'+str(c))
             self.predictions.append(self.viewer.layers['predictions_'+str(c)])
 
-        self.ml_labels = self.deep_learning_project.ml_labels
-        self.ml_features = self.deep_learning_project.ml_features
-        self.viewer.add_labels(self.ml_labels, name='ml_labels')
 
         self.boxes_layer = self.viewer.add_shapes(
             ndim=3,
@@ -330,10 +327,14 @@ class NapariEasyAugmentBatchDL(QWidget):
         )
 
         try:
+            self.ml_labels = self.deep_learning_project.ml_labels
+            self.ml_features = self.deep_learning_project.ml_features
+            self.viewer.add_labels(self.ml_labels, name='ml_labels')
+            
             temp = self.deep_learning_project.frameworks["Random Forest Model"]
             temp.create_features(self.images, self.ml_labels, self.ml_features)
         except Exception as e:
-            print(e)
+            print(f'error creating ml_labels: {e}')
 
         def handle_new_object_box(event):
 
