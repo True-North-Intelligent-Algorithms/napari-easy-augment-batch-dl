@@ -226,7 +226,22 @@ class PytorchSemanticFramework(BaseFramework):
         #x = torch.from_numpy(testim_).to(device)
 
         print(x.shape)
-        y = self.model(x)
+        self.model.eval()
+        
+        #with torch.no_grad():
+        #    y = self.model(x)
+
+        # here we chunk the input into 4 parts to avoid running out of memory
+        # on some systems this is needed on some it is not.  Sometimes we may
+        # even need smaller (more) chunks... so this is a bit of a WIP.
+        outputs = []
+        for chunk in torch.chunk(x, chunks=4, dim=3):  # Divide input into smaller parts
+            
+            with torch.no_grad():
+                outputs.append(self.model(chunk))
+            del chunk
+            torch.cuda.empty_cache()
+        y = torch.cat(outputs, dim=3)
 
         prediction = y.cpu().detach()[0, 0].numpy()
         prediction = y.cpu().detach().numpy()
