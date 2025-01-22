@@ -19,6 +19,7 @@ from pathlib import Path
 class PytorchSemanticFramework(BaseFramework):
 
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
+    num_classes: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 2, 'step': 1})
     
     sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
@@ -50,6 +51,8 @@ class PytorchSemanticFramework(BaseFramework):
         self.descriptor = "Pytorch Semantic Model"
         self.load_mode = LoadMode.File
         self.sparse = True
+        self.num_epochs = 100
+        self.num_classes = 2 
         
         self.model_name = self.generate_model_name('semantic')
 
@@ -133,17 +136,11 @@ class PytorchSemanticFramework(BaseFramework):
         # When I wrote a lot of this code I was thinking of the first case, but now see the second may be easier for the user
         # so number of output channels is the max of the truth image
 
-        first_label = imread(Y[0][0])
-        num_classes = first_label.max()
-
-        if not self.sparse:
-            num_classes += 1
-
         if self.model == None:
             self.model = BasicUNet(
                 spatial_dims=2,
                 in_channels=num_in_channels,
-                out_channels=num_classes,
+                out_channels=self.num_classes,
                 #features=[16, 16, 32, 64, 128, 16],
                 act="softmax",
                 #norm="batch",
