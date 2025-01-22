@@ -38,9 +38,6 @@ class PyTorchSemanticDataset():
                     label = imread(label_files[idx])
                     labels.append(label)
 
-                if image.shape != target_shape:
-                    continue
-                
                 # NOTE: we convert the label to dtype float32 and not uint8 because
                 # the tensor transformation does a normalization if the input is of
                 # dtype uint8, destroying the 0/1 labelling which we want to avoid.
