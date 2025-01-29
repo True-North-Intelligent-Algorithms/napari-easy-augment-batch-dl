@@ -1,5 +1,4 @@
 import numpy as np
-from sympy import im
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 from tifffile import imread
 import json
@@ -8,12 +7,11 @@ from torch.utils.data import DataLoader
 from monai.networks.nets import BasicUNet
 import torch
 from tnia.deeplearning.dl_helper import quantile_normalization
-from torchvision import transforms
-from torchvision.transforms import v2
 import os
 from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
+from glob import glob
 
 @dataclass
 class PytorchSemanticFramework(BaseFramework):
@@ -23,37 +21,28 @@ class PytorchSemanticFramework(BaseFramework):
     
     sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+    learning_rate: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.001, 'step': .001})
+    dropout: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0, 'step': .01})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
     
     def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
         super().__init__(parent_path, num_classes)
         
         self.model = None
-        '''
-        # get path from model_name
-        if os.path.isdir(model_name):
-            self.model_path = model_name
-            self.model = None
-            #model_name = os.path.join(model_path, 'model.pth')
-        else:
-            self.model_path = os.path.dirname(model_name)
-            self.model = torch.load(model_name )
-        '''
-
+        
         self.model_name = self.generate_model_name(
             base_name="model"
         )
         
-        #super().__init__(patch_path, self.model_path, num_classes)
-
-        #self.threshold = 0.5
         self.semantic_thresh = 0.0
         self.descriptor = "Pytorch Semantic Model"
         self.load_mode = LoadMode.File
         self.sparse = True
         self.num_epochs = 100
-        self.num_classes = 2 
-        
+        self.num_classes = 2
+        self.learning_rate = 1.e-3 
+        self.dropout = 0.0
+
         self.model_name = self.generate_model_name('semantic')
 
     def generate_model_name(self, base_name="model"):
@@ -63,7 +52,6 @@ class PytorchSemanticFramework(BaseFramework):
         
     def create_callback(self, updater):
         self.updater = updater
-        pass
     
     def train(self, updater=None):
 
@@ -79,7 +67,6 @@ class PytorchSemanticFramework(BaseFramework):
         ndevices = torch.cuda.device_count()
         use_cuda = cuda_present and ndevices > 0
         device = torch.device("cuda" if use_cuda else "cpu")  # "cuda:0" ... default device, "cuda:1" would be GPU index 1, "cuda:2" etc
-        print("number of devices:", ndevices, "\tchosen device:", device, "\tuse_cuda=", use_cuda)
 
         with open(patch_path / 'info.json', 'r') as json_file:
             data = json.load(json_file)
@@ -92,18 +79,11 @@ class PytorchSemanticFramework(BaseFramework):
             num_truths = data['num_truths']
             print('num_truths',num_truths)
 
-
         image_patch_path = patch_path / 'input0'
-        label_patch_path = patch_path / 'ground truth0'
-
-        from glob import glob
 
         tif_files = glob(str(image_patch_path / '*.tif'))
-
         first_im = imread(tif_files[0])
         target_shape=first_im.shape
-
-        print('target_shape',target_shape)
 
         if axes == 'YX':
             num_in_channels=1
@@ -136,50 +116,45 @@ class PytorchSemanticFramework(BaseFramework):
         # When I wrote a lot of this code I was thinking of the first case, but now see the second may be easier for the user
         # so number of output channels is the max of the truth image
 
+        # use monai to create a model, note we don't use an activation function because 
+        # we use CrossEntropyLoss that includes a softmax, and our prediction will include the softmax
         if self.model == None:
             self.model = BasicUNet(
                 spatial_dims=2,
                 in_channels=num_in_channels,
                 out_channels=self.num_classes,
                 #features=[16, 16, 32, 64, 128, 16],
-                act="softmax",
+                act=None,
                 #norm="batch",
-                dropout=0.25,
+                dropout=self.dropout,
             )
 
-        # Important: transfer the model to the chosen device
         self.model = self.model.to(device)
 
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=1.e-3)
-        init_params = list(self.model.parameters())[0].clone().detach()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
 
         log_interval = 20
         self.model.train(True)
 
-        # BCEWithLogitsLoss combines sigmoid + BCELoss for better
-        # numerical stability. It expects raw unnormalized scores as input which are shaped like 
-        # B x C x W x D
-        #loss_function = torch.nn.BCEWithLogitsLoss(reduction="mean")
         loss_function = torch.nn.CrossEntropyLoss(ignore_index=-1)
 
         for epoch in range(1, self.num_epochs + 1):
             for batch_idx, (X, y) in enumerate(train_loader):
-                # the inputs and labels have to be on the same device as the model
+
+                # if sparse subtract 1 from the labels 
                 if self.sparse:
-                    #y = y.astype(np.int64)
                     y = y-1
 
+                # the inputs and labels have to be on the same device as the model
                 X, y = X.to(device), y.to(device)
                 
                 optimizer.zero_grad()
-
                 prediction_logits = self.model(X)
                 
                 y = torch.squeeze(y,1)
                 batch_loss = loss_function(prediction_logits, y)
 
                 batch_loss.backward()
-
                 optimizer.step()
 
                 if batch_idx % log_interval == 0:
@@ -200,32 +175,19 @@ class PytorchSemanticFramework(BaseFramework):
 
     def predict(self, image):
         device = torch.device("cuda")
-        image_ = image.copy().astype(np.float32)
+        image_ = quantile_normalization(image.astype(np.float32))
 
-        axes = 'YCX'
-
-        if axes == 'YXC':
-            for i in range(1):
-                image_[:,:,i] = quantile_normalization(
-                    image_[:,:,i],
-                    quantile_low=0.01,
-                    quantile_high=0.998,
-                    clip=True).astype(np.float32)
+        # move channel position to first axis if data has channel
+        if len(image_.shape) == 3:
+            features = image_.transpose(2,0,1)
         else:
-            image_ = quantile_normalization(
-                image_,
-                quantile_low=0.01,
-                quantile_high=0.998,
-                clip=True).astype(np.float32)
-
-        tensor_transform = transforms.Compose([
-            v2.ToTensor(),
-        ])
-        x = tensor_transform(image_)
-        x = x.unsqueeze(0).to(device)
-        #x = torch.from_numpy(testim_).to(device)
-
-        print(x.shape)
+            # add trivial channel axis
+            features = np.unsqueeze(image_, axis=0)
+        
+        # make into tensor and add trivial batch dimension 
+        x = torch.from_numpy(features).unsqueeze(0).to(device)       
+        
+        # move into evaluation mode
         self.model.eval()
         
         #with torch.no_grad():
@@ -243,23 +205,21 @@ class PytorchSemanticFramework(BaseFramework):
             torch.cuda.empty_cache()
         y = torch.cat(outputs, dim=3)
 
-        prediction = y.cpu().detach()[0, 0].numpy()
-        prediction = y.cpu().detach().numpy()
-        prediction = np.squeeze(prediction)
+        import torch.nn.functional as F
 
-        c1 = (prediction[0]> prediction[1]) & (prediction[0]> prediction[2])
-        c2 = (prediction[1]> prediction[0]) & (prediction[1]> prediction[2])
-        c3 = (prediction[2]> prediction[0]) & (prediction[2]> prediction[1])
-
-        prediction = c1+2*c2+3*c3
-
-        return prediction
+        # Apply softmax along the class dimension (dim=1)
+        probabilities = F.softmax(y, dim=1)
+        # now predicted classes are max of probabilities along the class dimension
+        predicted_classes = torch.argmax(probabilities, dim=1)
+ 
+        return (predicted_classes.cpu().detach().numpy().squeeze()+1)
 
     def load_model_from_disk(self, model_name):
         self.model = torch.load(model_name)
         base_name = os.path.basename(model_name)
         self.model_dictionary[base_name] = self.model
 
+# this liune is needed to register the framework on import
 BaseFramework.register_framework('PytorchSemanticFramework', PytorchSemanticFramework)
 
 

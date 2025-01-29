@@ -37,29 +37,8 @@ class PyTorchSemanticDataset():
                 for label_files in label_files_list:
                     label = imread(label_files[idx])
                     labels.append(label)
-
-                # NOTE: we convert the label to dtype float32 and not uint8 because
-                # the tensor transformation does a normalization if the input is of
-                # dtype uint8, destroying the 0/1 labelling which we want to avoid.
-                # label = fill_label_holes(label)
                 
-                '''
-                labels_binary = []
-
-                for label in labels:
-                    label_binary = np.zeros_like(label).astype(np.float32)
-                    label_binary[label != 0] = 1.
-                    labels_binary.append(label_binary)
-                '''
-                # convert to torch tensor: adds an artificial color channel in the front
-                # and scales inputs to have same size as samples tend to differ in image
-                # resolutions
-                '''
-                image = tensor_transform(image)
-                labels_binary = np.stack(labels_binary, axis=2)
-                label = tensor_transform(labels_binary)
-                '''
-                # add channel dim for network
+                # add channel dim if not present
                 if len(image.shape) == 2:
                     image = np.expand_dims(image, axis=0)
                 elif len(image.shape) == 3:
@@ -70,9 +49,7 @@ class PyTorchSemanticDataset():
                 self.images.append(image)
                 self.labels.append(label)
 
-            # not a tensor yet?  Dataloader takes care of that?
-            #self.images = torch.stack(self.images)
-            #self.labels = torch.stack(self.labels)
+            # data is not a tensor yet but the Dataloader will handle that
             self.images = np.stack(self.images)
             self.labels = np.stack(self.labels).astype(np.int64)
     
