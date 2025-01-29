@@ -1,16 +1,12 @@
 
-from qtpy.QtWidgets import QDialog, QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QLineEdit, QStackedWidget, QGridLayout
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QStackedWidget, QGridLayout
 from PyQt5.QtCore import QThread
-from PyQt5.QtCore import Qt  # This brings in the Qt constants
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
 import numpy as np
 from napari_easy_augment_batch_dl.utility import pad_to_largest, unpad_to_original
 from tnia.gui.threads.pyqt5_worker_thread import PyQt5WorkerThread
 from napari_easy_augment_batch_dl.deep_learning_widget import DeepLearningWidget
-from napari_easy_augment_batch_dl.bounding_box_util import naparixyzbb_to_xyxy
-from napari_easy_augment_batch_dl.frameworks.training_features import TrainingFeatures
-from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 try:
     from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
 except Exception as e:
