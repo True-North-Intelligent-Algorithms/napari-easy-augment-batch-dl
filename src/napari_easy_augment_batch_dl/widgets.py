@@ -10,11 +10,11 @@ from qtpy.QtWidgets import (
 )
 
 class LabeledSpinner(QWidget):
-    def __init__(self, label_text, min_value, max_value, default_value, change_value_method, is_double=False, step = -1):
+    def __init__(self, label_text, min_value, max_value, default_value, change_value_method, is_float=False, step = -1, num_decimals = 5):
         super().__init__()
 
         self.label = QLabel(label_text)
-        self.spinner = QDoubleSpinBox() if is_double else QSpinBox()
+        self.spinner = QDoubleSpinBox() if is_float else QSpinBox()
         self.spinner.setRange(min_value, max_value)
         self.spinner.setValue(default_value)
 
@@ -23,8 +23,8 @@ class LabeledSpinner(QWidget):
 
         if step > 0:
             self.spinner.setSingleStep(step)
-            if is_double:
-                self.spinner.setDecimals(3)
+        if is_float:
+            self.spinner.setDecimals(num_decimals)
 
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(10, 2, 10, 2)  # adjust the margins around the layout

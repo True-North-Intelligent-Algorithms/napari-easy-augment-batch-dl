@@ -31,14 +31,14 @@ class DeepLearningWidget(QDialog):
                 max = meta.get('max', 1)
                 default = meta.get('default', 0)
                 step = meta.get('step', 1)
-                field = LabeledSpinner(param_name, min, max, default, None, is_double=False, step=step)
+                field = LabeledSpinner(param_name, min, max, default, None, is_float=False, step=step)
                 field.spinner.valueChanged.connect(lambda value, name=param_name: setattr(self.model, name, value))
             elif meta['type'] == 'float':
                 min = meta.get('min', 0)
                 max = meta.get('max', 1)
                 default = meta.get('default', 0.5)
                 step = meta.get('step', 0.1)
-                field = LabeledSpinner(param_name, min, max, default, None, is_double=True, step=step)
+                field = LabeledSpinner(param_name, min, max, default, None, is_float=True, step=step)
                 field.spinner.valueChanged.connect(lambda value, name=param_name: setattr(self.model, name, value))
             elif meta['type'] == 'string':
                 field = QLineEdit()
