@@ -23,6 +23,7 @@ import inspect
 import zarr
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 
+'''
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
 except ImportError as e:
@@ -33,14 +34,10 @@ try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     StardistInstanceFramework = None
-
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except ImportError:
     CellPoseInstanceFramework = None
-'''
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
 except ImportError:
@@ -49,11 +46,11 @@ try:
     from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
 except ImportError:
     YoloSAMFramework = None
-'''
 try:
     from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
 except ImportError:
     RandomForestFramework = None
+'''
 
 import importlib
 
@@ -158,7 +155,8 @@ class DeepLearningProject:
         self.frameworks = {} 
 
         # models derived from BaseFramework should be registered when imported
-        # so add them to the frameworks collection
+        # Here for each framework that has been registered we retrieve the class, instantiate it
+        # and add it to the frameworks dictionary
         for framework_name in BaseFramework.registry:
             print('found framework is ', framework_name)
             try:
@@ -297,7 +295,7 @@ class DeepLearningProject:
             self.ml_features = ml_features_store['images']
         except Exception as e:
             print(f"Error creating ml labels and features: {e}")
-            
+
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
         # Get a list of all files in the directory

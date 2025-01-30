@@ -286,12 +286,22 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.deep_learning_project = DeepLearningProject(self.parent_path, num_classes)
         self.deep_learning_widgets = {}
 
+        # loop through the key and instance of all the deep learning frameworks
         for key, obj in self.deep_learning_project.frameworks.items():
             try:
-                temp1 = DeepLearningWidget(obj, parent_path = str(self.parent_path))
-                self.deep_learning_widgets[key] = temp1
+                # try creating a widget for the framework
+                tempWidget = DeepLearningWidget(obj, parent_path = str(self.parent_path))
+                
+                # add the widget to the widgets dictionary
+                self.deep_learning_widgets[key] = tempWidget
+
+                # add the descriptor of the widget as an item in the drop down
+                # (so the user can select the framework they want to use)
                 self.network_architecture_drop_down.addItem(obj.descriptor)
-                self.stacked_model_params_layout.addWidget(temp1.prediction_widget)
+
+                # add the widget for the framework to the stacked widget 
+                # (the stacked widget will be displayed when the user selects the framework)
+                self.stacked_model_params_layout.addWidget(tempWidget.prediction_widget)
             except Exception as e:
                 print(e)
                 #self.network_architecture_drop_down.addItem(obj.__name__)

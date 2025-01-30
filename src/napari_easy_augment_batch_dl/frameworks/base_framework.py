@@ -30,6 +30,13 @@ class BaseFramework:
 
     @classmethod
     def register_framework(cls, name, framework):
+        """
+        Add this a framework to the registry. 
+
+        Args:
+            name (str): The name of the framework.
+            framework (BaseFramework): The framework class to register.
+        """
         cls.registry[name] = framework
 
     def __init__(self, parent_path, num_classes=1):
