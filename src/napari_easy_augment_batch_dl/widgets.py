@@ -16,7 +16,6 @@ class LabeledSpinner(QWidget):
         self.label = QLabel(label_text)
         self.spinner = QDoubleSpinBox() if is_float else QSpinBox()
         self.spinner.setRange(min_value, max_value)
-        self.spinner.setValue(default_value)
 
         if change_value_method is not None:
             self.spinner.valueChanged.connect(change_value_method)
@@ -25,6 +24,8 @@ class LabeledSpinner(QWidget):
             self.spinner.setSingleStep(step)
         if is_float:
             self.spinner.setDecimals(num_decimals)
+        
+        self.spinner.setValue(default_value)
 
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(10, 2, 10, 2)  # adjust the margins around the layout
