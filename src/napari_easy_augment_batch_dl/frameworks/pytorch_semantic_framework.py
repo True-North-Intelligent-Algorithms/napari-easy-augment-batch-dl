@@ -15,9 +15,13 @@ from glob import glob
 
 @dataclass
 class PytorchSemanticFramework(BaseFramework):
+    """
+    Pytorch Semantic Framework
+    
+    This framework is used to train a Pytorch Semantic Segmentation model.
 
+    """
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
-    num_classes: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 2, 'step': 1})
     
     sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
@@ -110,12 +114,21 @@ class PytorchSemanticFramework(BaseFramework):
 
         train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 
+        if self.sparse:
+            # if sparse background will be label 1 so number of classes is the max label indexes
+            # ie if the max label index is 3 then there are 3 classes, 1, 2, 3 and 0 is unlabeled
+            # (we subtract 1 at later step so 1 (background) becomes 0 and 0 (not labeled) becomes -1)
+            self.num_classes = train_data.max_label_index
+        else:
+            # if not sparse background will be label 0 so number of classes is the max label indexes + 1
+            # ie if there are 3 classes the indexes are 0, 1, 2, so need to add 1 to the max index to get number of classes
+            self.num_classes = train_data.max_label_index+1
+
         # there is an inconstency in how different classes can be defined
-        # 1. every class has it's own label image
+        # 1. every class has it's own label image (one-hot encoded)
         # 2. every class has a unique value in the label image
         # When I wrote a lot of this code I was thinking of the first case, but now see the second may be easier for the user
         # so number of output channels is the max of the truth image
-
         # use monai to create a model, note we don't use an activation function because 
         # we use CrossEntropyLoss that includes a softmax, and our prediction will include the softmax
         if self.model == None:
@@ -175,6 +188,8 @@ class PytorchSemanticFramework(BaseFramework):
 
     def predict(self, image):
         device = torch.device("cuda")
+        self.model.to(device)
+        
         image_ = quantile_normalization(image.astype(np.float32))
 
         # move channel position to first axis if data has channel
@@ -182,7 +197,7 @@ class PytorchSemanticFramework(BaseFramework):
             features = image_.transpose(2,0,1)
         else:
             # add trivial channel axis
-            features = np.unsqueeze(image_, axis=0)
+            features = np.expand_dims(image_, axis=0)
         
         # make into tensor and add trivial batch dimension 
         x = torch.from_numpy(features).unsqueeze(0).to(device)       
@@ -219,7 +234,7 @@ class PytorchSemanticFramework(BaseFramework):
         base_name = os.path.basename(model_name)
         self.model_dictionary[base_name] = self.model
 
-# this liune is needed to register the framework on import
+# this line is needed to register the framework on import
 BaseFramework.register_framework('PytorchSemanticFramework', PytorchSemanticFramework)
 
 
