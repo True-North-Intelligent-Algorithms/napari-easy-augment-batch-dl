@@ -603,12 +603,12 @@ class NapariEasyAugmentBatchDL(QWidget):
              
         else:
             self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), self.update)
-            widget.sync_with_model()
+            widget.sync_with_framework()
 
     def training_finished(self):
         self.enable_gui()
         widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
-        widget.sync_with_model()
+        widget.sync_with_framework()
 
     def predict_current_image(self):
         self.textBrowser_log.append("Predicting current image...")
