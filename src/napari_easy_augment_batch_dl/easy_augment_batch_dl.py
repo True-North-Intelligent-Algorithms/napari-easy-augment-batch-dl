@@ -290,7 +290,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         for key, obj in self.deep_learning_project.frameworks.items():
             try:
                 # try creating a widget for the framework
-                tempWidget = DeepLearningWidget(obj, parent_path = str(self.parent_path))
+                tempWidget = DeepLearningWidget(obj, parent_path = str(self.parent_path), updater = self.update)
                 
                 # add the widget to the widgets dictionary
                 self.deep_learning_widgets[key] = tempWidget

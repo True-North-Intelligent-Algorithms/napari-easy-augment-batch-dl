@@ -9,12 +9,16 @@ class DeepLearningWidget(QDialog):
     A widget for setting deep learning parameters in a deep learning framework.
     """
     
-    def __init__(self, framework, parent=None, parent_path=None):
+    def __init__(self, framework, parent=None, parent_path=None, updater=None):
         super(DeepLearningWidget, self).__init__(parent)
 
         # parent path of the project where images and deep learning artifacts are stored
-        self.parent_path = parent_path
         self.framework = framework 
+        self.parent_path = parent_path
+        self.updater = updater
+
+        if self.updater is None:
+            self.updater = lambda x: print(x)
 
         # collect all the fields that are marked for harvesting to the gui
         self.harvested_params = {name: field.metadata for name, field in framework.__dataclass_fields__.items() if field.metadata.get('harvest')}
@@ -136,8 +140,12 @@ class DeepLearningWidget(QDialog):
         else:
             options = QFileDialog.Options()
             file_ = QFileDialog.getExistingDirectory(self, "Select Model Directory", options=options, directory = self.parent_path)
-        
-        self.load_model_from_path(file_)
+
+        if len(file_) > 0:        
+            self.updater(f"Loading model from {os.path.basename(file_)}")
+            self.load_model_from_path(file_)
+        else:
+            self.updater("No file selected")
 
     def load_model_from_path(self, file_):
         """
