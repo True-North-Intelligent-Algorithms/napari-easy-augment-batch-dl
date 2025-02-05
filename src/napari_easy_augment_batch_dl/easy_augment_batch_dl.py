@@ -492,7 +492,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         widget.load_model_from_path(model_path) 
 
     def save_results(self):
-        self.update_project()
+        self.update_annotation_list()
 
         object_boxes=self.object_boxes_layer.data
         
@@ -507,7 +507,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def augment_current(self):
         
-        self.update_project()
+        self.update_annotation_list()
         
         self.textBrowser_log.append("Augmenting current image...")
 
@@ -522,7 +522,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def augment_all(self):
         
-        self.update_project()
+        self.update_annotation_list()
         
         boxes = self.viewer.layers['Label box'].data
         self.perform_augmentation(boxes)
@@ -679,7 +679,7 @@ class NapariEasyAugmentBatchDL(QWidget):
     def enable_gui(self):
         pass
 
-    def update_project(self):   
+    def update_annotation_list(self):   
         label_nps = []
         for label in self.labels:
             temp = unpad_to_original(label.data, self.deep_learning_project.image_list)
