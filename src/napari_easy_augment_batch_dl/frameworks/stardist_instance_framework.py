@@ -63,7 +63,7 @@ class StardistInstanceFramework(BaseFramework):
         self.nms_thresh = 0.4
         self.scale = 1.0
         
-        self.descriptor = "Stardist Model"
+        self.descriptor = "Stardist"
         self.load_mode = LoadMode.Directory
 
         self.quantile_low = 0.01
@@ -83,6 +83,9 @@ class StardistInstanceFramework(BaseFramework):
         return labels
     
     def train(self, updater=None):
+
+        if updater is not None:
+            self.create_callback(updater)
         
         json_name = os.path.join(self.patch_path, 'info.json')
 
