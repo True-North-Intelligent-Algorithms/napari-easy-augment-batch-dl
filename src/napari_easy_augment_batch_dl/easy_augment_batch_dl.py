@@ -175,16 +175,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.train_predict_group.setLayout(self.train_predict_layout)
 
-        # add number epochs spin box
-        self.number_epochs_layout = QHBoxLayout()
-        self.number_epochs_label = QLabel("Number of epochs:")
-        self.number_epochs_spin_box = QSpinBox()
-        self.number_epochs_spin_box.setRange(1, 1000)
-        self.number_epochs_spin_box.setValue(100)
-        self.number_epochs_layout.addWidget(self.number_epochs_label)
-        self.number_epochs_layout.addWidget(self.number_epochs_spin_box)
-        self.train_predict_layout.addLayout(self.number_epochs_layout)
-
         # add train network button
         self.train_network_button = QPushButton("Train network")
         self.train_network_button.clicked.connect(self.perform_training)
