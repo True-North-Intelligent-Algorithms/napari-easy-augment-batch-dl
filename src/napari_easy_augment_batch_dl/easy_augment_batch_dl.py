@@ -296,6 +296,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         # check if json exists
         
+        # TODO: rethink whether user needs to define number of classes
+        # related to one hot encoding vs unique label indexes for semantic segmentation
         if (self.parent_path / 'info.json').exists():
             # pre-existing project num classes will be read from json
             num_classes = -1
@@ -328,13 +330,14 @@ class NapariEasyAugmentBatchDL(QWidget):
                 #self.network_architecture_drop_down.addItem(obj.__name__)
                 pass
 
+        # here we use a padding strategy to display the images as a Napari layer in the viewer
         self.images = pad_to_largest(self.deep_learning_project.image_list, force8bit = True) 
-
         self.viewer.add_image(self.images, name='images')
 
         self.labels = []
         self.predictions = []
 
+        # do the same for labels and predictions
         for c in range(self.deep_learning_project.num_classes):
             temp = pad_to_largest(self.deep_learning_project.annotation_list[c])
             self.viewer.add_labels(temp, name='labels_'+str(c))
@@ -582,7 +585,6 @@ class NapariEasyAugmentBatchDL(QWidget):
                                                                  perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
 
     def perform_training(self):
-        self.textBrowser_log.append("Training network...")
         
         widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
         dialog = widget.train_dialog
