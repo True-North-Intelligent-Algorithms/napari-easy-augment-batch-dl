@@ -46,6 +46,8 @@ class StardistInstanceFramework(BaseFramework):
     builtin_names = ['2D_versatile_fluo', '2D_versatile_he']
     
     model_names = ['notset', '2D_versatile_fluo', '2D_versatile_he']
+    
+    descriptor = "Stardist"
 
     def __init__(self, parent_path: str = '',  num_classes: int = 1, start_model_path: str = None):
         super().__init__(parent_path, num_classes)
@@ -63,7 +65,6 @@ class StardistInstanceFramework(BaseFramework):
         self.nms_thresh = 0.4
         self.scale = 1.0
         
-        self.descriptor = "Stardist"
         self.load_mode = LoadMode.Directory
 
         self.quantile_low = 0.01

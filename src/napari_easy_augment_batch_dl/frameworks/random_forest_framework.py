@@ -25,6 +25,8 @@ class RandomForestFramework(BaseFramework):
         "edges": True,
         "texture": True,
     }
+    
+    descriptor = "Random Forest Model"
 
     def __init__(self, parent_path, num_classes):
         super().__init__(parent_path, num_classes)
@@ -33,7 +35,6 @@ class RandomForestFramework(BaseFramework):
         self.ml_features_path = os.path.join(parent_path, "ml", "ml_features")
 
         self.load_mode = LoadMode.File
-        self.descriptor = "Random Forest Model"
 
         self.train_mode = TrainMode.Pixels
 

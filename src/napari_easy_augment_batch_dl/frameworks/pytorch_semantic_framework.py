@@ -28,6 +28,8 @@ class PytorchSemanticFramework(BaseFramework):
     learning_rate: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.001, 'step': .001})
     dropout: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0, 'step': .01})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
+        
+    descriptor = "Pytorch Semantic Model"
     
     def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
         super().__init__(parent_path, num_classes)
@@ -39,7 +41,6 @@ class PytorchSemanticFramework(BaseFramework):
         )
         
         self.semantic_thresh = 0.0
-        self.descriptor = "Pytorch Semantic Model"
         self.load_mode = LoadMode.File
         self.sparse = True
         self.num_epochs = 100

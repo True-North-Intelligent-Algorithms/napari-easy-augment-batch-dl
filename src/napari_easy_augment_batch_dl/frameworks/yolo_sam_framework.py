@@ -17,6 +17,8 @@ class YoloSAMFramework(BaseFramework):
     
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
     
+    descriptor = "Yolo SAM Model"
+    
     def __init__(self, parent_path: str,  num_classes: int, start_model_path: str = None):
         super().__init__(parent_path, num_classes)
         #self.model = YoloDetector( 'yolov8m.pt', "RegularYOLO", 'cuda')
@@ -30,7 +32,6 @@ class YoloSAMFramework(BaseFramework):
         self.conf = 0.5
         self.iou = 0.8
         self.imagesz = 1024
-        self.descriptor = "Yolo SAM Model"
         self.boxes = True
         self.load_mode = LoadMode.Directory
                  

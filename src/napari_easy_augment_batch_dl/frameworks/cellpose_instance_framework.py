@@ -34,6 +34,8 @@ class CellPoseInstanceFramework(BaseFramework):
     bsize_train: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 128, 'max': 2048, 'default': 224, 'step': 1})
     rescale: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
     model_name: str = field(metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'cyto3', 'step': 1})
+        
+    descriptor = "CellPose Instance Framework"
 
     def __init__(self, parent_path: str,  num_classes: int, start_model: str = None):
         super().__init__(parent_path, num_classes)
@@ -62,7 +64,6 @@ class CellPoseInstanceFramework(BaseFramework):
         self.chan2 = 0
         self.niter = 200
         
-        self.descriptor = "CellPose Instance Framework"
         self.load_mode = LoadMode.File
         
         self.num_epochs = 100

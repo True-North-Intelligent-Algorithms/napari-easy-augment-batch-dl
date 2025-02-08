@@ -15,6 +15,8 @@ class MobileSAMFramework(BaseFramework):
     imagesz: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10000, 'default': 1024, 'step': 1})
     
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+        
+    descriptor = "MobileSAM Model"
 
     def __init__(self, parent_path, start_model_path: str = None):
         super().__init__(parent_path, 1)
@@ -23,7 +25,6 @@ class MobileSAMFramework(BaseFramework):
         self.conf = 0.5
         self.iou = 0.8
         self.imagesz = 1024
-        self.descriptor = "MobileSAM Model"
         self.boxes = True
                  
     def predict(self, img: np.ndarray):
