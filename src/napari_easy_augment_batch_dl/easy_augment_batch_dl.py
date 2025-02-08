@@ -597,7 +597,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         # Thus we do a final round of augmentation before training?
         #self.augment_all()
 
-        thread =  False
+        thread = True
         if thread:
             '''
             if hasattr(self, 'thread'):
@@ -695,10 +695,10 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
 
     def disable_gui(self):
-        pass
+        self.setEnabled(False) 
 
     def enable_gui(self):
-        pass
+        self.setEnabled(True)
 
     def update_annotation_list(self):   
         label_nps = []
