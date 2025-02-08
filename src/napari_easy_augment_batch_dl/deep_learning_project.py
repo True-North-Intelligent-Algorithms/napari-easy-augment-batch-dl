@@ -95,7 +95,10 @@ class DeepLearningProject:
                 # change channel to be last dimension       
                 if im.shape[0]<=7:
                     im = np.transpose(im, (1,2,0))
-        
+            
+                if im.shape[-1] > 3:
+                    im = im[:,:,:3]
+            
             self.image_list.append(im)
         
         self.prediction_list = []
@@ -479,9 +482,10 @@ class DeepLearningProject:
             
             #  Here we get rid of the alpha channel if it exists... but logic won't work for 3D images.
             #  TODO: Revisit as part of the 3D image work
-            if im.shape[-1]>3:
-                im = im[:,:,:3]
-            
+            if len(im.shape) == 3:
+                if im.shape[-1]>3:
+                    im = im[:,:,:3]
+                
             uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_horizontal_flip=do_horizontal_flip, do_vertical_flip=do_vertical_flip, do_random_rotate90=do_random_rotate90, do_random_sized_crop=do_random_sized_crop, do_random_brightness_contrast=do_random_brightness_contrast, 
                                   do_random_gamma=do_random_gamma, do_color_jitter=do_color_jitter, do_elastic_transform=do_elastic_transform)
        
