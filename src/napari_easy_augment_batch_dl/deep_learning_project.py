@@ -19,58 +19,11 @@ import pandas as pd
 import yaml
 import glob 
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
-import inspect
-import zarr
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
-
-'''
-try:
-    from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
-except ImportError as e:
-    print(f"Pytorch Semantic Framework ImportError occurred: {e}")
-    PytorchSemanticFramework = None
-
-try:
-    from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
-except:
-    StardistInstanceFramework = None
-try:
-    from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
-except ImportError:
-    CellPoseInstanceFramework = None
-try:
-    from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
-except ImportError:
-    MobileSAMFramework = None
-try:
-    from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
-except ImportError:
-    YoloSAMFramework = None
-try:
-    from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
-except ImportError:
-    RandomForestFramework = None
-'''
-
-import importlib
-
-def new_import(module_name, class_name):
-    # Dynamically import the module
-    module = importlib.import_module(module_name)
-
-    # Dynamically retrieve the class from the module
-    globals()[class_name] = getattr(module, class_name)
-
-class DLModel:
-    UNET = "U-Net"
-    STARDIST = "Stardist"
-    CELLPOSE = "CellPose"
-    YOLO_SAM = "Yolo/SAM"
-    MOBILE_SAM2 = "Mobile SAM 2"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
-
+        
         self.parent_path = Path(parent_path)
 
         # check if json.info exists
@@ -645,16 +598,6 @@ class DeepLearningProject:
                                   do_random_gamma=do_random_gamma, do_color_jitter=do_color_jitter)
 
         print()
-
-    def set_pretrained_model(self, pretrained_model, model_type):
-        # add this model to the model dictionary 
-
-        if model_type == DLModel.STARDIST or model_type == "Stardist Model":
-            model = self.frameworks['Stardist Model']
-            model.load_model_from_disk(pretrained_model)
-        if model_type == "CellPose Instance Model":
-            model = self.frameworks['CellPose Instance Model']
-            model.load_model_from_disk(pretrained_model)
 
     def get_model(self, network_type):
         return self.frameworks[network_type]
