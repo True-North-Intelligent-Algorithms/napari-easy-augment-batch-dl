@@ -36,7 +36,7 @@ class DeepLearningProject:
         self.parent_path = Path(parent_path)
 
         # check if json.info exists
-        json_name = parent_path / 'info.json'
+        json_name = self.parent_path / 'info.json'
         if os.path.exists(json_name):
             with open(json_name, 'r') as f:
                 json_ = json.load(f)
@@ -44,8 +44,8 @@ class DeepLearningProject:
         else:    
             self.num_classes = num_classes
 
-        self.image_path = Path(parent_path)
-        self.label_path = Path(parent_path / r'labels')
+        self.image_path = self.parent_path
+        self.label_path = self.parent_path / 'labels'
         self.patch_path= self.parent_path / 'patches'
         self.model_path = self.parent_path / 'models'
 
@@ -53,14 +53,14 @@ class DeepLearningProject:
         self.prediction_path = self.parent_path / 'predictions'
 
         # paths for yolo labels
-        self.yolo_label_path = Path(parent_path / r'yolo_labels')
-        self.yolo_patch_path = Path(parent_path / r'yolo_patches')
-        self.yolo_image_label_paths = [os.path.join(self.yolo_label_path, 'images')]
-        self.yolo_mask_label_paths = [os.path.join(self.yolo_label_path, 'labels')]
-        self.yolo_predictions = Path(parent_path / r'yolo_predictions')
+        self.yolo_label_path = self.parent_path / 'yolo_labels'
+        self.yolo_patch_path = self.parent_path / 'yolo_patches'
+        self.yolo_image_label_paths = [self.yolo_label_path / 'images']
+        self.yolo_mask_label_paths = [self.yolo_label_path / 'labels']
+        self.yolo_predictions = self.parent_path / 'yolo_predictions'
 
         # path for machine learning
-        self.ml_path = Path(parent_path / r'ml')
+        self.ml_path = self.parent_path / 'ml'
 
         # make paths if they don't exist
         if not os.path.exists(self.patch_path):
