@@ -20,6 +20,15 @@ import yaml
 import glob 
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
+from enum import Enum
+
+class ImageType(Enum):
+    GRAY_SCALE_2D = "gray_scale_2d"
+    GRAY_SCALE_3D = "gray_scale_3d"
+    RGB_2D = "rgb_2d"
+    RGB_3D = "rgb_3d"
+    MULTI_CHANNEL_2D = "multi_channel_2d"
+    MULTI_CHANNEL_3D = "multi_channel_3d"
 
 class DeepLearningProject:
     def __init__(self, parent_path, num_classes=1):
