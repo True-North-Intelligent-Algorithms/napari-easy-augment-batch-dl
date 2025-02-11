@@ -458,7 +458,6 @@ class DeepLearningProject:
         for box in boxes:
             z = int(box[0,0])
 
-            name = self.image_file_list[z].name.split('.')[0]
 
             # get rid of first column (z axis)
             box = box[:,1:]
