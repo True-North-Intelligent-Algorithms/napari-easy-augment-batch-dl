@@ -247,7 +247,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.viewer.dims.events.current_step.connect(index_changed)
 
         # comment out for now TODO:  Revisit interactive segmentation
-        '''
         # try to create a sam model which will be used for creating labels from bounding boxes
         try:
             from segment_everything.detect_and_segment import segment_from_bbox, create_sam_model
@@ -255,7 +254,6 @@ class NapariEasyAugmentBatchDL(QWidget):
         except Exception as e:
             print(e)
             self.helper_sam_model = None
-        '''
     def update(self, message, progress=0):
         self.textBrowser_log.append(message)
         self.progressBar.setValue(int(progress))
@@ -462,7 +460,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_width=5,
             #label_property = text_property,
             #labels = annotations
-            text={'string': '{class}', 'size': 15, 'color': 'green'},
+            #text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
         
         self.predicted_object_boxes_layer = self.viewer.add_shapes(
