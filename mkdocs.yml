@@ -1,0 +1,28 @@
+site_name: Napari Easy Augment Batch DL
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: blue
+  features:
+    - navigation.instant
+    - search.highlight
+    - content.code.annotate
+
+nav:
+  - Home: index.md
+  - Load and Label: load_and_label.md
+  - Augment: augment.md
+  - Train and Predict: train_and_predict.md
+  - FAQ: faq.md
+  - About: about.md
+
+markdown_extensions:
+  - admonition  # Adds note/warning boxes
+  - pymdownx.superfences  # Improves code blocks
+  - pymdownx.emoji  # Supports emoji like :smile:
+
+extra:
+  generator: false  # Removes "Built with MkDocs" footer
+
+repo_url: https://github.com/myrepo  # Change to your repo URL
