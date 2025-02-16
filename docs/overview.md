@@ -1,6 +1,6 @@
 # Overview
 
-The Napari-Easy-Augment-Batch-DL consists of panel that interacts with several different Napari Layers.  The below screenshot shows Napari-Easy-Augment-Batch-DL open in Napari.  The panel is on the right side and layers on the left. 
+Napari-Easy-Augment-Batch-DL consists of a panel that interacts with several different Napari layers.  The below screenshot shows Napari-Easy-Augment-Batch-DL open in Napari.  
 
 ![Main Screen](images/main_screen_shot.png)
 *Main screen showing various layers and annotations.*
@@ -20,9 +20,9 @@ The Napari-Easy-Augment-Batch-DL consists of panel that interacts with several d
 
  3. **Predictions:** Predictions from the trained model.
 
- 4. **Label Box:** Indicates which regions should be used for training. Manually drawn labels outside of a label box will not be used for training. In the figure below, the blue box is a label box.
+ 4. **Label Box:** Indicates which regions should be used for training. Manually drawn labels outside of a label box will not be used for training. In the figure above, the blue box is a label box.
 
- 5. **ml_labels (experimental)** Labels used for live ML training. Experiment with live machine learning training using these labels.
+ 5. **ml_labels (experimental):** Labels used for live ML training. Experiment with live machine learning training using these labels.
 
  6. **Object Box:** Annotate individual objects with a bounding box. This type of annotation is used for training YOLO and other object detection methods.
 

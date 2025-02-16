@@ -15,10 +15,10 @@ After completing above steps you should find a ```ground truth``` and ```input``
 
 ![Patches top level](images/patches_top_level.jpg)
 
-Within the ```input``` directory you should see a collection of patches from your images, in the ```ground truth``` directory there should be corresponding patches taken from the label image.  Make sure you draw at least one label box and label objects within it. See (here)[]
+Within the ```input``` directory you should see a collection of patches from your images, in the ```ground truth``` directory there should be corresponding patches taken from the label image. 
 
 ![Patches](images/patches.jpg)
 
 ---
 
-🔄 **Next:** [Run & Export](run_and_export.md)  
+🔄 **Next:** [Train and Predict](train_and_predict.md)  

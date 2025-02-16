@@ -2,7 +2,7 @@
 
 ## Preparation
 
-Prior to startingwith this plugin, put the images you want to work with in a project directory.  
+Prior to using this plugin, put the images you want to work with in a project directory as shown below.  
 
 ![Project Directory](images/project_dir_start.png)
 
