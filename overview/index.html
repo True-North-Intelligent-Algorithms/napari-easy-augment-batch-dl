@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../dependencies/">
+        <link rel="prev" href="..">
       
       
-        <link rel="next" href="../augment/">
+        <link rel="next" href="../dependencies/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Load and Label - Napari Easy Augment Batch DL</title>
+        <title>Overview - Napari Easy Augment Batch DL</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#load-and-label" class="md-skip">
+        <a href="#overview" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Load and Label
+              Overview
             
           </span>
         </div>
@@ -241,10 +241,31 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -254,6 +275,44 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#panel-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Panel Groups
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#napari-easy-augment-batch-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Napari-Easy-Augment-Batch Layers
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -283,31 +342,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Load and Label
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../load_and_label/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -317,50 +355,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#load-panel" class="md-nav__link">
-    <span class="md-ellipsis">
-      📌 Load Panel
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📌 Load Panel">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Steps:
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -476,26 +470,20 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#load-panel" class="md-nav__link">
+  <a href="#panel-groups" class="md-nav__link">
     <span class="md-ellipsis">
-      📌 Load Panel
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📌 Load Panel">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Steps:
+      Panel Groups
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#napari-easy-augment-batch-layers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Napari-Easy-Augment-Batch Layers
+    </span>
+  </a>
   
 </li>
       
@@ -518,19 +506,46 @@
   
 
 
-<h1 id="load-and-label">Load and Label</h1>
-<p>The first step is to load your images and assign labels.</p>
-<h2 id="load-panel">📌 Load Panel</h2>
-<p><img alt="Load Panel" src="../images/load_panel.png" />  </p>
-<h3 id="steps">Steps:</h3>
-<p>1️⃣ Click the <strong>Open image directory...</strong> button.<br />
-2️⃣ Select the directory that contains your image files.<br />
-3️⃣ Assign labels as needed:
-   - a) Select <strong>Label box</strong> layer and draw a label box that is as large or larger than the desired patch size.
-   - b) Select <strong>labels</strong> layer and Label objects within the label box.</p>
-<p><img alt="Label Box and Labels" src="../images/label_box_and_labels.png" /></p>
-<hr />
-<p>🔄 <strong>Next:</strong> <a href="configure_augmentations.md">Configure Augmentations</a></p>
+<h1 id="overview">Overview</h1>
+<p>The Napari-Easy-Augment-Batch-DL consists of panel that interacts with several different Napari Layers.  The below screenshot shows Napari-Easy-Augment-Batch-DL open in Napari.  The panel is on the right side and layers on the left. </p>
+<p><img alt="Main Screen" src="../images/main_screen_shot.png" />
+<em>Main screen showing various layers and annotations.</em></p>
+<h2 id="panel-groups">Panel Groups</h2>
+<ol>
+<li>
+<p><strong>Load and Label</strong>: Load images then use the layers to label.</p>
+</li>
+<li>
+<p><strong>Augment</strong>:  Apply augmentations to labels and save patches</p>
+</li>
+<li>
+<p><strong>Train and Predict</strong>: Use patches to train models, then use model to generate predictions. </p>
+</li>
+</ol>
+<h2 id="napari-easy-augment-batch-layers">Napari-Easy-Augment-Batch Layers</h2>
+<ol>
+<li>
+<p><strong>Images:</strong> The image set you are working with.</p>
+</li>
+<li>
+<p><strong>Labels:</strong> Manually drawn labels.</p>
+</li>
+<li>
+<p><strong>Predictions:</strong> Predictions from the trained model.</p>
+</li>
+<li>
+<p><strong>Label Box:</strong> Indicates which regions should be used for training. Manually drawn labels outside of a label box will not be used for training. In the figure below, the blue box is a label box.</p>
+</li>
+<li>
+<p><strong>ml_labels (experimental)</strong> Labels used for live ML training. Experiment with live machine learning training using these labels.</p>
+</li>
+<li>
+<p><strong>Object Box:</strong> Annotate individual objects with a bounding box. This type of annotation is used for training YOLO and other object detection methods.</p>
+</li>
+<li>
+<p><strong>Predicted Object Box:</strong> Predicted object box from YOLO or other object detection frameworks.</p>
+</li>
+</ol>
 
 
 

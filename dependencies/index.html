@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../dependencies/">
+        <link rel="prev" href="../overview/">
       
       
-        <link rel="next" href="../augment/">
+        <link rel="next" href="../load_and_label/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -20,7 +20,7 @@
     
     
       
-        <title>Load and Label - Napari Easy Augment Batch DL</title>
+        <title>Dependencies - Napari Easy Augment Batch DL</title>
       
     
     
@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#load-and-label" class="md-skip">
+        <a href="#dependencies" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Load and Label
+              Dependencies
             
           </span>
         </div>
@@ -262,27 +262,6 @@
       
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../dependencies/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Dependencies
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
     
   
   
@@ -299,7 +278,7 @@
           
   
   <span class="md-ellipsis">
-    Load and Label
+    Dependencies
     
   </span>
   
@@ -311,7 +290,7 @@
         
   
   <span class="md-ellipsis">
-    Load and Label
+    Dependencies
     
   </span>
   
@@ -334,19 +313,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#load-panel" class="md-nav__link">
+  <a href="#linux" class="md-nav__link">
     <span class="md-ellipsis">
-      📌 Load Panel
+      Linux
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📌 Load Panel">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mac-m1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mac M1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Windows">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#steps" class="md-nav__link">
+  <a href="#windows-stardist-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Steps:
+      Windows stardist environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-pytorch-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows pytorch environment
     </span>
   </a>
   
@@ -361,6 +367,27 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../load_and_label/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Load and Label
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -476,19 +503,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#load-panel" class="md-nav__link">
+  <a href="#linux" class="md-nav__link">
     <span class="md-ellipsis">
-      📌 Load Panel
+      Linux
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📌 Load Panel">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mac-m1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mac M1
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#windows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Windows">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#steps" class="md-nav__link">
+  <a href="#windows-stardist-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Steps:
+      Windows stardist environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#windows-pytorch-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Windows pytorch environment
     </span>
   </a>
   
@@ -518,19 +572,91 @@
   
 
 
-<h1 id="load-and-label">Load and Label</h1>
-<p>The first step is to load your images and assign labels.</p>
-<h2 id="load-panel">📌 Load Panel</h2>
-<p><img alt="Load Panel" src="../images/load_panel.png" />  </p>
-<h3 id="steps">Steps:</h3>
-<p>1️⃣ Click the <strong>Open image directory...</strong> button.<br />
-2️⃣ Select the directory that contains your image files.<br />
-3️⃣ Assign labels as needed:
-   - a) Select <strong>Label box</strong> layer and draw a label box that is as large or larger than the desired patch size.
-   - b) Select <strong>labels</strong> layer and Label objects within the label box.</p>
-<p><img alt="Label Box and Labels" src="../images/label_box_and_labels.png" /></p>
-<hr />
-<p>🔄 <strong>Next:</strong> <a href="configure_augmentations.md">Configure Augmentations</a></p>
+<h1 id="dependencies">Dependencies</h1>
+<p>Napari-Easy-Augment-Batch-DL relies on one or more deep learning frameworks being installed in your environment.  On start-up it attempts to import the following deep learning toolkits.  At least one has to be successfully imported</p>
+<p><strong>Cellpose:</strong>  For instance segmentation<br />
+<strong>Stardist:</strong>  For instance segmentation<br />
+<strong>Pytorch:</strong>  For semantic segmentation<br />
+<strong>Mobile SAM:</strong>  An approach that uses Yolo + SAM for instance segmentation. </p>
+<p>Other frameworks can be added via our plugin mechanism (Documentation to come)</p>
+<p>Below are sets of suggested installation instructions for Linux, Mac M1, and Windows.  Not all dependencies are needed.  You need atleast one deep learning framework, but for example if you would like to work with Cellpose only you do not need Stardist or SAM. </p>
+<h2 id="linux">Linux</h2>
+<div class="highlight"><pre><span></span><code>    conda create -n I2K2024_dl python=3.10
+    conda activate I2K2024_dl
+    pip install numpy==1.26 # 
+    pip install &quot;napari[all]&quot; # requires quotation marks to parse the square brackets on Linux, not sure if generalizes
+    pip install albumentations
+    pip install matplotlib
+    pip install &quot;tensorflow[and-cuda]&quot; # as above, requires quotation marks
+    pip install stardist 
+    pip install gputools==0.2.15 # I think numpy v2.1.2 gets installed here for me
+    pip install edt # pip throws: numba v0.60.0, tensorflow v2.18.0 require lower versions of numpy. Should still work but iffy.
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    pip install pytorch-lightning
+    pip install monai
+    pip install scipy
+    pip install tifffile
+    pip install cellpose
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git 
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/segment-everything.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-segment-everything.git
+</code></pre></div>
+<h2 id="mac-m1">Mac M1</h2>
+<div class="highlight"><pre><span></span><code>    conda create -n I2K2024_dl python=3.10
+    conda activate I2K2024_dl
+    pip install numpy==1.26 # 
+    pip install &quot;napari[all]&quot; # also requires quotes on Mac
+    pip install &quot;tensorflow[and-cuda]&quot; # as above, requires quotation marks. Pip throws a bunch of conflicts, but whatever.
+    pip install stardist
+    pip install gputools==0.2.15 # pip dependency incompatibilities
+    pip install edt 
+    pip install torch torchvision torchaudio # remove the index flag url
+    pip install pytorch-lightning
+    pip install monai
+    pip install scipy
+    pip install tifffile
+    pip install cellpose
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/segment-everything.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git 
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-segment-everything.git
+</code></pre></div>
+<h2 id="windows">Windows</h2>
+<p>Note that to use GPU with Stardist in Windows we need two different environments because Windows needs an older version of tensorflow, which is not compatible wither newer version of pytorch based toolkits. </p>
+<h3 id="windows-stardist-environment">Windows stardist environment</h3>
+<div class="highlight"><pre><span></span><code>    conda create -n I2k2024_stardist python=3.10
+    conda activate I2k2024_stardist
+    pip install numpy==1.26
+    pip install &quot;napari[all]&quot;
+    pip install albumentations
+    pip install matplotlib
+    conda install -c conda-forge cudatoolkit=11.8 cudnn=8.1.0
+    pip install &quot;tensorflow&lt;2.11&quot;
+    pip install stardist 
+    pip install gputools==0.2.15 
+    pip install edt
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git 
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git
+</code></pre></div>
+<h3 id="windows-pytorch-environment">Windows pytorch environment</h3>
+<div class="highlight"><pre><span></span><code>    conda create -n I2k2024_pytorch python=3.10
+    conda activate I2k2024_pytorch
+    pip install numpy==1.26
+    pip install &quot;napari[all]&quot;
+    pip install albumentations
+    pip install matplotlib
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    pip install pytorch-lightning
+    pip install monai
+    pip install scipy
+    pip install tifffile
+    pip install cellpose
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/segment-everything.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git 
+    pip install git+https://github.com/True-North-Intelligent-Algorithms/napari-segment-everything.git
+</code></pre></div>
 
 
 
