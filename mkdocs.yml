@@ -11,6 +11,8 @@ theme:
 
 nav:
   - Home: index.md
+  - Overview: overview.md
+  - Dependencies: dependencies.md
   - Load and Label: load_and_label.md
   - Augment: augment.md
   - Train and Predict: train_and_predict.md

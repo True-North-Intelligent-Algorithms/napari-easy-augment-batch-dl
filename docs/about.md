@@ -1,12 +1,13 @@
 # About Napari-Easy-Augment-Batch-dl
 
-Napari-Easy-Augment-Batch-dl is a user-friendly plugin for Napari designed to simplify batch image augmentation. It provides an intuitive graphical interface that allows users to load images, apply augmentations, and process large datasets efficiently without requiring programming knowledge.
+Napari-Easy-Augment-Batch-dl is a user-friendly plugin for Napari designed to make batch image augmentation and model training more reproducible . It provides an intuitive graphical interface , integrated with Napari, that allows users to load and label images, apply augmentations, and process large datasets efficiently without requiring programming knowledge.  While the plugin complements programming by streamlining workflows, I always encourage users to learn programming, as it provides deeper flexibility and control over their data and models.
 
 ## 🔍 Features
-- Easy-to-use GUI for batch image augmentation.
+- Takes advantage of Napari's build in labelling functionality Easy-to-use GUI .
 - Supports various augmentation techniques such as rotation, flipping, noise addition, and brightness adjustments.
-- Real-time preview of augmentations before applying changes.
+- Explicitly saves augmented patches for easier trouble shooting and more repeatible training. 
 - Streamlined workflow with three simple steps: Load & Label, Configure Augmentations, and Train & Predict.
+- Plugin mechanism to support training 
 - Ideal for researchers, data scientists, and image analysis professionals.
 
 ## 🎯 Purpose

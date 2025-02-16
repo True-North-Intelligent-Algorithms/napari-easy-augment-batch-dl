@@ -5,9 +5,14 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-easy-augment-batch-dl.svg?color=green)](https://python.org)
 [![tests](https://github.com/bnorthan/napari-easy-augment-batch-dl/workflows/tests/badge.svg)](https://github.com/bnorthan/napari-easy-augment-batch-dl/actions)
 [![codecov](https://codecov.io/gh/bnorthan/napari-easy-augment-batch-dl/branch/main/graph/badge.svg)](https://codecov.io/gh/bnorthan/napari-easy-augment-batch-dl)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-easy-augment-batch-dl)](https://napari-hub.org/plugins/napari-easy-augment-batch-dl)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-easy-augment-batch-dl)](https://napari-hub.org/plugins/napari-easy-augment-batch-dl)  
+[documentation](https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/)
 
 A plugin to perform deep learning on small to medium sized image sets with UNETs, Cellpose, Stardist, SAM and friends.  In particular this plugin is useful for performing deep learning with a small number of labels and augmentation, and experimenting with different deep learning frameworks.  
+
+Important note on dependencies:  This plugin is designed to work with different permutations of dependencies.  For example it should work if one of Pytorch, Cellpose, SAM and/or Stardist is installed but does not require all.   Thus we don't specify all the dependencies and leave it up to the user to install the permutation of DL related dependencies they would like to use.  More detailed instructions are below. 
+
+If you have any questions about dependencies splease post on the [Image.sc](Image.sc) forum. 
 
 ----------------------------------
 
@@ -87,13 +92,9 @@ You will also need one or more of stardist, cellpose, segment-everything or Yolo
 
 ###
 
-(more details to come on installing dependencies)
-
-
-(Coming soon) You can install `napari-easy-augment-batch-dl` via [pip]:
+You can install `napari-easy-augment-batch-dl` via [pip]:
 
     pip install napari-easy-augment-batch-dl
-
 
 
 ## Contributing
