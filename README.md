@@ -6,7 +6,9 @@
 [![tests](https://github.com/bnorthan/napari-easy-augment-batch-dl/workflows/tests/badge.svg)](https://github.com/bnorthan/napari-easy-augment-batch-dl/actions)
 [![codecov](https://codecov.io/gh/bnorthan/napari-easy-augment-batch-dl/branch/main/graph/badge.svg)](https://codecov.io/gh/bnorthan/napari-easy-augment-batch-dl)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-easy-augment-batch-dl)](https://napari-hub.org/plugins/napari-easy-augment-batch-dl)  
-[documentation](https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/)
+
+
+See [full documentation](https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/)
 
 A plugin to perform deep learning on small to medium sized image sets with UNETs, Cellpose, Stardist, SAM and friends.  In particular this plugin is useful for performing deep learning with a small number of labels and augmentation, and experimenting with different deep learning frameworks.  
 
