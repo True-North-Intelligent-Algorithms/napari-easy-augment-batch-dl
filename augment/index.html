@@ -519,13 +519,18 @@
 
 
 <h1 id="configure-augmentations">Configure Augmentations</h1>
-<p>Set up your augmentation settings before processing your images.  </p>
+<p>You need to generate augmentations before training. </p>
 <h2 id="augmentation-panel">🎛️ Augmentation Panel</h2>
 <p><img alt="Augmentation Panel" src="../images/augment_panel.png" />  </p>
 <h3 id="steps">Steps:</h3>
-<p>1️⃣ Select the augmentation types (rotation, flipping, noise, etc.).<br />
-2️⃣ Adjust the parameters as needed.<br />
-3️⃣ Preview the augmentations before applying.  </p>
+<p>1️⃣ Make sure you draw at least one label box and label objects within it. See <a href="https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/load_and_label/">here</a><br />
+2️⃣ Select the augmentation types (rotation, flipping, brightness/contrast, etc.)<br />
+3️⃣ Choose <code>Augment current image</code> or <code>Augment all images</code><br />
+4️⃣ Verify by looking in the <code>patches</code> sub-directory of your project.</p>
+<p>After completing above steps you should find a <code>ground truth</code> and <code>input</code> directory has been created in your project in the <code>patches directory</code>  </p>
+<p><img alt="Patches top level" src="../images/patches_top_level.jpg" /></p>
+<p>Within the <code>input</code> directory you should see a collection of patches from your images, in the <code>ground truth</code> directory there should be corresponding patches taken from the label image.  Make sure you draw at least one label box and label objects within it. See (here)[]</p>
+<p><img alt="Patches" src="../images/patches.jpg" /></p>
 <hr />
 <p>🔄 <strong>Next:</strong> <a href="run_and_export.md">Run &amp; Export</a>  </p>
 
