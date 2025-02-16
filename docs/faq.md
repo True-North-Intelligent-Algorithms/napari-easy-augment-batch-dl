@@ -11,6 +11,7 @@ This tool is designed for users who need to augment images in bulk, such as rese
 ## 🔄 Usage Questions
 
 ### How do I install the plugin?
-You can install it using pip:
+You can install it using pip:  
 ```sh
 pip install napari-easy-augment-batch-dl
+```
