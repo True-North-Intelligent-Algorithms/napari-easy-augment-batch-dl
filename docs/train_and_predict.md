@@ -19,6 +19,15 @@ After hitting train a popup should appear which allows you to further adjust tra
 After training (or after loading or setting a model) choose ```Predict current image``` or ```Predict all images``` to predict.   The ```prediction``` layer should be populated with the predictions as shown in the below screen shot.  
 
 ![Prediction](images/predict.png)
+
+After predicting you need to save the project again and the predictions will be written to disk
+
+![Save results...](images/save_results.png)
+
+The predictions will be written in your project folder under ```predictions\class_0```.  
+
+![Saved predictions](images/saved_predictions.png)
+
 ---
 
 🔄 **Next:** [Run & Export](run_and_export.md)  
