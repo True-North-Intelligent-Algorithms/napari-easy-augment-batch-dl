@@ -1,5 +1,6 @@
 
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QStackedWidget, QGridLayout
+from qtpy.QtWidgets import QDialog, QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QStackedWidget, QGridLayout
+from napari_easy_augment_batch_dl.widgets import LabeledSpinner
 from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
@@ -186,6 +187,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.delete_augmentations_button.clicked.connect(self.delete_augmentations)
         self.augment_parameters_group.layout().addWidget(self.delete_augmentations_button, 6,0)
 
+        # add advanced augmentation settings button
+        self.augmentation_settings_button = QPushButton("Settings...")
+        self.augmentation_settings_button.clicked.connect(self.augment_settings)
+        self.augment_parameters_group.layout().addWidget(self.augmentation_settings_button, 6, 1)
 
         # add train network group
         self.train_predict_group = QGroupBox("3. Train/Predict")
@@ -362,7 +367,8 @@ class NapariEasyAugmentBatchDL(QWidget):
             temp = self.deep_learning_project.frameworks["Random Forest Model"]
             temp.create_features(self.images, self.ml_labels, self.ml_features)
         except Exception as e:
-            print(f'error creating ml_labels: {e}')
+            print(f'Error creating ml_labels: {e}')
+            print(f'Random Forest ML may not work properly')
 
         def handle_new_object_box(event):
 
@@ -452,6 +458,8 @@ class NapariEasyAugmentBatchDL(QWidget):
                                 print(self.boxes_layer.data)
 
         
+        print("Adding object boxes layer")
+
         self.object_boxes_layer = self.viewer.add_shapes(
             ndim=3,
             name="Object box",
@@ -462,6 +470,8 @@ class NapariEasyAugmentBatchDL(QWidget):
             #labels = annotations
             #text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
+
+        print("Adding predicted object boxes layer")
         
         self.predicted_object_boxes_layer = self.viewer.add_shapes(
             ndim=3,
@@ -491,18 +501,23 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.object_boxes_layer.feature_defaults['class'] = 0 
         self.predicted_object_boxes_layer.feature_defaults['class'] = 0 
 
+        print("Adding label boxes")
         if self.deep_learning_project.boxes is not None:
             self.boxes_layer.add(self.deep_learning_project.boxes)
 
+        print("Adding object boxes")
         if self.deep_learning_project.object_boxes is not None:
             self.object_boxes_layer.add(self.deep_learning_project.object_boxes)
 
+        print("Adding predicted object boxes")
         if self.deep_learning_project.predicted_object_boxes is not None:
             self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
 
+        print("Setting object box classes")
         if self.deep_learning_project.classes is not None:
             self.object_boxes_layer.features = self.deep_learning_project.classes
 
+        print("Setting predicted object box classes")
         if self.deep_learning_project.predicted_classes is not None:
             self.predicted_object_boxes_layer.features = self.deep_learning_project.predicted_features
         
@@ -551,6 +566,62 @@ class NapariEasyAugmentBatchDL(QWidget):
 
     def delete_augmentations(self):
         self.deep_learning_project.delete_augmentations()
+
+    def augment_settings(self):
+        '''
+        dialog = QDialog()
+        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1, None, is_float=True, step=0.1)
+        size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("size_factor", value))
+        
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(dialog.accept)  # Closes dialog when clicked
+        
+        dialog.layout = QVBoxLayout()
+        dialog.layout.addWidget(size_factor_spinner)
+        dialog.layout.addWidget(ok_button)
+    
+        dialog.setLayout(dialog.layout)
+        dialog.exec_()
+        '''
+        dialog = QDialog()
+
+        # Rescale group
+        rescale_label = QLabel("Rescale")
+        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1, None, is_float=True, step=0.1)
+        size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("size_factor", value))
+
+        # Elastic group
+        elastic_label = QLabel("Elastic")
+        alpha_spinner = LabeledSpinner("Alpha", 0.1, 100, 1, None, is_float=True, step=1)
+        sigma_spinner = LabeledSpinner("Sigma", 0.1, 10, 1, None, is_float=True, step=0.1)
+        alpha_affine_spinner = LabeledSpinner("Alpha Affine", 0.1, 10, 1, None, is_float=True, step=0.1)
+
+        alpha_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("alpha", value))
+        sigma_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("sigma", value))
+        alpha_affine_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("alpha_affine", value))
+
+        # OK button
+        ok_button = QPushButton("OK")
+        ok_button.clicked.connect(dialog.accept)
+
+        # Layout
+        dialog_layout = QVBoxLayout()
+        dialog_layout.addWidget(rescale_label)
+        dialog_layout.addWidget(size_factor_spinner)
+        dialog_layout.addWidget(elastic_label)
+        dialog_layout.addWidget(alpha_spinner)
+        dialog_layout.addWidget(sigma_spinner)
+        dialog_layout.addWidget(alpha_affine_spinner)
+        dialog_layout.addWidget(ok_button)
+
+        dialog.setLayout(dialog_layout)
+        dialog.exec_()
+        
+
+
+
+
+
 
     def perform_augmentation(self, boxes):
         num_patches_per_roi = self.number_patches_spin_box.value()

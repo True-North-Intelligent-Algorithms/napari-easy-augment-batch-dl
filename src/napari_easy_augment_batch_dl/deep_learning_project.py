@@ -124,7 +124,7 @@ class DeepLearningProject:
         # Here for each framework that has been registered we retrieve the class, instantiate it
         # and add it to the frameworks dictionary
         for framework_name in BaseFramework.registry:
-            print('found framework is ', framework_name)
+            print('Found framework', framework_name)
             try:
                 instance = BaseFramework.registry[framework_name](self.parent_path, self.num_classes)
                 self.frameworks[instance.descriptor] = instance
