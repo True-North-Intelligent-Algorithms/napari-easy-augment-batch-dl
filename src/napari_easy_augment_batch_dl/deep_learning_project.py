@@ -261,6 +261,16 @@ class DeepLearningProject:
             self.ml_features = ml_features_store['images']
         except Exception as e:
             print(f"Error creating ml labels and features: {e}")
+        
+        self.augmentation_parameters = {
+            'size_factor': 1.25,
+            'hue': 0.5,
+            'brightness': 0.5,
+            'saturation': 0.5,
+            'alpha': 0.1,
+            'sigma': 5,
+            'alpha_affine': 5
+        }
 
     # TODO: move to a utility class 
     def delete_all_files_in_directory(self, directory_path):
@@ -494,8 +504,8 @@ class DeepLearningProject:
                 if im.shape[-1]>3:
                     im = im[:,:,:3]
                 
-            uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_horizontal_flip=do_horizontal_flip, do_vertical_flip=do_vertical_flip, do_random_rotate90=do_random_rotate90, do_random_sized_crop=do_random_sized_crop, do_random_brightness_contrast=do_random_brightness_contrast, 
-                                  do_random_gamma=do_random_gamma, do_color_jitter=do_color_jitter, do_elastic_transform=do_elastic_transform)
+            uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_vertical_flip, do_horizontal_flip, do_random_rotate90, do_random_sized_crop, do_random_brightness_contrast, 
+                                  do_random_gamma, do_color_jitter, do_elastic_transform, 1, **self.augmentation_parameters)
        
     def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None,
                                   do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
@@ -684,5 +694,9 @@ class DeepLearningProject:
                     prediction = self.predict(n, network_type, update)
                     temp.append(prediction)
                 self.prediction_list.append(temp)
+    
+    def set_augmentation_parameter(self, param_name, value):
+        """ Set the augmentation parameter for the framework """
+        self.augmentation_parameters[param_name] = value
    
      

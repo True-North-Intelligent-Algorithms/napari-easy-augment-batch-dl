@@ -575,37 +575,31 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.deep_learning_project.delete_augmentations()
 
     def augment_settings(self):
-        '''
-        dialog = QDialog()
-        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1, None, is_float=True, step=0.1)
-        size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("size_factor", value))
-        
-        ok_button = QPushButton("OK")
-        ok_button.clicked.connect(dialog.accept)  # Closes dialog when clicked
-        
-        dialog.layout = QVBoxLayout()
-        dialog.layout.addWidget(size_factor_spinner)
-        dialog.layout.addWidget(ok_button)
-    
-        dialog.setLayout(dialog.layout)
-        dialog.exec_()
-        '''
         dialog = QDialog()
 
         # Rescale group
         rescale_label = QLabel("Rescale")
-        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1, None, is_float=True, step=0.1)
-        size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("size_factor", value))
+        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1.25, None, is_float=True, step=0.1)
+        size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("size_factor", value))
 
         # Elastic group
         elastic_label = QLabel("Elastic")
-        alpha_spinner = LabeledSpinner("Alpha", 0.1, 100, 1, None, is_float=True, step=1)
-        sigma_spinner = LabeledSpinner("Sigma", 0.1, 10, 1, None, is_float=True, step=0.1)
-        alpha_affine_spinner = LabeledSpinner("Alpha Affine", 0.1, 10, 1, None, is_float=True, step=0.1)
+        alpha_spinner = LabeledSpinner("Alpha", 0.01, 100, 0.1, None, is_float=True, step=1)
+        sigma_spinner = LabeledSpinner("Sigma", 0.1, 10, 5, None, is_float=True, step=0.1)
+        alpha_affine_spinner = LabeledSpinner("Alpha Affine", 0.1, 10, 5, None, is_float=True, step=0.1)
 
-        alpha_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("alpha", value))
-        sigma_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("sigma", value))
-        alpha_affine_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_param("alpha_affine", value))
+        alpha_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("alpha", value))
+        sigma_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("sigma", value))
+        alpha_affine_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("alpha_affine", value))
+
+        # color group (Hue, Brightness, Saturation)
+        color_label = QLabel("Color")
+        hue_spinner = LabeledSpinner("Hue", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
+        brightness_spinner = LabeledSpinner("Brightness", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
+        saturation_spinner = LabeledSpinner("Saturation", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
+        hue_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("hue", value))
+        brightness_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("brightness", value))
+        saturation_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("saturation", value))
 
         # OK button
         ok_button = QPushButton("OK")
@@ -619,6 +613,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         dialog_layout.addWidget(alpha_spinner)
         dialog_layout.addWidget(sigma_spinner)
         dialog_layout.addWidget(alpha_affine_spinner)
+        dialog_layout.addWidget(color_label)
+        dialog_layout.addWidget(hue_spinner)
+        dialog_layout.addWidget(brightness_spinner)
         dialog_layout.addWidget(ok_button)
 
         dialog.setLayout(dialog_layout)
