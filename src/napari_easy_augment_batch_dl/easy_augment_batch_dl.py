@@ -88,7 +88,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.save_results_button = QPushButton("Save results...")
         self.save_results_button.clicked.connect(self.save_results)
         self.label_layout.addWidget(self.save_results_button)
-
+       
         # current file name label
         self.current_file_name_label = QLabel("Current file: None")
         self.label_layout.addWidget(self.current_file_name_label)
@@ -226,7 +226,12 @@ class NapariEasyAugmentBatchDL(QWidget):
         # add predict all images
         self.predict_all_images_button = QPushButton("Predict all images")
         self.predict_all_images_button.clicked.connect(self.predict_all_images)
-        self.train_predict_layout.addWidget(self.predict_all_images_button)
+        self.train_predict_layout.addWidget(self.predict_all_images_button) 
+        
+        # add second save results button for bottom of panel 
+        self.save_results_button2 = QPushButton("Save results...")
+        self.save_results_button2.clicked.connect(self.save_results)
+        self.train_predict_layout.addWidget(self.save_results_button2)
 
         # add status log and progress
         self.textBrowser_log = QTextBrowser()
@@ -393,7 +398,14 @@ class NapariEasyAugmentBatchDL(QWidget):
 
                     if self.helper_sam_model is not None:
                         # call the function that segments the bounding box
-                        temp = segment_from_bbox(self.images[z, :, :], box_, self.helper_sam_model, 'cuda')
+
+                        image = self.images[z, :, :]
+
+                        # if image is 2D needs to be pseudo 3D for SAM 
+                        if image.ndim == 2:
+                            image = np.repeat(image[:, :, np.newaxis], 3, axis=2)
+
+                        temp = segment_from_bbox(image, box_, self.helper_sam_model, 'cuda')
                         
                         # get mask and then set the mask pixels that are above 0 to the max value of the labels layer (ie add a new label)
                         temp = temp[0]['segmentation']
@@ -577,9 +589,20 @@ class NapariEasyAugmentBatchDL(QWidget):
         # if yolo
 
         model_name = self.network_architecture_drop_down.currentText()
+
+
         if self.deep_learning_project.frameworks[model_name].boxes ==True:
 
-        #if self.network_architecture_drop_down.currentText() == DLModel.YOLO_SAM:
+            # Check if no boxes are drawn
+            if len(objects) == 0:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setText("No boxes drawn yet.")
+                msg.setInformativeText("Please draw at least one box before performing augmentation.")
+                msg.setWindowTitle("No Boxes Found")
+                msg.exec_()
+                return
+
             classes = self.object_boxes_layer.features['class'].to_numpy()
             self.deep_learning_project.perform_yolo_augmentation(boxes, objects, classes, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
