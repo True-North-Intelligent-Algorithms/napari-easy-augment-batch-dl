@@ -91,6 +91,8 @@ class DeepLearningProject:
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tif'))
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tiff'))
         self.image_file_list = self.image_file_list+list(self.image_path.glob('*.png'))
+
+        self.image_file_list = sorted(self.image_file_list)
         
         self.image_label_paths, self.mask_label_paths = make_label_directory(1, self.num_classes, self.label_path)
 
