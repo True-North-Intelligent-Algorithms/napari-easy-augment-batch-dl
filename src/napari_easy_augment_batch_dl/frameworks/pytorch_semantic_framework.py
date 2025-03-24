@@ -4,6 +4,7 @@ from tifffile import imread
 import json
 from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_dataset import PyTorchSemanticDataset
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 from monai.networks.nets import BasicUNet
 import torch
 from tnia.deeplearning.dl_helper import quantile_normalization
@@ -12,6 +13,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 from glob import glob
+from monai.inferers import sliding_window_inference
 
 @dataclass
 class PytorchSemanticFramework(BaseFramework):
@@ -22,8 +24,10 @@ class PytorchSemanticFramework(BaseFramework):
 
     """
     semantic_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
+    show_background_class: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': False, 'default': True})
     
     sparse: bool = field(metadata={'type': 'bool', 'harvest': True, 'advanced': False, 'training': True, 'default': True})
+    tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 128, 'max': 100000, 'default': 1024, 'step': 1})
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
     learning_rate: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.001, 'step': .001})
     dropout: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0, 'step': .01})
@@ -42,7 +46,9 @@ class PytorchSemanticFramework(BaseFramework):
         
         self.semantic_thresh = 0.0
         self.load_mode = LoadMode.File
-        self.sparse = True
+        self.sparse = True 
+        self.tile_size = 1024
+        self.show_background_class = True
         self.num_epochs = 100
         self.num_classes = 2
         self.learning_rate = 1.e-3 
@@ -113,7 +119,7 @@ class PytorchSemanticFramework(BaseFramework):
         #       because files not having the target shape will be discarded
         print(len(train_data))
 
-        train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
+        train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
 
         if self.sparse:
             # if sparse background will be label 1 so number of classes is the max label indexes
@@ -205,29 +211,26 @@ class PytorchSemanticFramework(BaseFramework):
         
         # move into evaluation mode
         self.model.eval()
-        
-        #with torch.no_grad():
-        #    y = self.model(x)
 
-        # here we chunk the input into 4 parts to avoid running out of memory
-        # on some systems this is needed on some it is not.  Sometimes we may
-        # even need smaller (more) chunks... so this is a bit of a WIP.
-        outputs = []
-        for chunk in torch.chunk(x, chunks=4, dim=3):  # Divide input into smaller parts
-            
-            with torch.no_grad():
-                outputs.append(self.model(chunk))
-            del chunk
-            torch.cuda.empty_cache()
-        y = torch.cat(outputs, dim=3)
-
-        import torch.nn.functional as F
+        with torch.no_grad():
+            # perform sliding window inference to avoid running out of memory on smaller GPUS
+            y = sliding_window_inference(
+                x,                      # Input tensor
+                (self.tile_size,self.tile_size),              # Patch size
+                1,                       # Batch size during inference
+                self.model,              # Model for inference
+                mode='gaussian',        # Inference mode
+                overlap=0.125          # Overlap factor
+            )
 
         # Apply softmax along the class dimension (dim=1)
         probabilities = F.softmax(y, dim=1)
         # now predicted classes are max of probabilities along the class dimension
         predicted_classes = torch.argmax(probabilities, dim=1)
- 
+
+        if self.show_background_class == False:
+            predicted_classes = predicted_classes - 1
+             
         return (predicted_classes.cpu().detach().numpy().squeeze()+1)
 
     def load_model_from_disk(self, model_name):
