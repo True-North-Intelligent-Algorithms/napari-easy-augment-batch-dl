@@ -479,6 +479,15 @@ class DeepLearningProject:
             xstart = int(np.min(box[:,1]))
             xend = int(np.max(box[:,1]))
 
+            if ystart < 0:
+                ystart = 0
+            if yend > self.image_list[z].shape[0]:
+                yend = self.image_list[z].shape[0]
+            if xstart < 0:
+                xstart = 0
+            if xend > self.image_list[z].shape[1]:
+                xend = self.image_list[z].shape[1]
+
             if np.ndim(self.image_list[z]) == 3:
                 im = self.image_list[z][ystart:yend, xstart:xend, :]
             else:
