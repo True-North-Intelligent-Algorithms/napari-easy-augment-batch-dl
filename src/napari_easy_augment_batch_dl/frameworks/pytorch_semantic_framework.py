@@ -234,7 +234,7 @@ class PytorchSemanticFramework(BaseFramework):
         return (predicted_classes.cpu().detach().numpy().squeeze()+1)
 
     def load_model_from_disk(self, model_name):
-        self.model = torch.load(model_name)
+        self.model = torch.load(model_name, weights_only=False)
         base_name = os.path.basename(model_name)
         self.model_dictionary[base_name] = self.model
 
