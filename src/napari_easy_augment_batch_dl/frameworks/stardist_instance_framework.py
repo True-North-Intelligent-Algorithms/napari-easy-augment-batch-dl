@@ -1,4 +1,3 @@
-from unittest.mock import Base
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from stardist.models import StarDist2D, Config2D
@@ -9,7 +8,6 @@ from tnia.deeplearning.dl_helper import divide_training_data
 import keras
 import json
 from dataclasses import dataclass, field
-from enum import Enum
 
 class CustomCallback(keras.callbacks.Callback):
 

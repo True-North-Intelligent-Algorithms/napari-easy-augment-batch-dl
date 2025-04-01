@@ -1,9 +1,5 @@
 from tifffile import imread
 import numpy as np
-import torch
-from torchvision import transforms
-from torchvision.transforms import v2
-import torchvision.transforms.functional as TF
 from tqdm import tqdm
 
 class PyTorchSemanticDataset():
