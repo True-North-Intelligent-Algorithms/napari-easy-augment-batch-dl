@@ -11,11 +11,13 @@ Other frameworks can be added via our plugin mechanism (Documentation to come)
 
 Below are sets of suggested installation instructions for Linux, Mac M1, and Windows.  Not all dependencies are needed.  You need atleast one deep learning framework, but for example if you would like to work with Cellpose only you do not need Stardist or SAM. 
 
+Note: Instructions have currently been tested with python 3.10 and numpy 1.26.  However feel free to use newer python and numpy and let us know if you run into any problems.  (I am currently testing this myself and will update instructions soon).   
+
 ## Linux
 
 ```
-    conda create -n I2K2024_dl python=3.10
-    conda activate I2K2024_dl
+    conda create -n easy_augment python=3.10
+    conda activate easy_augment
     pip install numpy==1.26 # 
     pip install "napari[all]" # requires quotation marks to parse the square brackets on Linux, not sure if generalizes
     pip install albumentations
@@ -39,8 +41,8 @@ Below are sets of suggested installation instructions for Linux, Mac M1, and Win
 ## Mac M1
 
 ```
-    conda create -n I2K2024_dl python=3.10
-    conda activate I2K2024_dl
+    conda create -n easy_augment python=3.10
+    conda activate easy_augment
     pip install numpy==1.26 # 
     pip install "napari[all]" # also requires quotes on Mac
     pip install "tensorflow[and-cuda]" # as above, requires quotation marks. Pip throws a bunch of conflicts, but whatever.
@@ -66,8 +68,8 @@ Note that to use GPU with Stardist in Windows we need two different environments
 ### Windows stardist environment
 
 ```
-    conda create -n I2k2024_stardist python=3.10
-    conda activate I2k2024_stardist
+    conda create -n easy_augment_stardist python=3.10
+    conda activate easy_augment_stardist
     pip install numpy==1.26
     pip install "napari[all]"
     pip install albumentations
@@ -84,8 +86,8 @@ Note that to use GPU with Stardist in Windows we need two different environments
 ### Windows pytorch environment
 
 ```
-    conda create -n I2k2024_pytorch python=3.10
-    conda activate I2k2024_pytorch
+    conda create -n easy_augment_pytorch python=3.10
+    conda activate easy_augment_pytorch
     pip install numpy==1.26
     pip install "napari[all]"
     pip install albumentations
