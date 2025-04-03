@@ -1,6 +1,5 @@
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 import numpy as np
-import os
 from segment_everything.prompt_generator import YoloDetector
 from segment_everything.weights_helper import get_weights_path
 from segment_everything.stacked_labels import StackedLabels
