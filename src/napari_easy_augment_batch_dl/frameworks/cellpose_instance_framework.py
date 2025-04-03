@@ -24,7 +24,7 @@ class CellPoseInstanceFramework(BaseFramework):
     flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
     chan2: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
-    niter: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100000, 'default': 200, 'step': 1})
+    niter: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100000, 'default': 200, 'step': 1, 'show_auto_checkbox':True})
 
     # second set of parameters have advanced True and training False and will be shown in the advanced popup dialog
     # None yet...
@@ -62,7 +62,9 @@ class CellPoseInstanceFramework(BaseFramework):
         self.flow_thresh = 0.4
         self.chan_segment = 0
         self.chan2 = 0
+
         self.niter = 200
+        self.niter_auto = True
         
         self.load_mode = LoadMode.File
         
@@ -144,7 +146,16 @@ class CellPoseInstanceFramework(BaseFramework):
         # TODO: Continue iterating and double checking this
         img_normalized = quantile_normalization(img, quantile_low = self.quantile_low, quantile_high= self.quantile_high, channels=True).astype(np.float32)
         
-        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter, bsize=self.bsize_pred)[0]
+        if self.niter_auto == 0:
+            # use the niter passed in
+            niter = self.niter
+        else:
+            # use the default niter
+            niter = None
+
+        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter, bsize=self.bsize_pred)[0]
+        #return self.model.eval(img, diameter=self.diameter, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter, bsize=self.bsize_pred)[0]
+        #return self.model.eval(img, diameter=self.diameter, channels=[self.chan_segment, self.chan2], cellprob_threshold=0.0, flow_threshold = 1.0, niter=self.niter, bsize = self.bsize_pred)[0]
 
     def get_model_names(self):
         return self.model_names 
