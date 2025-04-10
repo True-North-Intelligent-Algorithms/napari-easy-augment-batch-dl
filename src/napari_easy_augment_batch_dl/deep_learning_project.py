@@ -21,6 +21,7 @@ import glob
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 from enum import Enum
+import matplotlib.pyplot as plt
 
 class ImageType(Enum):
     GRAY_SCALE_2D = "gray_scale_2d"
@@ -315,7 +316,7 @@ class DeepLearningProject:
                 name = self.image_file_list[z].name.split('.')[0]
 
                 # get rid of first column (z axis)
-                # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget codee
+                # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget code
                 box = box[:,1:]
 
                 ystart = int(np.min(box[:,0]))
@@ -350,9 +351,22 @@ class DeepLearningProject:
                 print(image_name)
                 print(mask_name)
 
+                # save the image corresponding to the label bounding box
                 imsave(image_name, im)
+
+                # also generate and save the histogram of the image 
+                hist_name = os.path.join(self.image_label_paths[0], base_name+"_hist.png")
+                fig, ax = plt.subplots()  
+                ax.hist(im.flatten(), bins=100)
+                ax.set_title('Histogram of image')
+                ax.set_xlabel('Pixel value')
+                ax.set_ylabel('Frequency')
+                fig.savefig(hist_name)
+                plt.close(fig)  # Prevent notebooks from showing the figure
+
                 print(image_name)
 
+                # save the labels for each class
                 for c in range(self.num_classes):
                     print(self.mask_label_paths[c])
                     imsave(os.path.join(self.mask_label_paths[c], base_name+".tif"), labels[c])
