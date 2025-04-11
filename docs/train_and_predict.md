@@ -6,9 +6,9 @@ Train a model using your labeled data and make predictions on new images.
 ![Training Panel](images/train_panel.png)  
 
 ### Steps:  
-1️⃣ Choose a model from dropdown and configure training parameters.  
-2️⃣ Train using labeled images.  
-3️⃣ Use the trained model to predict labels on new images.  
+1️⃣ Choose a model from dropdown and configure parameters.  
+2️⃣ Press 'Train network' a popup will appear that allows you to configure additional parameters.  
+3️⃣ Hit 'Predict current image' or 'Predict all images' to use the trained model to predict labels.  
 
 ## Training popup 
 

@@ -24,6 +24,6 @@ Napari-Easy-Augment-Batch-DL consists of a panel that interacts with several dif
 
  5. **ml_labels (experimental):** Labels used for live ML training. Experiment with live machine learning training using these labels.
 
- 6. **Object Box:** Annotate individual objects with a bounding box. This type of annotation is used for training YOLO and other object detection methods.
+ 6. **Object Box (experimental):** Annotate individual objects with a bounding box. This type of annotation is used for training YOLO and other object detection methods.
 
- 7. **Predicted Object Box:** Predicted object box from YOLO or other object detection frameworks.
+ 7. **Predicted Object Box (experimental):** Predicted object box from YOLO or other object detection frameworks.

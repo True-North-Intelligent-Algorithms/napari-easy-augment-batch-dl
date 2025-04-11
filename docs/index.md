@@ -5,13 +5,13 @@
 ## 🔥 Features  
 ✅ **Batch Processing** – Label, augment, train and predict with multiple images at once.  
 ✅ **Easy Labeling** – Quickly assign labels using the intuitive Napari GUI.  
-✅ **Seamless Integration** – Works inside **Napari** for an interactive experience.  
+✅ **Advanced Augmentations** – Options for color augmentations, elastic deformation, tunable rescaling and more.  
 ✅ **Customizable** –  A plugin mechanism allows different deep learning frameworks to be integrated.  
 
 ## 📖 How It Works  
-1️⃣ **Load and Label** – Import images and apply labels.  
-2️⃣ **Configure Augmentations** – Choose transformations like rotation, flipping, or color augmentation.  
-3️⃣ **Train & Predict** – Train models and evaluate results.  
+1️⃣ **Load and Label** – Import images and draw labels.  
+2️⃣ **Generate Augmentations** – Choose transformations like rotation, flipping, or color augmentation and generate augmentations.  
+3️⃣ **Train & Predict** – Train different models with same augmentation set and evaluate results.  
 
 ## 🚀 Get Started  
 1. Install the plugin:  
