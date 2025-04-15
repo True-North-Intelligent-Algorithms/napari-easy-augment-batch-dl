@@ -145,7 +145,7 @@ class PytorchSemanticFramework(BaseFramework):
                 out_channels=self.num_classes,
                 #features=[16, 16, 32, 64, 128, 16],
                 act=None,
-                #norm="batch",
+                norm="batch",
                 dropout=self.dropout,
             )
 
