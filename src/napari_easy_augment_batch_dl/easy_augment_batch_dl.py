@@ -507,7 +507,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_width=5,
             #label_property = text_property,
             #labels = annotations
-            #text={'string': '{class}', 'size': 15, 'color': 'green'},
+            text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
 
         print("Adding predicted object boxes layer")
@@ -538,8 +538,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
         self.predicted_object_boxes_layer.feature_defaults['class'] = self.yolo_class_drop_down.currentIndex()
         '''        
-        self.object_boxes_layer.feature_defaults['class'] = 0 
-        self.predicted_object_boxes_layer.feature_defaults['class'] = 0 
+        self.object_boxes_layer.feature_defaults['class'] = 'c1' 
+        self.predicted_object_boxes_layer.feature_defaults['class'] = 'c1' 
 
         print("Adding label boxes")
         if self.deep_learning_project.boxes is not None:
