@@ -508,6 +508,7 @@ class DeepLearningProject:
                 im = self.image_list[z][ystart:yend, xstart:xend]
 
             labels=[]
+
             
             for c in range(self.num_classes):
                 labels.append(self.annotation_list[c][z][ystart:yend, xstart:xend])
@@ -529,7 +530,9 @@ class DeepLearningProject:
                 if im.shape[-1]>3:
                     im = im[:,:,:3]
                 
-            uber_augmenter(im, labels, patch_path, 'grid', patch_size, num_patches, do_vertical_flip, do_horizontal_flip, do_random_rotate90, do_random_sized_crop, do_random_brightness_contrast, 
+            name = self.image_file_list[z].name.split('.')[0]
+            
+            uber_augmenter(im, labels, patch_path, name, patch_size, num_patches, do_vertical_flip, do_horizontal_flip, do_random_rotate90, do_random_sized_crop, do_random_brightness_contrast, 
                                   do_random_gamma, do_color_jitter, do_elastic_transform, 1, **self.augmentation_parameters)
        
     def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None,
