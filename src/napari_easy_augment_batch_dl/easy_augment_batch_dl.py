@@ -13,10 +13,32 @@ try:
 except Exception as e:
     print(e)
 
+from enum import Enum
+import warnings
+
+class EasyAugmentMode(Enum):
+    ALL = "all"
+    LABEL_ONLY = "label_only"
+    DL_PIXEL_ONLY = "dl_pixel_only"
+
 class NapariEasyAugmentBatchDL(QWidget):
 
-    def __init__(self, napari_viewer, parent=None, label_only = False, import_all_frameworks = True):
+    def __init__(self, napari_viewer, parent=None, label_only = False, import_all_frameworks = True, mode = None):
         super().__init__()
+
+        if mode is not None:
+            self.mode = mode
+        else:
+            # Backward compatibility
+            if label_only:
+                self.mode = EasyAugmentMode.LABEL_ONLY
+            else:
+                self.mode = EasyAugmentMode.ALL
+            warnings.warn(
+                "The 'label_only' parameter is deprecated. Please use the 'mode' parameter instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
 
         if import_all_frameworks:
             self.import_all_frameworks()
@@ -30,7 +52,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.counter = 0
 
-        self.init_ui(label_only)
+        self.init_ui()
 
     def import_all_frameworks(self):
 
@@ -64,12 +86,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         except ImportError:
             RandomForestFramework = None
      
-     
-
-
-    def init_ui(self, label_only = False):
-
-        self.label_only = label_only
+    def init_ui(self):
 
         self.setWindowTitle("Easy Augment Batch DL")
         layout = QVBoxLayout()
@@ -242,7 +259,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.textBrowser_log = QTextBrowser()
         self.progressBar = QProgressBar()
 
-        if label_only == False:
+        if str(self.mode) != str(EasyAugmentMode.LABEL_ONLY):
             layout.addWidget(self.augment_parameters_group)
             layout.addWidget(self.train_predict_group)
             layout.addWidget(self.textBrowser_log)
@@ -503,9 +520,10 @@ class NapariEasyAugmentBatchDL(QWidget):
             text={'string': '{class}', 'size': 15, 'color': 'green'},
         )
 
-        if self.label_only == True:
-            self.object_boxes_layer.visible = False
-            self.predicted_object_boxes_layer.visible = False
+        if str(self.mode) != str(EasyAugmentMode.ALL):
+            self.viewer.layers.remove('ml_labels')
+            self.viewer.layers.remove('Object box')
+            self.viewer.layers.remove('Predicted Object box')  
 
         
         #TODO: integrate to new GUI approach
