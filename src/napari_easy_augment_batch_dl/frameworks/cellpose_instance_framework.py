@@ -135,7 +135,9 @@ class CellPoseInstanceFramework(BaseFramework):
             #learning_rate=learning_rate, 
             #weight_decay=weight_decay, 
             #nimg_per_epoch=200,
-            model_name=self.model_name)
+            model_name=self.model_name,
+            min_train_masks=0)
+
 
     def predict(self, img: np.ndarray):
         """
