@@ -336,7 +336,10 @@ class NapariEasyAugmentBatchDL(QWidget):
             pass
         # else get num_classes
         else:
-            num_classes, ok = QInputDialog.getInt(self, "Number of Classes", "Enter the number of classes (less than 8):", 1, 1, 8)
+            # for now comment out the 'enter number of classes' dialog and default to one
+            # TODO: make an 'add classes' approach so as user is interacting can add classes in middle of project
+            # num_classes, ok = QInputDialog.getInt(self, "Number of Classes", "Enter the number of classes (less than 8):", 1, 1, 8)
+            num_classes = 1
 
         self.deep_learning_project = DeepLearningProject(self.parent_path, num_classes)
         self.deep_learning_widgets = {}
