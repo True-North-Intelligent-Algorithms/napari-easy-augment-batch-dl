@@ -372,6 +372,11 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.labels = []
         self.predictions = []
 
+        # add a mark dirty function to indicate that a change is made, we will connect this the events triggerred when layer data is changed 
+        def mark_dirty():
+            self.dirty = True
+            print("Data changed")
+
         # do the same for labels and predictions
         for c in range(self.deep_learning_project.num_classes):
             temp = pad_to_largest(self.deep_learning_project.annotation_list[c])
@@ -390,6 +395,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_color="blue",
             edge_width=5,
         )
+        self.boxes_layer.events.data.connect(mark_dirty)
 
         try:
             self.ml_labels = self.deep_learning_project.ml_labels
@@ -403,7 +409,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             print(f'Random Forest ML may not work properly')
 
         def handle_new_object_box(event):
-
+            self.dirty = True
             # if new box added
             if event.action == 'added':
 
@@ -563,6 +569,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         
         self.boxes_layer.events.data.connect(handle_new_roi)
         self.object_boxes_layer.events.data.connect(handle_new_object_box)
+
+        self.dirty = False
    
     def set_pretrained_model(self, model_path, model_type):
         widget = self.deep_learning_widgets[model_type]
@@ -827,5 +835,26 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.deep_learning_project.annotation_list = label_nps
 
+    
+    def hideEvent(self, event):
+
+        if self.dirty:
+            reply = QMessageBox.question(
+                self,
+                "Easy Augment Save Changes?",
+                "Easy-Augment-Batch-DL has unsaved changes. Do you want to save before closing?",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                QMessageBox.Yes
+            )
+
+            if reply == QMessageBox.Cancel:
+                event.ignore()  # Don't close the widget
+            elif reply == QMessageBox.Yes:
+                self.save_results()
+                event.accept()
+            else:
+                event.accept()
+        else:
+            event.accept()
 
        
