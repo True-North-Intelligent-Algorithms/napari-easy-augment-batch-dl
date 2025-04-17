@@ -69,6 +69,8 @@ class StardistInstanceFramework(BaseFramework):
         self.quantile_high = 0.998
 
         self.num_epochs = 100
+        
+        self.model_name = self.generate_model_name('stardist')
 
     def create_callback(self, updater):
         self.updater = updater
