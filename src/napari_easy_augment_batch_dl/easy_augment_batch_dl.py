@@ -369,8 +369,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.images = pad_to_largest(self.deep_learning_project.image_list, force8bit = True) 
         self.viewer.add_image(self.images, name='images')
 
-        self.labels = []
-        self.predictions = []
+        self.label_layers_list = []
+        self.prediction_layer_list = []
 
         # add a mark dirty function to indicate that a change is made, we will connect this the events triggerred when layer data is changed 
         def mark_dirty():
@@ -381,12 +381,12 @@ class NapariEasyAugmentBatchDL(QWidget):
         for c in range(self.deep_learning_project.num_classes):
             temp = pad_to_largest(self.deep_learning_project.annotation_list[c])
             self.viewer.add_labels(temp, name='labels_'+str(c))
-            self.labels.append(self.viewer.layers['labels_'+str(c)])
+            self.label_layers_list.append(self.viewer.layers['labels_'+str(c)])
+            self.label_layers_list[c].events.paint.connect(mark_dirty)
 
             temp = pad_to_largest(self.deep_learning_project.prediction_list[c])
             self.viewer.add_labels(temp, name='predictions_'+str(c))
-            self.predictions.append(self.viewer.layers['predictions_'+str(c)])
-
+            self.prediction_layer_list.append(self.viewer.layers['predictions_'+str(c)])
 
         self.boxes_layer = self.viewer.add_shapes(
             ndim=3,
@@ -450,8 +450,8 @@ class NapariEasyAugmentBatchDL(QWidget):
                         roi2 = np.s_[z, ystart:yend, xstart:xend]
                         pred = self.deep_learning_project.predict_roi(z, self.network_architecture_drop_down.currentText(), self.update, roi)
                                 
-                        self.labels[0].data[roi2] = pred
-                        self.labels[0].refresh()              
+                        self.label_layers_list[0].data[roi2] = pred
+                        self.label_layers_list[0].refresh()              
                     
                 #else:
                 #    bbox_ = naparixyzbb_to_xyxy(self.object_boxes_layer.data[-1])
@@ -489,7 +489,7 @@ class NapariEasyAugmentBatchDL(QWidget):
                     self.boxes_layer.refresh()
 
                 for c in range(self.deep_learning_project.num_classes):
-                    prediction =  self.predictions[c].data[z, ystart:yend, xstart:xend]
+                    prediction =  self.prediction_layer_list[c].data[z, ystart:yend, xstart:xend]
 
                     if np.sum(prediction) > 0:
 
@@ -497,8 +497,8 @@ class NapariEasyAugmentBatchDL(QWidget):
 
                         if reply == QMessageBox.Yes:
                             # copy from prediction to label
-                                self.labels[c].data[z, ystart:yend, xstart:xend] = self.predictions[c].data[z, ystart:yend, xstart:xend]
-                                self.labels[c].refresh()
+                                self.label_layers_list[c].data[z, ystart:yend, xstart:xend] = self.prediction_layer_list[c].data[z, ystart:yend, xstart:xend]
+                                self.label_layers_list[c].refresh()
 
                                 print(self.boxes_layer.data)
 
@@ -588,9 +588,44 @@ class NapariEasyAugmentBatchDL(QWidget):
         
             self.deep_learning_project.save_object_boxes(object_boxes, object_classes)
 
+        # Should we show this box?
         #QMessageBox.information(self, "Save Results", "Results saved successfully.")
 
+        self.dirty = False
+
+    def check_labels(self):
+
+        # check if any boxes have been drawn if not we have no labels
+        if len(self.boxes_layer.data) == 0:
+            QMessageBox.information(self, "Error", "No label boxes drawn yet.")
+            return False
+
+        return self.deep_learning_project.check_labels(self.boxes_layer.data)
+    
+    def ask_about_labels(self):
+        reply = QMessageBox.question(
+            self,
+            "Are labels updated?",
+            "Do you want to augment current label boxes and labels?  If not press No and then continue labelling",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes)
+
+        return reply
+    
+    
     def augment_current(self):
+        
+        # check if we have labels drawn
+        labels_ok = self.check_labels()
+
+        if not labels_ok:
+            return
+
+        # if we have labels drawn nag the user to check if they are good to go        
+        reply = self.ask_about_labels()
+        
+        if reply == QMessageBox.No:
+            return
         
         self.update_annotation_list()
         
@@ -600,16 +635,37 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         # get current boxes at n
         boxes = self.viewer.layers['Label box'].data
+
         boxes = np.array(boxes)
         index_boxes = np.all(boxes[:,:,0]==n, axis=1)
         filtered_boxes = boxes[index_boxes]
+
+        # check if any boxes have been drawn for the current image, if not we have no labels
+        if filtered_boxes.shape[0] == 0:
+            QMessageBox.information(self, "Error", f"No label boxes drawn for image {n} yet.")
+            return
+        
+        self.save_results()
         self.perform_augmentation(filtered_boxes)
 
     def augment_all(self):
         
+        # check if we have labels drawn
+        labels_ok = self.check_labels()
+
+        if not labels_ok:
+            return
+
+        # if we have labels drawn nag the user to check if they are good to go        
+        reply = self.ask_about_labels()
+        
+        if reply == QMessageBox.No:
+            return
+        
         self.update_annotation_list()
         
         boxes = self.viewer.layers['Label box'].data
+        self.save_results()
         self.perform_augmentation(boxes)
 
     def delete_augmentations(self):
@@ -662,13 +718,8 @@ class NapariEasyAugmentBatchDL(QWidget):
         dialog.setLayout(dialog_layout)
         dialog.exec_()
         
-
-
-
-
-
-
     def perform_augmentation(self, boxes):
+        
         num_patches_per_roi = self.number_patches_spin_box.value()
         patch_size = self.patch_size_spin_box.value()
 
@@ -710,7 +761,23 @@ class NapariEasyAugmentBatchDL(QWidget):
                                                                  perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
 
     def perform_training(self):
+
+        patches_ok = self.deep_learning_project.check_patches()
+        if not patches_ok:
+            QMessageBox.warning(self, "Error", "Patches not valid (do not exist or are inconsistent). Please augment the images and/or double check augmentations before training.")
+            return
         
+        reply = QMessageBox.question(
+            self,
+            "Augmentations updated?",
+            "Do you want to train on current augmented patched?  If not press No and then continue labelling and augmenting",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes
+        )
+
+        if reply == QMessageBox.No:
+            return
+
         widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
         dialog = widget.train_dialog
         dialog.exec_()
@@ -774,14 +841,14 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.predicted_object_boxes_layer.add(boxes)
             self.predicted_object_boxes_layer.refresh()
 
-            self.predictions[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
-            self.predictions[0].refresh() 
+            self.prediction_layer_list[0].data[n, :predictions.shape[0], :predictions.shape[1]]=predictions
+            self.prediction_layer_list[0].refresh() 
         else:
             
             pred = self.deep_learning_project.predict(n, self.network_architecture_drop_down.currentText(), self.update)
                     
-            self.predictions[0].data[n, :pred.shape[0], :pred.shape[1]]=pred
-            self.predictions[0].refresh()              
+            self.prediction_layer_list[0].data[n, :pred.shape[0], :pred.shape[1]]=pred
+            self.prediction_layer_list[0].refresh()              
         
             pass
     
@@ -816,7 +883,7 @@ class NapariEasyAugmentBatchDL(QWidget):
     def predict_all_images_finished(self, show_boxes):
         
         predictions = pad_to_largest(self.deep_learning_project.prediction_list[0])
-        self.predictions[0].data = predictions
+        self.prediction_layer_list[0].data = predictions
         
         if show_boxes == True:
             self.predicted_object_boxes_layer.add(self.deep_learning_project.predicted_object_boxes)
@@ -828,13 +895,17 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.setEnabled(True)
 
     def update_annotation_list(self):   
-        label_nps = []
-        for label in self.labels:
-            temp = unpad_to_original(label.data, self.deep_learning_project.image_list)
-            label_nps.append(temp)
+        annotation_list = []
 
-        self.deep_learning_project.annotation_list = label_nps
+        # loop through all label layers (will be one for each class) 
+        # and unpad the data to the original size of the image
+        # this is because the data is padded to the largest image size when displayed in Napari 
+        for label_layer in self.label_layers_list:
+            temp = unpad_to_original(label_layer.data, self.deep_learning_project.image_list)
+            annotation_list.append(temp)
 
+        # update annotation list on the deep_learning_project side
+        self.deep_learning_project.annotation_list = annotation_list
     
     def hideEvent(self, event):
 
