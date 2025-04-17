@@ -2,11 +2,9 @@ from pathlib import Path
 import os
 from skimage.io import imread, imsave
 import numpy as np
-from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name
+from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name, make_label_directory, quantile_normalization, check_training_data
 import json
-from tnia.deeplearning.dl_helper import make_label_directory
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
-from tnia.deeplearning.dl_helper import quantile_normalization
 from napari_easy_augment_batch_dl.bounding_box_util import (
     tltrblbr_to_normalized_xywh,
     x1y1x2y2_to_tltrblbr,
@@ -22,6 +20,7 @@ from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 from enum import Enum
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 
 class ImageType(Enum):
     GRAY_SCALE_2D = "gray_scale_2d"
@@ -306,6 +305,26 @@ class DeepLearningProject:
         # start a dataframe to store the bounding boxes
         df_bounding_boxes = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
 
+        hist_path = os.path.join(self.parent_path, 'histograms')
+
+        if not os.path.exists(hist_path):
+            os.mkdir(hist_path)
+
+        for image, image_name in zip(self.image_list, self.image_file_list):
+            print(image_name)
+            print(image.shape)
+
+            imsave(os.path.join(hist_path, image_name.name), image)
+
+            fig = Figure(figsize=(8, 6))
+            ax = fig.add_subplot(111)
+
+            ax.hist(image.flatten(), bins=100)
+            ax.set_title('Histogram of image')
+            ax.set_xlabel('Pixel value')
+            ax.set_ylabel('Frequency')
+            fig.savefig(os.path.join(hist_path, image_name.name.split('.')[0]+'_hist.png'))
+
         # loop through all label bounding box saving the image and label data for the bounding box        
         for box in boxes:
 
@@ -356,7 +375,9 @@ class DeepLearningProject:
 
                 # also generate and save the histogram of the image 
                 hist_name = os.path.join(self.image_label_paths[0], base_name+"_hist.png")
-                fig, ax = plt.subplots()  
+                
+                fig = Figure(figsize=(8, 6))
+                ax = fig.add_subplot(111)
                 ax.hist(im.flatten(), bins=100)
                 ax.set_title('Histogram of image')
                 ax.set_xlabel('Pixel value')
@@ -483,7 +504,6 @@ class DeepLearningProject:
 
         for box in boxes:
             z = int(box[0,0])
-
 
             # get rid of first column (z axis)
             box = box[:,1:]
