@@ -671,6 +671,52 @@ class DeepLearningProject:
 
     def get_model(self, network_type):
         return self.frameworks[network_type]
+    
+    def check_patches(self):
+        return check_training_data(self.patch_path)
+
+    def check_label(self, n, index):
+        
+        im = self.image_list[n][index]
+
+        label_good = False
+            
+        for c in range(self.num_classes):
+            label = self.annotation_list[c][n][index]
+            sum = label.sum()
+            if sum>0:
+                label_good = True
+            print('labelsum is ', sum)
+        
+        return label_good
+
+    def check_labels(self, boxes):
+        # loop through all boxes and check if we have pixel data drawn...
+        # (a bit of a question is what we do here... sometimes empty labels may be valid when training a model to 'not learn')
+        # (that being said at least some of the boxes should have labels)
+        for box in boxes:  
+            
+            # sequence number of box
+            n = int(box[0,0])
+                
+            # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget code
+            box = box[:,1:]
+            print(box)
+
+            ystart = int(np.min(box[:,0]))
+            yend = int(np.max(box[:,0]))
+            xstart = int(np.min(box[:,1]))
+            xend = int(np.max(box[:,1]))
+
+            index = np.s_[ystart:yend, xstart:xend]
+
+            label_good = self.check_label(n, index) 
+            print(label_good) 
+            print() 
+
+        return True
+
+
 
     def perform_training(self, network_type, update):
 
