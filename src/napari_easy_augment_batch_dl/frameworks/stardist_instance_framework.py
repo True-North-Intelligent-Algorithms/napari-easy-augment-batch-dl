@@ -36,6 +36,7 @@ class StardistInstanceFramework(BaseFramework):
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     nms_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     scale: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 100.0, 'default': 1.0, 'step': 1.0})
+    block_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100000, 'default': 1024, 'step': 256, 'show_auto_checkbox':True})
     
     # third set of parameters have advanced False and training True and will be shown in the training popup dialog
     num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
@@ -72,6 +73,9 @@ class StardistInstanceFramework(BaseFramework):
         
         self.model_name = self.generate_model_name('stardist')
 
+        self.block_size = 1024
+        self.block_size_auto = True
+
     def create_callback(self, updater):
         self.updater = updater
         self.custom_callback = CustomCallback(updater)
@@ -79,7 +83,10 @@ class StardistInstanceFramework(BaseFramework):
     def predict(self, img: np.ndarray):
         img_normalized = quantile_normalization(img, quantile_low=self.quantile_low, quantile_high=self.quantile_high).astype(np.float32)
 
-        labels, details =  self.model.predict_instances(img_normalized, prob_thresh=self.prob_thresh)
+        if self.block_size_auto:
+            labels, details =  self.model.predict_instances(img_normalized, prob_thresh=self.prob_thresh)
+        else:
+            labels, details =  self.model.predict_instances_big(img_normalized, axes='YXC', block_size=self.block_size, min_overlap=128, prob_thresh=self.prob_thresh)
 
         return labels
     
@@ -103,7 +110,7 @@ class StardistInstanceFramework(BaseFramework):
                     n_channel_in = 1
                     add_trivial_channel = True
             
-            model_name = self.generate_model_name(self.model_name)
+            #model_name = self.generate_model_name(self.model_name)
 
             # if model is None create one            
             if self.model is None:
