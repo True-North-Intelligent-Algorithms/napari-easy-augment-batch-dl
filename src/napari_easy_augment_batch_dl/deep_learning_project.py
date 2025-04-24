@@ -305,7 +305,8 @@ class DeepLearningProject:
             'saturation': 0.5,
             'alpha': 0.1,
             'sigma': 5,
-            'alpha_affine': 5
+            'alpha_affine': 5,
+            'normalization_type': 'label',
         }
 
     # TODO: move to a utility class 
