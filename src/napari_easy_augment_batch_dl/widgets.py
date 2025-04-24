@@ -60,7 +60,7 @@ class LabeledSpinner(QWidget):
         self.spinner.setEnabled(state == 0)
 
 class LabeledCombo(QWidget):
-    def __init__(self, label_text, items, change_value_method):
+    def __init__(self, label_text, items, change_value_method=None):
         super().__init__()
 
         self.label = QLabel(label_text)
