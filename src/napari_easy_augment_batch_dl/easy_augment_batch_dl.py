@@ -1,6 +1,6 @@
 
 from qtpy.QtWidgets import QDialog, QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QStackedWidget, QGridLayout
-from napari_easy_augment_batch_dl.widgets import LabeledSpinner
+from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo
 from PyQt5.QtCore import QThread
 from pathlib import Path
 from napari_easy_augment_batch_dl.deep_learning_project import DeepLearningProject
@@ -106,7 +106,12 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.save_results_button = QPushButton("Save results...")
         self.save_results_button.clicked.connect(self.save_results)
         self.label_layout.addWidget(self.save_results_button)
-       
+
+        # add the save histogram checkbox
+        self.save_histogram_check_box = QCheckBox("Save histograms")
+        self.save_histogram_check_box.setChecked(False)
+        self.label_layout.addWidget(self.save_histogram_check_box)
+
         # current file name label
         self.current_file_name_label = QLabel("Current file: None")
         self.label_layout.addWidget(self.current_file_name_label)
@@ -581,7 +586,7 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         object_boxes=self.object_boxes_layer.data
         
-        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data)
+        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, self.save_histogram_check_box.isChecked()) 
 
         if len(object_boxes)>0:        
             object_classes = self.object_boxes_layer.features['class'].to_numpy()
