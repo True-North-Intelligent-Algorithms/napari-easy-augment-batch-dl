@@ -533,7 +533,7 @@ class DeepLearningProject:
 
     def perform_augmentation(self, boxes, num_patches = 100, patch_size=256, updater = None, 
                                   do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
-                                  do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False):
+                                  do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False, normalization_type='label'):
 
         patch_path= self.parent_path / 'patches' 
 
@@ -577,7 +577,14 @@ class DeepLearningProject:
             # is calculated using a larger region.  This is better than normalizing on the smaller patches
             # Just be careful to match the quantile range used when predicting apr. to the range used here
             # TODO: need to make this a parameter  
-            im = quantile_normalization(im).astype(np.float32)
+            
+            normalization_type = self.augmentation_parameters.get('normalization_type', 'label')
+            
+            if normalization_type == 'label':
+                im = quantile_normalization(im).astype(np.float32)
+            elif normalization_type == 'image':
+                low, high = compute_quantiles(self.image_list[z])
+                im = explicit_normalization(im, low, high).astype(np.float32)
 
             #do_random_sized_crop=True, do_random_brightness_contrast=True, 
             #do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False)
@@ -830,5 +837,4 @@ class DeepLearningProject:
     def set_augmentation_parameter(self, param_name, value):
         """ Set the augmentation parameter for the framework """
         self.augmentation_parameters[param_name] = value
-   
-     
+    
