@@ -679,16 +679,25 @@ class NapariEasyAugmentBatchDL(QWidget):
     def augment_settings(self):
         dialog = QDialog()
 
+        size_factor = self.deep_learning_project.augmentation_parameters['size_factor']
+        alpha = self.deep_learning_project.augmentation_parameters['alpha']
+        sigma = self.deep_learning_project.augmentation_parameters['sigma']
+        alpha_affine = self.deep_learning_project.augmentation_parameters['alpha_affine']
+        hue = self.deep_learning_project.augmentation_parameters['hue']
+        brightness = self.deep_learning_project.augmentation_parameters['brightness']
+        saturation = self.deep_learning_project.augmentation_parameters['saturation']
+        normalization_type = self.deep_learning_project.augmentation_parameters['normalization_type']
+
         # Rescale group
         rescale_label = QLabel("Rescale")
-        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, 1.25, None, is_float=True, step=0.1)
+        size_factor_spinner = LabeledSpinner("Size Factor", 0.1, 10, size_factor, None, is_float=True, step=0.1)
         size_factor_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("size_factor", value))
 
         # Elastic group
         elastic_label = QLabel("Elastic")
-        alpha_spinner = LabeledSpinner("Alpha", 0.01, 100, 0.1, None, is_float=True, step=1)
-        sigma_spinner = LabeledSpinner("Sigma", 0.1, 10, 5, None, is_float=True, step=0.1)
-        alpha_affine_spinner = LabeledSpinner("Alpha Affine", 0.1, 10, 5, None, is_float=True, step=0.1)
+        alpha_spinner = LabeledSpinner("Alpha", 0.01, 100, alpha, None, is_float=True, step=1)
+        sigma_spinner = LabeledSpinner("Sigma", 0.1, 10, sigma, None, is_float=True, step=0.1)
+        alpha_affine_spinner = LabeledSpinner("Alpha Affine", 0.1, 10, alpha_affine, None, is_float=True, step=0.1)
 
         alpha_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("alpha", value))
         sigma_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("sigma", value))
@@ -696,12 +705,24 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         # color group (Hue, Brightness, Saturation)
         color_label = QLabel("Color")
-        hue_spinner = LabeledSpinner("Hue", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
-        brightness_spinner = LabeledSpinner("Brightness", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
-        saturation_spinner = LabeledSpinner("Saturation", 0.0, 0.5, 0.1, None, is_float=True, step=0.01)
+        hue_spinner = LabeledSpinner("Hue", 0.0, 0.5, hue, None, is_float=True, step=0.01)
+        brightness_spinner = LabeledSpinner("Brightness", 0.0, 0.5, brightness, None, is_float=True, step=0.01)
+        saturation_spinner = LabeledSpinner("Saturation", 0.0, 0.5, saturation, None, is_float=True, step=0.01)
         hue_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("hue", value))
         brightness_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("brightness", value))
         saturation_spinner.spinner.valueChanged.connect(lambda value: self.deep_learning_project.set_augmentation_parameter("saturation", value))
+
+        # misc group (image vs label normalization and maybe more)
+        misc_label = QLabel("Misc")
+
+        def normalization_type_changed(value):
+            if value == 0:
+                self.deep_learning_project.set_augmentation_parameter("normalization_type", "label")
+            elif value == 1:
+                self.deep_learning_project.set_augmentation_parameter("normalization_type", "image")
+       
+        normalization_type_combo = LabeledCombo("Normalization Type", ["Just Label", "Entire Image"], normalization_type_changed)
+        normalization_type_combo.combo.setCurrentIndex(0 if normalization_type == "label" else 1)
 
         # OK button
         ok_button = QPushButton("OK")
@@ -718,6 +739,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         dialog_layout.addWidget(color_label)
         dialog_layout.addWidget(hue_spinner)
         dialog_layout.addWidget(brightness_spinner)
+        dialog_layout.addWidget(saturation_spinner)
+        dialog_layout.addWidget(misc_label)
+        dialog_layout.addWidget(normalization_type_combo)
         dialog_layout.addWidget(ok_button)
 
         dialog.setLayout(dialog_layout)
@@ -761,9 +785,10 @@ class NapariEasyAugmentBatchDL(QWidget):
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
                                                                  perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
         else:
+
             self.deep_learning_project.perform_augmentation(boxes, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
-                                                                 perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
+                                                                 perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color, perform_elastic_deformation)
 
     def perform_training(self):
 
