@@ -611,7 +611,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         reply = QMessageBox.question(
             self,
             "Are labels updated?",
-            "Do you want to augment current label boxes and labels?  If not press No and then continue labelling",
+            "Do you want to augment using current label boxes and labels?  If not press No and then continue labelling",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.Yes)
 
@@ -775,7 +775,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         reply = QMessageBox.question(
             self,
             "Augmentations updated?",
-            "Do you want to train on current augmented patched?  If not press No and then continue labelling and augmenting",
+            "Do you want to train on current augmented patches?  If not press No and then continue labelling and augmenting",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.Yes
         )
