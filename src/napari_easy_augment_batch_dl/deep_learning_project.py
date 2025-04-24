@@ -2,9 +2,20 @@ from pathlib import Path
 import os
 from skimage.io import imread, imsave
 import numpy as np
-from tnia.deeplearning.dl_helper import generate_patch_names, generate_next_patch_name, make_label_directory, quantile_normalization, check_training_data
+from tnia.deeplearning.dl_helper import (
+    generate_patch_names, 
+    generate_next_patch_name, 
+    generate_next_name,
+    zero_pad_index,
+    make_label_directory, 
+    quantile_normalization, 
+    explicit_normalization, 
+    compute_quantiles, 
+    check_training_data
+)
 import json
 from tnia.deeplearning.augmentation import uber_augmenter, uber_augmenter_bb
+
 from napari_easy_augment_batch_dl.bounding_box_util import (
     tltrblbr_to_normalized_xywh,
     x1y1x2y2_to_tltrblbr,
@@ -145,19 +156,42 @@ class DeepLearningProject:
 
                 n=0            
                 for image_name, image in zip(self.image_file_list, self.image_list):
-                    image_base_name = image_name.name.split('.')[0]
+                    
+                    name_without_extension = image_name.stem
 
                     # the goal now is to get all the labels and json files describing the bounding box of the label
                     # for this image.   
-                    # TODO: this code is fragile, if an image name is part of a another image name it will break
-                    # TODO:  REWORK and REVISIT
+
+                    # use this array to collect all the json files that are associated with this image
+                    json_names_ = []
                     
-                    # get all json names (the jsons contain the bounding box of the label) for this image
-                    json_names_ = [x for x in json_names if image_base_name in x.name]
-                    json_names_ = sorted(json_names_)
+                    i = 0
 
-                    #print('image base name is ', image_base_name)
+                    # loop forming the json name, check if it exists, and if so add it to the list of json names  
+                    # first loop uses zero padded index (this is the current way we name the labels so we have nice sorting)
+                    while True:
+                        next_name = name_without_extension + '_' + zero_pad_index(i)
+                        json_name = os.path.join(self.image_label_paths[0], next_name + ".json")
+                        
+                        if not os.path.exists(json_name):
+                            break
+                        
+                        json_names_.append(json_name)
+                        i += 1 
+                    
+                    i = 0
 
+                    # second loop uses non-zero padded index (this is the way we used to name the labels so we have to check for this too)
+                    while True:
+                        next_name = name_without_extension + '_' + str(i)
+                        json_name = os.path.join(self.image_label_paths[0], next_name + ".json")
+                        
+                        if not os.path.exists(json_name):
+                            break
+                        
+                        json_names_.append(json_name)
+                        i += 1 
+                    
                     # loop through all the jsons describing the bounding boxes and add them to the boxes list 
                     for json_name_ in json_names_:
 
@@ -218,10 +252,10 @@ class DeepLearningProject:
             n=0
             for image_name, image in zip(self.image_file_list, self.image_list):
                 
-                image_base_name = image_name.name.split('.')[0]
+                name_without_extension = image_name.name.split('.')[0]
 
                 # get the name of the the yolo format bounding boxes text file
-                yolo_txt_name = os.path.join(self.yolo_mask_label_paths[0], image_base_name+'.txt')
+                yolo_txt_name = os.path.join(self.yolo_mask_label_paths[0], name_without_extension+'.txt')
 
                 # if the text file doesn't exist this image does not have bounding boxes
                 if not os.path.exists(yolo_txt_name):
