@@ -34,11 +34,11 @@ viewer.window.add_dock_widget(
 # need to point the parent_path to a directory with the 2D image set we want to work with
 
 #test_dataset = "Roots" # "DAPI Cellpse"
-#test_dataset = "None"
-test_dataset = "particles"
+test_dataset = "None"
+#test_dataset = "particles"
 #test_dataset = "grains_cellpose"
 #test_dataset = "DAPI Cellpose"
-#test_dataset = "Bees"
+#t itest_dataset = "Bees"
 #test_dataset = "grains_semantic"
 #test_dataset = "custom"
 
@@ -74,7 +74,12 @@ elif test_dataset == "grains_semantic":
 elif test_dataset == "particles2":
     parent_path = r'/home/bnorthan/besttestset/images/training14/'
 else:
-    parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit3'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_28_vessel_3D_lightsheet'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_31_cellpose_not_precise'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_14_sheep_follicles'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_17_wood_stave_vessels'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_14_sheep_follicles2'
+    #parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_05_bugs'
 
 model_path = os.path.join(parent_path, r'models')
 
