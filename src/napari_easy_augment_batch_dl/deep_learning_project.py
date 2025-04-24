@@ -322,7 +322,7 @@ class DeepLearningProject:
             else:
                 print(f'Skipped non-file item: {file}')
 
-    def save_project(self, boxes):
+    def save_project(self, boxes, save_histograms=False):
 
         # save json file with num_classes
         json_name = os.path.join(self.parent_path, 'info.json')
@@ -340,25 +340,27 @@ class DeepLearningProject:
         # start a dataframe to store the bounding boxes
         df_bounding_boxes = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
 
-        hist_path = os.path.join(self.parent_path, 'histograms')
+        if save_histograms:
+            hist_path = os.path.join(self.parent_path, 'histograms')
 
-        if not os.path.exists(hist_path):
-            os.mkdir(hist_path)
+            if not os.path.exists(hist_path):
+                os.mkdir(hist_path)
+            
+            # if saving the histograms loop through all images, save a copy, generate the histogram and save it
+            # we save a copy of the image in the histogram directory to make it to inspect both the image and the histogram
+            for image, image_name in zip(self.image_list, self.image_file_list):
 
-        for image, image_name in zip(self.image_list, self.image_file_list):
-            print(image_name)
-            print(image.shape)
+                imsave(os.path.join(hist_path, image_name.name), image)
 
-            imsave(os.path.join(hist_path, image_name.name), image)
+                # save the histogram of the image
+                fig = Figure(figsize=(8, 6))
+                ax = fig.add_subplot(111)
 
-            fig = Figure(figsize=(8, 6))
-            ax = fig.add_subplot(111)
-
-            ax.hist(image.flatten(), bins=100)
-            ax.set_title('Histogram of image')
-            ax.set_xlabel('Pixel value')
-            ax.set_ylabel('Frequency')
-            fig.savefig(os.path.join(hist_path, image_name.name.split('.')[0]+'_hist.png'))
+                ax.hist(image.flatten(), bins=100)
+                ax.set_title('Histogram of image')
+                ax.set_xlabel('Pixel value')
+                ax.set_ylabel('Frequency')
+                fig.savefig(os.path.join(hist_path, image_name.name.split('.')[0]+'_hist.png'))
 
         # loop through all label bounding box saving the image and label data for the bounding box        
         for box in boxes:
@@ -367,7 +369,7 @@ class DeepLearningProject:
             try:
                 z = int(box[0,0])
 
-                name = self.image_file_list[z].name.split('.')[0]
+                name_without_extension = self.image_file_list[z].stem
 
                 # get rid of first column (z axis)
                 # TODO: refactor this because the z axis is only for Napari, getting rid of it should be done in the napari widget code
@@ -398,8 +400,8 @@ class DeepLearningProject:
 
                 print(im.shape, labels[0].shape)
 
-                image_name, mask_name = generate_patch_names(str(self.image_label_paths[0]), str(self.mask_label_paths[0]), name)
-                base_name = generate_next_patch_name(str(self.image_label_paths[0]), name)
+                image_name, mask_name = generate_patch_names(str(self.image_label_paths[0]), str(self.mask_label_paths[0]), name_without_extension)
+                base_name = generate_next_patch_name(str(self.image_label_paths[0]), name_without_extension)
 
                 print(base_name)
                 print(image_name)
@@ -408,17 +410,18 @@ class DeepLearningProject:
                 # save the image corresponding to the label bounding box
                 imsave(image_name, im)
 
-                # also generate and save the histogram of the image 
-                hist_name = os.path.join(self.image_label_paths[0], base_name+"_hist.png")
-                
-                fig = Figure(figsize=(8, 6))
-                ax = fig.add_subplot(111)
-                ax.hist(im.flatten(), bins=100)
-                ax.set_title('Histogram of image')
-                ax.set_xlabel('Pixel value')
-                ax.set_ylabel('Frequency')
-                fig.savefig(hist_name)
-                plt.close(fig)  # Prevent notebooks from showing the figure
+                if save_histograms:
+                    # also generate and save the histogram of the image 
+                    hist_name = os.path.join(self.image_label_paths[0], base_name+"_hist.png")
+                    
+                    fig = Figure(figsize=(8, 6))
+                    ax = fig.add_subplot(111)
+                    ax.hist(im.flatten(), bins=100)
+                    ax.set_title('Histogram of image')
+                    ax.set_xlabel('Pixel value')
+                    ax.set_ylabel('Frequency')
+                    fig.savefig(hist_name)
+                    plt.close(fig)  # Prevent notebooks from showing the figure
 
                 print(image_name)
 
