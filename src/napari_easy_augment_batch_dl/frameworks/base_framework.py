@@ -1,5 +1,6 @@
 from datetime import datetime
 import os 
+from dataclasses import dataclass
 
 class LoadMode:
     NotLoadable = 0
@@ -10,6 +11,7 @@ class TrainMode:
     Patches = 0
     Pixels = 1
 
+@dataclass
 class BaseFramework:
     """
     Base class for frameworks. 
