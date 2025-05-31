@@ -43,6 +43,9 @@ def pad_to_largest(images, force8bit=False, normalize_per_channel = False):
     # Find the maximum dimensions
     max_rows = max(image.shape[0] for image in images)
     max_cols = max(image.shape[1] for image in images)
+
+    min_len = min([len(image.shape) for image in images])
+    max_len = max([len(image.shape) for image in images])
     
     # Create a list to hold the padded images
     padded_images = []
@@ -51,6 +54,11 @@ def pad_to_largest(images, force8bit=False, normalize_per_channel = False):
         # Calculate the padding for each dimension
         pad_rows = max_rows - image.shape[0]
         pad_cols = max_cols - image.shape[1]
+
+        if max_len > 2 and len(image.shape) == 2:
+            #if image is 2D add a channel dimension and repeat the image
+            image = np.expand_dims(image, axis=-1)
+            image = np.repeat(image, 3, axis=-1)
         
         if len(image.shape) == 3:
             # we occasionally hit rgba images, just use the first 3 channels
@@ -120,6 +128,12 @@ def normalize_per_channel_8bit(padded_image):
         max_ = channel.max()
         normalized_image[:, :, c] = ((channel - min_) / (max_ - min_) * 255).astype(np.uint8)
     return normalized_image
+
+def num_channels(image):
+            if len(image.shape) == 3:
+                return image.shape[2]
+            else:
+                return 1
 
 def remove_alpha_channel(im):
     """

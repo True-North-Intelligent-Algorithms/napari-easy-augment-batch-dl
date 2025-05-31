@@ -24,6 +24,8 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
     xyxy_to_tltrbrbl
 )
 
+from napari_easy_augment_batch_dl.utility import num_channels
+
 import pandas as pd
 import yaml
 import glob 
@@ -283,9 +285,9 @@ class DeepLearningProject:
             
         max_y = max(image.shape[0] for image in self.image_list)
         max_x = max(image.shape[1] for image in self.image_list)
-        
+
         if len(self.image_list[0].shape) == 3:
-            max_channels = max(image.shape[2] for image in self.image_list)
+            max_channels = max(num_channels(image) for image in self.image_list)
         else:
             max_channels = 1
 
