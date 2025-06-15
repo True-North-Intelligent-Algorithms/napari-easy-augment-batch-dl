@@ -1,6 +1,7 @@
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 import numpy as np
 from tnia.deeplearning.dl_helper import collect_training_data
+import cellpose
 from cellpose import models, io
 from dataclasses import dataclass, field
 from tnia.deeplearning.dl_helper import quantile_normalization
@@ -74,11 +75,18 @@ class CellPoseInstanceFramework(BaseFramework):
         self.rescale = True
 
         self.sgd = False
+        
+        self.major_number = int(cellpose.version.split('.')[0])
     
         # initial model names
-        self.model_names = ['notset', 'cyto3', 'tissuenet_cp3']
-        # pretrained model names
-        self.builtin_names = ['cyto3', 'tissuenet_cp3']
+        if self.major_number < 4:
+            self.model_names = ['cyto3', 'tissuenet_cp3']
+            self.builtin_names = ['cyto3', 'tissuenet_cp3']
+            self.set_builtin_model('cyto3')
+        else:
+            self.model_names = ['cpsam']
+            self.builtin_names = ['cpsam']
+            self.set_builtin_model('cpsam')
         
         # options for optimizers
         self.optimizers = ['adam', 'sgd']
@@ -86,6 +94,8 @@ class CellPoseInstanceFramework(BaseFramework):
         # we also have the normalizaton parameters
         self.quantile_low = 0.01
         self.quantile_high = 0.998
+
+
     
     def train(self, updater=None):
         """
@@ -121,22 +131,42 @@ class CellPoseInstanceFramework(BaseFramework):
             save_path = os.path.dirname(self.model_path)
         else:
             save_path = self.model_path
+        
+        # if the major number is less than 4, use the bsize_train parameter
+        # the bsize parameter does not seem to be supported in CellPose 4.x
+        if self.major_number < 4:
+            train.train_seg(self.model.net, X_train, Y_train, 
+                test_data=X_test,
+                test_labels=Y_test,
+                channels=[self.chan_segment, self.chan2], 
+                save_path=save_path, 
+                n_epochs = self.num_epochs,
+                rescale=self.rescale,
+                normalize = False,
+                bsize = self.bsize_train,
+                # TODO: make below GUI options? 
+                #learning_rate=learning_rate, 
+                #weight_decay=weight_decay, 
+                #nimg_per_epoch=200,
+                model_name=self.model_name,
+                min_train_masks=0)
 
-        train.train_seg(self.model.net, X_train, Y_train, 
-            test_data=X_test,
-            test_labels=Y_test,
-            channels=[self.chan_segment, self.chan2], 
-            save_path=save_path, 
-            n_epochs = self.num_epochs,
-            rescale=self.rescale,
-            normalize = False,
-            bsize = self.bsize_train,
-            # TODO: make below GUI options? 
-            #learning_rate=learning_rate, 
-            #weight_decay=weight_decay, 
-            #nimg_per_epoch=200,
-            model_name=self.model_name,
-            min_train_masks=0)
+        else:
+            train.train_seg(self.model.net, X_train, Y_train, 
+                test_data=X_test,
+                test_labels=Y_test,
+                #channels=[self.chan_segment, self.chan2], 
+                save_path=save_path, 
+                n_epochs = self.num_epochs,
+                rescale=self.rescale,
+                normalize = False,
+                #bsize = self.bsize_train,
+                # TODO: make below GUI options? 
+                #learning_rate=learning_rate, 
+                #weight_decay=weight_decay, 
+                nimg_per_epoch=50,
+                model_name=self.model_name,
+                min_train_masks=0)
 
 
     def predict(self, img: np.ndarray):
@@ -155,9 +185,11 @@ class CellPoseInstanceFramework(BaseFramework):
             # use the default niter
             niter = None
 
-        return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter, bsize=self.bsize_pred)[0]
-        #return self.model.eval(img, diameter=self.diameter, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=self.niter, bsize=self.bsize_pred)[0]
-        #return self.model.eval(img, diameter=self.diameter, channels=[self.chan_segment, self.chan2], cellprob_threshold=0.0, flow_threshold = 1.0, niter=self.niter, bsize = self.bsize_pred)[0]
+        # if major number is less than 4 use bsize, otherwise that parameter is not used
+        if self.major_number < 4:
+            return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter, bsize=self.bsize_pred)[0]
+        else:
+            return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter)[0]
 
     def get_model_names(self):
         return self.model_names 
