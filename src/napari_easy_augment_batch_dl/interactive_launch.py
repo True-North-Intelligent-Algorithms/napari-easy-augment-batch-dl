@@ -11,8 +11,12 @@ from napari_easy_augment_batch_dl import easy_augment_batch_dl
 # if it calls the BaseFramework.register_framework() method
 try:
     from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
-except:
-    print('PytorchSemanticFramework not loaded')
+except Exception as e:
+    print('PytorchSemanticFramework not loaded', e)
+try:
+    from napari_easy_augment_batch_dl.frameworks.monai_unet_framework import MonaiUNetFramework
+except Exception as e:
+    print('MonaiUnetFramework not loaded', e)
 try:
     from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
 except:
@@ -21,6 +25,10 @@ try:
     from napari_easy_augment_batch_dl.frameworks.stardist_instance_framework import StardistInstanceFramework
 except:
     print('StardistInstanceFramework not loaded')
+try:
+    from napari_easy_augment_batch_dl.frameworks.micro_sam_instance_framework import MicroSamInstanceFramework
+except:
+    print('MicroSamInstanceFramework not loaded')
 
 # create the napari-easy-augment-batch-dl widget, we pass import_all_frameworks=False because
 # we already imported the frameworks we want to use
@@ -66,7 +74,7 @@ elif test_dataset == "ladybugs":
     data_path = r'C:\Users\bnort\work\ImageJ2022\tnia\notebooks-and-napari-widgets-for-dl\data'
     parent_path = os.path.join(data_path, 'ladybugs1')
 elif test_dataset == "particles":
-    parent_path = r'/home/bnorthan/besttestset/images/Semantic_Sparse/'
+    parent_path = r'/home/bnorthan/besttestset/images/Semantic_Spar/'
 elif test_dataset == "grains_cellpose":
     parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit2'
 elif test_dataset == "grains_semantic":
@@ -79,7 +87,15 @@ else:
     parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_14_sheep_follicles'
     parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_17_wood_stave_vessels'
     parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_14_sheep_follicles2'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_05_10_SOTA_Test_Set'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_19_vessel_3D_lightsheet'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_06_03_cellpose_training'
+    #parent_path = r'D:\images\tnia-python-images\imagesc\2025_06_21_tough_cellpose_subset'
+    #parent_path = r'D:\images\tnia-python-images\imagesc\2025_05_31_Black_Bean'
+    #parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_10_beans'
+    #parent_path = r'D:\images\tnia-python-images\imagesc\2025_06_15_bubbles'
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_05_bugs'
+    parent_path = r'D:\images\tnia-python-images\imagesc/2024_12_19_sem_grain_size_revisit/'
 
 model_path = os.path.join(parent_path, r'models')
 
