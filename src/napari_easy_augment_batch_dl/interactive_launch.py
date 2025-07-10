@@ -96,6 +96,9 @@ else:
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_06_15_bubbles'
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_05_bugs'
     parent_path = r'D:\images\tnia-python-images\imagesc/2024_12_19_sem_grain_size_revisit/'
+    parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit'
+    parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit2'
+    parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2025_06_26_new_vessels'
 
 model_path = os.path.join(parent_path, r'models')
 
