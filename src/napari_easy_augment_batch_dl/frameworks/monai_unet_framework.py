@@ -125,7 +125,12 @@ class MonaiUNetFramework(BaseFramework):
             # Compute the average loss over all steps
             average_loss = total_loss / total_steps
             pbar.write(f'training loss at epoch {epoch} is {average_loss}')
-                
+        
+            if self.updater is not None:
+                progress = int(epoch/self.num_epochs*100)
+
+                self.updater(f'training loss at epoch {epoch} is {average_loss}', progress)
+                    
             epoch += 1
    
     def train(self, updater=None):
