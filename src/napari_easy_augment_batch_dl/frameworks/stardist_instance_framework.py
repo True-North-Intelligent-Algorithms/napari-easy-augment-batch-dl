@@ -115,7 +115,7 @@ class StardistInstanceFramework(BaseFramework):
             # if model is None create one            
             if self.model is None:
                 config = Config2D (n_rays=32, axes=axes, n_channel_in=n_channel_in, train_patch_size = (256,256), unet_n_depth=3)
-                self.model = StarDist2D(config = config, name=model_name, basedir = self.model_path)
+                self.model = StarDist2D(config = config, name=self.model_name, basedir = self.model_path)
             
             X, Y = collect_training_data(self.patch_path, sub_sample=1, downsample=False, normalize_input=False, add_trivial_channel = add_trivial_channel)
             X_train, Y_train, X_val, Y_val = divide_training_data(X, Y, val_size=2)
