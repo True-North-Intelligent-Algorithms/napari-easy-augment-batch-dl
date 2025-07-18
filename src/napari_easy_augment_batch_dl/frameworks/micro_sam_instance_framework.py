@@ -11,6 +11,40 @@ import imageio
 import glob
 import shutil
 import tempfile 
+from PyQt5.QtCore import QObject, pyqtSignal
+
+class ProgressSignals(QObject):
+    pbar_total = pyqtSignal(int)
+    pbar_update = pyqtSignal(int)
+    pbar_description = pyqtSignal(str)
+
+
+class CustomCallback():
+
+    def __init__(self, updater, num_epochs=100):
+        self.updater = updater
+        self.num_epochs = num_epochs
+        self.total_steps = 500  
+
+    def on_train_begin(self):
+        print("Starting training")
+
+    def on_train_end(self):
+        print("Stop training")
+
+    def set_total(self, total):
+        
+        if self.updater is not None:
+            self.updater("Starting microsam training", 0)
+            self.total_steps = total
+            self.steps_done = 0
+
+    def on_epoch_update(self, step):
+        if self.updater is not None:
+            self.steps_done = self.steps_done+step
+            percent_done = int(100*self.steps_done/self.total_steps)
+            if self.steps_done % 10 == 0:
+                self.updater(f"{self.steps_done} steps done of {self.total_steps}")
 
 @dataclass
 class MicroSamInstanceFramework(BaseFramework):
@@ -78,7 +112,11 @@ class MicroSamInstanceFramework(BaseFramework):
         The training patches should already exist in the patch_path directory.
         """
 
+        if updater is None:
+            updater = self.updater
         
+        updater('Training Microsam model', 0)
+
         image_dir = os.path.join(self.patch_path, 'input0')
         image_dir_255 = tempfile.mkdtemp(dir=self.patch_path)
 
@@ -147,6 +185,15 @@ class MicroSamInstanceFramework(BaseFramework):
             model_type = self.model_type  # 'vit_b_lm', 'vit_b', 'vit_b_em_organelles'
             print(f"Training with device: {self.device}, model_type: {model_type}, n_objects_per_batch: {n_objects_per_batch}")
             # Run training (best metric 0.027211
+
+            if updater is not None:
+                signals = ProgressSignals()
+                custom_callback = CustomCallback(updater, num_epochs=self.num_epochs)
+                signals.pbar_total.connect(custom_callback.set_total)
+                signals.pbar_update.connect(custom_callback.on_epoch_update)
+            else:
+                signals = None
+
             sam_training.train_sam(
                 name=self.model_name,
                 save_root=self.model_path, #os.path.join(root_dir, "models"),
@@ -158,6 +205,7 @@ class MicroSamInstanceFramework(BaseFramework):
                 with_segmentation_decoder=train_instance_segmentation,
                 device=self.device,
                 #n_iterations=10,
+                pbar_signals=signals
             )
         finally:
             # Clean up the temporary directory
@@ -231,6 +279,11 @@ class MicroSamInstanceFramework(BaseFramework):
     def load_model_from_disk(self, model_name):
 
         self.model_name = model_name
+        
+    def create_callback(self, updater):
+        self.updater = updater
+    
+
 
 # this line is needed to register the framework on import
 BaseFramework.register_framework('MicroSamInstanceFramework', MicroSamInstanceFramework)
