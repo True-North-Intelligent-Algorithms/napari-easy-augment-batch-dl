@@ -65,27 +65,40 @@ class NapariEasyAugmentBatchDL(QWidget):
             from napari_easy_augment_batch_dl.frameworks.cellpose_instance_framework import CellPoseInstanceFramework
         except:
             print('CellPoseInstanceFramework not loaded')
-        
+
+        '''
+        TODO: delete, monai unet framework replaces this
         try:
             from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_framework import PytorchSemanticFramework
         except:
             print('PytorchSemanticFramework not loaded')
+        '''
         
         try:
             from napari_easy_augment_batch_dl.frameworks.mobile_sam_framework import MobileSAMFramework
         except ImportError:
             MobileSAMFramework = None
-     
+        
         try:
             from napari_easy_augment_batch_dl.frameworks.yolo_sam_framework import YoloSAMFramework
         except ImportError:
             YoloSAMFramework = None
-     
+
         try:
             from napari_easy_augment_batch_dl.frameworks.random_forest_framework import RandomForestFramework
         except ImportError:
             RandomForestFramework = None
-     
+        
+        try:
+            from napari_easy_augment_batch_dl.frameworks.monai_unet_framework import MonaiUNetFramework
+        except Exception as e:
+            print('MonaiUnetFramework not loaded', e)
+
+        try:
+            from napari_easy_augment_batch_dl.frameworks.micro_sam_instance_framework import MicroSamInstanceFramework
+        except:
+            print('MicroSamInstanceFramework not loaded')
+    
     def init_ui(self):
 
         self.setWindowTitle("Easy Augment Batch DL")
@@ -821,7 +834,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         # Thus we do a final round of augmentation before training?
         #self.augment_all()
 
-        thread = True
+        thread = True 
         if thread:
             '''
             if hasattr(self, 'thread'):
