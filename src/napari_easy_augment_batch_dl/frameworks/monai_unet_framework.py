@@ -141,7 +141,7 @@ class MonaiUNetFramework(BaseFramework):
             updater = self.updater
         
         if updater is not None:
-            updater('Training Pytorch Semantic model', 0)
+            updater('Training Monai Semantic model', 0)
 
         cuda_present = torch.cuda.is_available()
         ndevices = torch.cuda.device_count()
