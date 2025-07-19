@@ -34,8 +34,15 @@ except:
 # we already imported the frameworks we want to use
 batch_dl = easy_augment_batch_dl.NapariEasyAugmentBatchDL(viewer, import_all_frameworks=False)
 
+from qtpy.QtWidgets import QScrollArea, QSizePolicy
+
+scroll = QScrollArea()
+scroll.setWidgetResizable(True)
+scroll.setWidget(batch_dl)
+#scroll.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
 viewer.window.add_dock_widget(
-    batch_dl
+    scroll
 )
 
 # here we list directories for image sets we have been experimenting with
@@ -95,10 +102,11 @@ else:
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_04_10_beans'
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_06_15_bubbles'
     #parent_path = r'D:\images\tnia-python-images\imagesc\2025_03_05_bugs'
-    parent_path = r'D:\images\tnia-python-images\imagesc/2024_12_19_sem_grain_size_revisit/'
     parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit'
     parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2024_12_19_sem_grain_size_revisit2'
     parent_path = r'/home/bnorthan/images/tnia-python-images/imagesc/2025_06_26_new_vessels'
+    parent_path = r'D:\images\tnia-python-images\imagesc\2025_07_08_new_vessels'
+    parent_path = r'D:\images\tnia-python-images\imagesc/2024_12_19_sem_grain_size_revisit/'
 
 model_path = os.path.join(parent_path, r'models')
 
