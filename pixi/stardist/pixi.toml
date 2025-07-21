@@ -6,7 +6,7 @@ platforms = ["win-64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
-start = "python startup.py"
+startup = "python startup.py"
 
 [dependencies]
 python = "3.10.*"
