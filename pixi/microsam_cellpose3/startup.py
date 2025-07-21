@@ -1,4 +1,5 @@
-import numpy as np
+from qtpy import QtCore, QtWidgets
+from napari_easy_augment_batch_dl import easy_augment_batch_dl
 
 print("Startup running...")
 
@@ -24,4 +25,19 @@ import cellpose
 print("Cellpose version:", cellpose.version)
 
 viewer = napari.Viewer()
+
+batch_dl = easy_augment_batch_dl.NapariEasyAugmentBatchDL(viewer)
+
+class WideScroll(QtWidgets.QScrollArea):
+    def sizeHint(self):
+        return QtCore.QSize(500, 300)  # width=900, height arbitrary
+
+scroll = WideScroll()
+scroll.setWidgetResizable(True)
+scroll.setWidget(batch_dl)
+
+viewer.window.add_dock_widget(
+    scroll
+)
+
 napari.run()
