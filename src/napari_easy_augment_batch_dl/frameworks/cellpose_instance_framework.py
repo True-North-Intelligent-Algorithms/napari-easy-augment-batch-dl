@@ -60,7 +60,7 @@ class CellPoseInstanceFramework(BaseFramework):
         self.diameter = 30
         self.bsize_pred = 224
         self.prob_thresh = 0.0
-        self.flow_thresh = 0.4
+        self.flow_thresh = 0.0
         self.chan_segment = 0
         self.chan2 = 0
 
