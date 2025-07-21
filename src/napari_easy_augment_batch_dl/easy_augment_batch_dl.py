@@ -1,5 +1,11 @@
-
-from qtpy.QtWidgets import QDialog, QWidget, QVBoxLayout, QGroupBox, QPushButton, QFileDialog, QMessageBox, QInputDialog, QTextBrowser, QProgressBar, QCheckBox, QComboBox, QSpinBox, QHBoxLayout, QLabel, QStackedWidget, QGridLayout
+from qtpy.QtWidgets import (
+    QDialog, QWidget, QVBoxLayout,
+    QHBoxLayout, QGridLayout, QGroupBox,
+    QPushButton, QFileDialog, QMessageBox,
+    QInputDialog, QTextBrowser, QProgressBar,
+    QCheckBox, QComboBox, QSpinBox,
+    QLabel, QStackedWidget, QSizePolicy,
+)
 from napari_easy_augment_batch_dl.widgets import LabeledSpinner, LabeledCombo
 from PyQt5.QtCore import QThread
 from pathlib import Path
