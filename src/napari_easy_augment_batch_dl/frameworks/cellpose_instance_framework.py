@@ -70,13 +70,14 @@ class CellPoseInstanceFramework(BaseFramework):
         self.load_mode = LoadMode.File
         
         self.num_epochs = 100
-        self.model_name = self.generate_model_name('cellpose')
         self.bsize_train = 224
         self.rescale = True
 
         self.sgd = False
         
         self.major_number = int(cellpose.version.split('.')[0])
+        
+        self.model_name = self.generate_model_name(f'cellpose{self.major_number}')
     
         # initial model names
         if self.major_number < 4:
