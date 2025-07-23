@@ -64,7 +64,7 @@ def perform_augmentation(deep_learning_project, do_horizontal_flip=True, do_vert
         do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False):
     
     json_names = list(Path(deep_learning_project.image_label_paths[0]).glob('*.json'))
-    image_name = deep_learning_project.image_file_list[1]
+    image_name = deep_learning_project.image_file_list[0]
     image_base_name = image_name.name.split('.')[0]
     #image_base_name = Path(image_name).stem
     
