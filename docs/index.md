@@ -18,7 +18,7 @@
 
 You can install the plugin via the pip or the [Napari Hub](https://www.napari-hub.org/plugins/napari-easy-augment-batch-dl)
 
-Please note that you will also need to install one or more deep learning frameworks for the plugin to be useful.  See the [dependencies](https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/augment/) page. 
+Please note that you will also need to install one or more deep learning frameworks for the plugin to be useful.  See the [dependencies](https://true-north-intelligent-algorithms.github.io/napari-easy-augment-batch-dl/dependencies/) page. 
 
    ```sh  
    pip install napari-easy-augment-batch-dl
