@@ -9,8 +9,10 @@
       
       
       
-        <link rel="prev" href="../faq/">
+        <link rel="prev" href="../overview/">
       
+      
+        <link rel="next" href="../dependencies/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -18,7 +20,7 @@
     
     
       
-        <title>About - Napari Easy Augment Batch DL</title>
+        <title>Support - Napari Easy Augment Batch DL</title>
       
     
     
@@ -68,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#about-napari-easy-augment-batch-dl" class="md-skip">
+        <a href="#support" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              About
+              Support
             
           </span>
         </div>
@@ -260,10 +262,19 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../support/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -273,6 +284,7 @@
   
 
       </a>
+      
     </li>
   
 
@@ -428,31 +440,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    About
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -462,53 +453,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔍 Features
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#development-contributions" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Development &amp; Contributions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
-    <span class="md-ellipsis">
-      📞 Support
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -533,41 +477,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#features" class="md-nav__link">
-    <span class="md-ellipsis">
-      🔍 Features
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#development-contributions" class="md-nav__link">
-    <span class="md-ellipsis">
-      🛠️ Development &amp; Contributions
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#support" class="md-nav__link">
-    <span class="md-ellipsis">
-      📞 Support
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -585,20 +494,12 @@
   
 
 
-<h1 id="about-napari-easy-augment-batch-dl">About Napari-Easy-Augment-Batch-dl</h1>
-<p>Napari-Easy-Augment-Batch-dl is a user-friendly plugin for Napari designed to make labeling, batch image augmentation and model training more reproducible . It provides an intuitive graphical interface integrated with Napari, that allows users to load and label images, apply augmentations, and process large datasets efficiently without requiring programming knowledge.  (While the plugin complements programming by streamlining workflows, I always encourage users to learn programming, as it provides deeper flexibility and control over their data and models).</p>
-<h2 id="features">🔍 Features</h2>
-<ul>
-<li>Takes advantage of Napari's built in labelling functionality.</li>
-<li>Supports various augmentation techniques such as rotation, flipping, noise addition, and brightness adjustments.</li>
-<li>Explicitly saves augmented patches for easier trouble shooting and more repeatable training.  </li>
-<li>Streamlined workflow with three simple steps: Load &amp; Label, Augmentat, and Train &amp; Predict.</li>
-<li>Plugin mechanism to support training and prediction with different frameworks (Cellpose, Stardist, SAM, Yolo, UNET, and more)</li>
-</ul>
-<h2 id="development-contributions">🛠️ Development &amp; Contributions</h2>
-<p>Napari-Easy-Augment-Batch-dl is an open-source project, and contributions are welcome! If you have feature requests, bug reports, or would like to contribute, visit our <a href="https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl">GitHub repository</a>.</p>
-<h2 id="support">📞 Support</h2>
-<p>For questions, issues, or feedback, please check our <a href="../faq/">FAQ</a> or open a discussion on <a href="image.sc">image.sc</a>.</p>
+<h1 id="support">Support</h1>
+<ol>
+<li>Post a question on <a href="https://forum.image.sc/">Image.sc</a></li>
+<li>Post a question on <a href="https://napari.zulipchat.com/">Napari Zulip</a> </li>
+<li>Post an issue in the <a href="https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/issues">Github repo</a></li>
+</ol>
 
 
 
