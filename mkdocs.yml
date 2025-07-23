@@ -12,7 +12,10 @@ theme:
 nav:
   - Home: index.md
   - Overview: overview.md
+  - Support: support.md
   - Dependencies: dependencies.md
+  - File Organization: file_organization.md
+  - Predict: predict.md
   - Load and Label: load_and_label.md
   - Augment: augment.md
   - Train and Predict: train_and_predict.md

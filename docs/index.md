@@ -1,12 +1,12 @@
 # Napari Easy Augment Batch DL
 
-🚀 **Napari-Easy-Augment-Batch-dl** is a user-friendly plugin for batch augmention, model training and prediction in **Napari**.  
+🚀 **Napari-Easy-Augment-Batch-dl** is a plugin for advanced 2D deep learning segmentation.  It support advanced options for augmention, model training and prediction in **Napari**.  
 
 ## 🔥 Features  
 ✅ **Batch Processing** – Label, augment, train and predict with multiple images at once.  
 ✅ **Easy Labeling** – Quickly assign labels using the intuitive Napari GUI.  
 ✅ **Advanced Augmentations** – Options for color augmentations, elastic deformation, tunable rescaling and more.  
-✅ **Customizable** –  A plugin mechanism allows different deep learning frameworks to be integrated.  
+✅ **Plugin multiple DL Frameworks** –  A plugin mechanism allows different deep learning frameworks such as Stardist, Cellpose, MobileSam, MicroSam, Monai and others to be integrated.  
 
 ## 📖 How It Works  
 1️⃣ **Load and Label** – Import images and draw labels.  

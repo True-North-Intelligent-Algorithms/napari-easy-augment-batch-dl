@@ -5,11 +5,20 @@ Napari-Easy-Augment-Batch-DL relies on one or more deep learning frameworks bein
 **Cellpose:**  For instance segmentation  
 **Stardist:**  For instance segmentation  
 **Pytorch:**  For semantic segmentation  
-**Mobile SAM:**  An approach that uses Yolo + SAM for instance segmentation. 
+**Mobile SAM:**  An approach that uses Yolo + SAM for instance segmentation.
+**Microsam:** 
 
 Other frameworks can be added via our plugin mechanism (Documentation to come)
 
 Below are sets of suggested installation instructions for Linux, Mac M1, and Windows.  Not all dependencies are needed.  You need atleast one deep learning framework, but for example if you would like to work with Cellpose only you do not need Stardist or SAM. 
+
+# Pixi
+
+We are working on a pixi installer.  Please see [here](https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/microsam_cellpose3) for a ```micro_sam/cellpose/monai``` pixi example, and [here](https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/stardist) for a ```stardist``` pixi example.  
+
+# Conda/PIP instructions
+
+The following conda/pip instructions may work, but could become stale because of transitive dependencies.  Please post on image.sc if you have issues. 
 
 ## Linux
 
@@ -17,6 +26,7 @@ Below are sets of suggested installation instructions for Linux, Mac M1, and Win
     conda create -n easy_augment_env python=3.11
     conda activate easy_augment_env
     conda install pip
+    conda install micro_sam
     pip install "napari[all]" # requires quotation marks to parse the square brackets on Linux, not sure if generalizes
     pip install albumentations matplotlib scipy tifffile 
     pip install "tensorflow[and-cuda]" # as above, requires quotation marks (only needed for stardist)
@@ -38,6 +48,7 @@ Below are sets of suggested installation instructions for Linux, Mac M1, and Win
 ```
     conda create -n easy_augment_env python=3.11
     conda activate easy_augment_env
+    conda install micro_sam
     pip install "napari[all]" # also requires quotes on Mac
     pip install albumentations matplotlib scipy tifffile 
     pip install "tensorflow[and-cuda]" # as above, requires quotation marks. Pip throws a bunch of conflicts, but whatever. (only needed for stardist)
@@ -85,6 +96,7 @@ I've also archived a windows gpu stardist environment.yml [here](https://github.
 ```
     conda create -n easy_augment_pytorch_env python=3.11
     conda activate easy_augment_pytorch_env
+    conda install micro_sam
     pip install "napari[all]"
     pip install albumentations matplotlib scipy tifffile 
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
