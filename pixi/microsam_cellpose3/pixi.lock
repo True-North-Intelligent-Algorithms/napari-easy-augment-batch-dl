@@ -590,12 +590,12 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/ea/8e/0a37e44878fd76fac9eff5355a1bf760701f53cb5c38cdcd59a8fd9ab2a2/blessed-1.21.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/21/4ea20ea23845d059eab7ffc9334ece3b598e42db424e4d193ee2f7105c3d/flyingcircus-0.1.4.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/51/607b87e1867df29696753b43dc66c328bcec55ffde969c204d89b1375c21/flyingcircus_numeric-0.1.1.4-py2.py3-none-any.whl
+      - pypi: git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git#6e6345789afa66e1a7f7751e3e364aac0bb3a083
       - pypi: https://files.pythonhosted.org/packages/ae/3c/321ff3f370f5eabbccf553e79f9c067a0e469d0ee6fb87a7b071fa702bf7/raster_geometry-0.1.4.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ab/ac/8f96ba9b4cfe3e4ea201f23f4f97165862395e9331a424ed325ae37024a8/setuptools_scm-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0a/3e/8f22216ccd8b60a3e3ad8e4ea2a405116bf88680b47143487d76ce663a1f/simsimd-6.5.0-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bd/a8/dbb08d6576d0f4302897a23ef6f5626ec0015a0515b85336f845101118f9/stringzilla-3.12.5-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl
       - pypi: git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git#ebbdd2c314556fc736edb2660a130f4e75860861
-      - pypi: ..
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/absl-py-2.3.1-pyhd8ed1ab_0.conda
@@ -1084,12 +1084,12 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/ea/8e/0a37e44878fd76fac9eff5355a1bf760701f53cb5c38cdcd59a8fd9ab2a2/blessed-1.21.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/38/21/4ea20ea23845d059eab7ffc9334ece3b598e42db424e4d193ee2f7105c3d/flyingcircus-0.1.4.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/51/607b87e1867df29696753b43dc66c328bcec55ffde969c204d89b1375c21/flyingcircus_numeric-0.1.1.4-py2.py3-none-any.whl
+      - pypi: git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git#6e6345789afa66e1a7f7751e3e364aac0bb3a083
       - pypi: https://files.pythonhosted.org/packages/ae/3c/321ff3f370f5eabbccf553e79f9c067a0e469d0ee6fb87a7b071fa702bf7/raster_geometry-0.1.4.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ab/ac/8f96ba9b4cfe3e4ea201f23f4f97165862395e9331a424ed325ae37024a8/setuptools_scm-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6b/40/15f3ca4c8f1806b8c435f3a12ee9f6586ba6ad010b3f62e7425cf3dd6db4/simsimd-6.5.0-cp311-cp311-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/94/48/32a07b193bf526216a99195ddf4e660ae2f6614d3bbb8f411f8ef215788e/stringzilla-3.12.5-cp311-cp311-macosx_11_0_arm64.whl
       - pypi: git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git#ebbdd2c314556fc736edb2660a130f4e75860861
-      - pypi: ..
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_3.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -1527,12 +1527,12 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/38/21/4ea20ea23845d059eab7ffc9334ece3b598e42db424e4d193ee2f7105c3d/flyingcircus-0.1.4.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/41/51/607b87e1867df29696753b43dc66c328bcec55ffde969c204d89b1375c21/flyingcircus_numeric-0.1.1.4-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/27/e3/0e0014d6ab159d48189e92044ace13b1e1fe9aa3024ba9f4e8cf172aa7c2/jinxed-1.3.0-py2.py3-none-any.whl
+      - pypi: git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git#6e6345789afa66e1a7f7751e3e364aac0bb3a083
       - pypi: https://files.pythonhosted.org/packages/ae/3c/321ff3f370f5eabbccf553e79f9c067a0e469d0ee6fb87a7b071fa702bf7/raster_geometry-0.1.4.2-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ab/ac/8f96ba9b4cfe3e4ea201f23f4f97165862395e9331a424ed325ae37024a8/setuptools_scm-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a5/30/8ba85811e8107e38cbf3814ecb0887867b13a3bc3828bf2b1c1ab8e38067/simsimd-6.5.0-cp311-cp311-win_amd64.whl
       - pypi: https://files.pythonhosted.org/packages/b8/48/08265678340debbeb091f7056ea1113c3f0329978035955a9e205ddf0c5d/stringzilla-3.12.5-cp311-cp311-win_amd64.whl
       - pypi: git+https://github.com/True-North-Intelligent-Algorithms/tnia-python.git#ebbdd2c314556fc736edb2660a130f4e75860861
-      - pypi: ..
 packages:
 - conda: https://conda.anaconda.org/conda-forge/win-64/_libavif_api-1.1.1-h57928b3_3.conda
   sha256: bde034edf2cf6fab6b1f138ca764a4589a3048ad98f2cc1f0a13cf2d3917e3ea
@@ -11931,10 +11931,9 @@ packages:
   - pkg:pypi/napari-console?source=hash-mapping
   size: 15355
   timestamp: 1734818941398
-- pypi: ..
+- pypi: git+https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git#6e6345789afa66e1a7f7751e3e364aac0bb3a083
   name: napari-easy-augment-batch-dl
   version: 0.0.6
-  sha256: c6c9db82b4d9d05772c47a72ceb6fa096a4ecdc1c293ac903f189eeb8e0e7154
   requires_dist:
   - numpy
   - magicgui
@@ -11948,7 +11947,6 @@ packages:
   - napari ; extra == 'testing'
   - pyqt5 ; extra == 'testing'
   requires_python: '>=3.9'
-  editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/napari-plugin-engine-0.2.0-pyha07c04f_3.conda
   sha256: 3df4923de1a5fe455619e3f447f990d63acf7dc2e4eb365b1ee4aa760bb4c87a
   md5: b4272a6d738f4c5058c469666df8c0e4
@@ -13991,7 +13989,8 @@ packages:
   - python
   license: BSD-3-Clause
   license_family: BSD
-  purls: []
+  purls:
+  - pkg:pypi/pycparser?source=hash-mapping
   size: 110100
   timestamp: 1733195786147
 - conda: https://conda.anaconda.org/conda-forge/noarch/pydantic-2.11.7-pyh3cfb1c2_0.conda
