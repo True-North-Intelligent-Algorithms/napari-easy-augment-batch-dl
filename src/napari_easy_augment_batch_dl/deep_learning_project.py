@@ -34,6 +34,7 @@ from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 from enum import Enum
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from tnia.io.io_helper import collect_all_image_names
 
 class ImageType(Enum):
     GRAY_SCALE_2D = "gray_scale_2d"
@@ -99,11 +100,8 @@ class DeepLearningProject:
 
         # collect all images in the image path
         # Note: this code loads all images in the directory.  This could be a problem if there are a large number of images                    
-        self.image_file_list = list(self.image_path.glob('*.jpg'))
-        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.jpeg'))
-        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tif'))
-        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.tiff'))
-        self.image_file_list = self.image_file_list+list(self.image_path.glob('*.png'))
+
+        self.image_file_list = collect_all_image_names(self.image_path)
 
         self.image_file_list = sorted(self.image_file_list)
         
@@ -115,14 +113,15 @@ class DeepLearningProject:
 
             # if the image is 3D and the first dimension is less than 7 assume the first dimension is the channel
             # not really robust because you could have images with 6 slices... TODO:  REWORK
+            
             if len(im.shape) == 3:
                 # change channel to be last dimension       
                 if im.shape[0]<=7:
                     im = np.transpose(im, (1,2,0))
-            
+
                 if im.shape[-1] > 3:
                     im = im[:,:,:3]
-            
+        
             self.image_list.append(im)
         
         self.prediction_list = []
