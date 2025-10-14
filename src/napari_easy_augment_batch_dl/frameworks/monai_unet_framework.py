@@ -37,6 +37,8 @@ class MonaiUNetFramework(BaseFramework):
     weight_c3: int = field(default=1,metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 1, 'max': 100, 'default': 1, 'step': 1})
     
     num_epochs: int = field(default=100,metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
+    save_interval: int = field(default=10,metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 1, 'max': 10000, 'default': 10, 'step': 1})
+    
     learning_rate: float = field(default=0.0001, metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0001, 'step': .001})
     dropout: float = field(default=0.0,metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0, 'step': .01})
     model_name: str = field(default='semantic', metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
@@ -125,6 +127,12 @@ class MonaiUNetFramework(BaseFramework):
             # Compute the average loss over all steps
             average_loss = total_loss / total_steps
             pbar.write(f'training loss at epoch {epoch} is {average_loss}')
+
+            if epoch % self.save_interval == 0 and epoch > 0:
+                # Insert 'checkpoint' before the file extension
+                model_path_obj = Path(self.model_name)
+                checkpoint_name = model_path_obj.stem + '_checkpoint' + model_path_obj.suffix
+                torch.save(net, Path(self.model_path) / Path(checkpoint_name))
         
             if self.updater is not None:
                 progress = int(epoch/self.num_epochs*100)
