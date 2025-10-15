@@ -829,7 +829,11 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         widget = self.deep_learning_widgets[self.network_architecture_drop_down.currentText()]
         dialog = widget.train_dialog
-        dialog.exec_()
+        result = dialog.exec_()
+
+        # Check if user pressed OK (Accepted) or closed/canceled (Rejected)
+        if result != QDialog.Accepted:
+            return
 
         # TODO: work out how to handle augmentation before training
         # perform another round of augmentation before training
@@ -840,7 +844,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         # Thus we do a final round of augmentation before training?
         #self.augment_all()
 
-        thread = True 
+        thread = True
         if thread:
             '''
             if hasattr(self, 'thread'):
@@ -866,6 +870,8 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.thread.start()
              
         else:
+            model = self.deep_learning_project.get_model(self.network_architecture_drop_down.currentText())
+            model.create_callback(self.update)
             self.deep_learning_project.perform_training(self.network_architecture_drop_down.currentText(), self.update)
             widget.sync_with_framework()
 
