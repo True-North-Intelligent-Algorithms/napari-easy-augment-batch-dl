@@ -10,7 +10,7 @@ class DeepLearningWidget(QDialog):
     """
     
     def __init__(self, framework, parent=None, parent_path=None, updater=None):
-        super(DeepLearningWidget, self).__init__(parent)
+        super().__init__(parent)
 
         # parent path of the project where images and deep learning artifacts are stored
         self.framework = framework 
