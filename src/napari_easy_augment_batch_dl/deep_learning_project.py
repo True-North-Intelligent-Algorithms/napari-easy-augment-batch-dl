@@ -30,7 +30,6 @@ import pandas as pd
 import yaml
 import glob 
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
-from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
 from enum import Enum
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -291,6 +290,7 @@ class DeepLearningProject:
             max_channels = 1
 
         try:
+            from napari_easy_augment_batch_dl.zarr_helper import manage_zarr_store
             ml_labels_store = manage_zarr_store(os.path.join(self.ml_path,'ml_labels'), self.image_file_list, (max_y, max_x))
             ml_features_store = manage_zarr_store(os.path.join(self.ml_path,'ml_features'), self.image_file_list, (max_y, max_x, max_channels*12), dtype='f4')
             
