@@ -385,8 +385,7 @@ class NapariEasyAugmentBatchDL(QWidget):
                 # (the stacked widget will be displayed when the user selects the framework)
                 self.stacked_model_params_layout.addWidget(tempWidget.prediction_widget)
             except Exception as e:
-                print(e)
-                #self.network_architecture_drop_down.addItem(obj.__name__)
+                print(f"ERROR ADDING WIDGET for {key} {e}")
                 pass
 
         # here we use a padding strategy to display the images as a Napari layer in the viewer
@@ -418,6 +417,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             face_color="transparent",
             edge_color="blue",
             edge_width=5,
+            text={'string': '{split_set}', 'size': 15, 'color': 'green'},
         )
         self.boxes_layer.events.data.connect(mark_dirty)
 
@@ -573,7 +573,10 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         print("Adding label boxes")
         if self.deep_learning_project.boxes is not None:
+            split_set = self.deep_learning_project.split_set
+            features = {'split_set': split_set} 
             self.boxes_layer.add(self.deep_learning_project.boxes)
+            self.boxes_layer.features = features
 
         print("Adding object boxes")
         if self.deep_learning_project.object_boxes is not None:
@@ -595,7 +598,19 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.object_boxes_layer.events.data.connect(handle_new_object_box)
 
         self.dirty = False
-   
+        
+        @self.viewer.bind_key('v')
+        def _toggle_split_set(event):
+            print('V key pressed')
+
+            if self.boxes_layer.selected_data.active is not None:
+                print('toggling train/validation for box index ', self.boxes_layer.selected_data.active)
+                if self.boxes_layer.properties['split_set'][self.boxes_layer.selected_data.active] == 'train':
+                    self.boxes_layer.properties['split_set'][self.boxes_layer.selected_data.active] = 'validation'
+                else:
+                    self.boxes_layer.properties['split_set'][self.boxes_layer.selected_data.active] = 'train'
+            self.boxes_layer.refresh_text() 
+
     def set_pretrained_model(self, model_path, model_type):
         widget = self.deep_learning_widgets[model_type]
         widget.load_model_from_path(model_path) 
@@ -604,8 +619,10 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.update_annotation_list()
 
         object_boxes=self.object_boxes_layer.data
+
+        split_set = self.boxes_layer.features['split_set'].to_list()
         
-        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, self.save_histogram_check_box.isChecked()) 
+        self.deep_learning_project.save_project(self.viewer.layers['Label box'].data, self.save_histogram_check_box.isChecked(), split_set=split_set) 
 
         if len(object_boxes)>0:        
             object_classes = self.object_boxes_layer.features['class'].to_numpy()
@@ -663,6 +680,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         boxes = np.array(boxes)
         index_boxes = np.all(boxes[:,:,0]==n, axis=1)
         filtered_boxes = boxes[index_boxes]
+        
+        split_set = self.boxes_layer.features['split_set'].to_list()
+        filtered_split_set = [split_set[i] for i in range(len(split_set)) if index_boxes[i]]
 
         # check if any boxes have been drawn for the current image, if not we have no labels
         if filtered_boxes.shape[0] == 0:
@@ -670,7 +690,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             return
         
         self.save_results()
-        self.perform_augmentation(filtered_boxes)
+        self.perform_augmentation(filtered_boxes, split_set=filtered_split_set)
 
     def augment_all(self):
         
@@ -689,8 +709,9 @@ class NapariEasyAugmentBatchDL(QWidget):
         self.update_annotation_list()
         
         boxes = self.viewer.layers['Label box'].data
+        split_set = self.boxes_layer.features['split_set'].to_list()
         self.save_results()
-        self.perform_augmentation(boxes)
+        self.perform_augmentation(boxes, split_set=split_set)
 
     def delete_augmentations(self):
         self.deep_learning_project.delete_augmentations()
@@ -766,7 +787,7 @@ class NapariEasyAugmentBatchDL(QWidget):
         dialog.setLayout(dialog_layout)
         dialog.exec_()
         
-    def perform_augmentation(self, boxes):
+    def perform_augmentation(self, boxes, split_set):
         
         num_patches_per_roi = self.number_patches_spin_box.value()
         patch_size = self.patch_size_spin_box.value()
@@ -782,10 +803,8 @@ class NapariEasyAugmentBatchDL(QWidget):
 
         self.textBrowser_log.append("Performing augmentation...")
         objects=self.object_boxes_layer.data
-        # if yolo
 
         model_name = self.network_architecture_drop_down.currentText()
-
 
         if self.deep_learning_project.frameworks[model_name].boxes ==True:
 
@@ -805,7 +824,7 @@ class NapariEasyAugmentBatchDL(QWidget):
                                                                  perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color)
         else:
 
-            self.deep_learning_project.perform_augmentation(boxes, num_patches_per_roi, patch_size, self.update,
+            self.deep_learning_project.perform_augmentation(boxes, split_set, num_patches_per_roi, patch_size, self.update,
                                                                  perform_horizontal_flip, perform_vertical_flip, perform_random_rotate, perform_random_resize, 
                                                                  perform_random_brightness_contrast, perform_random_gamma, perform_random_adjust_color, perform_elastic_deformation)
 

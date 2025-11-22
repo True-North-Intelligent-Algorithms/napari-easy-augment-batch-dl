@@ -126,6 +126,7 @@ class DeepLearningProject:
         self.prediction_list = []
         self.annotation_list = []        
         self.boxes = []
+        self.split_set = []
         self.object_boxes = None
         self.predicted_object_boxes = None
         self.classes = None
@@ -209,6 +210,7 @@ class DeepLearningProject:
 
                             bbox = x1y1x2y2_to_tltrblbr(x1, y1, x2, y2, n)
                             self.boxes.append(bbox)
+                            self.split_set.append(json_.get('split', 'train'))
 
                     # next add the annotations
                     # NOTE: there is a subtle difference between an annotation and label
@@ -323,7 +325,7 @@ class DeepLearningProject:
             else:
                 print(f'Skipped non-file item: {file}')
 
-    def save_project(self, boxes, save_histograms=False):
+    def save_project(self, boxes, save_histograms=False, split_set=None):
 
         # save json file with num_classes
         json_name = os.path.join(self.parent_path, 'info.json')
@@ -339,7 +341,7 @@ class DeepLearningProject:
             self.delete_all_files_in_directory(self.mask_label_paths[c])
 
         # start a dataframe to store the bounding boxes
-        df_bounding_boxes = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend'])            
+        df_bounding_boxes = pd.DataFrame(columns=['file_name', 'xstart', 'ystart', 'xend', 'yend','split'])            
 
         if save_histograms:
             hist_path = os.path.join(self.parent_path, 'histograms')
@@ -364,7 +366,7 @@ class DeepLearningProject:
                 fig.savefig(os.path.join(hist_path, image_name.name.split('.')[0]+'_hist.png'))
 
         # loop through all label bounding box saving the image and label data for the bounding box        
-        for box in boxes:
+        for i, box in enumerate(boxes):
 
             # put a try around this because sometimes invalid boxes are generated
             try:
@@ -381,8 +383,13 @@ class DeepLearningProject:
                 xstart = int(np.min(box[:,1]))
                 xend = int(np.max(box[:,1]))
 
+                if split_set is not None:
+                    split_value = split_set[i]
+                else:
+                    split_value = 'train'   
+
                 # add this bounding box to the dataframe
-                df_temp = pd.DataFrame([{'file_name': self.image_file_list[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend}])
+                df_temp = pd.DataFrame([{'file_name': self.image_file_list[z].name, 'xstart': xstart, 'ystart': ystart, 'xend': xend, 'yend': yend, 'split': split_value}])
                 df_bounding_boxes = pd.concat([df_bounding_boxes,df_temp], ignore_index=True) 
 
                 #print('bounding box is',ystart, yend, xstart, xend)
@@ -437,6 +444,7 @@ class DeepLearningProject:
                     json_ = {}
                     json_['base_name'] = base_name
                     json_['bbox'] = [xstart, ystart, xend, yend]
+                    json_['split'] = split_value
                     json.dump(json_, f)
             except:
                 print('error saving bounding box')
@@ -532,7 +540,7 @@ class DeepLearningProject:
             label_patch_path =  os.path.join(self.patch_path, 'ground truth'+str(c))
             self.delete_all_files_in_directory(label_patch_path) 
 
-    def perform_augmentation(self, boxes, num_patches = 100, patch_size=256, updater = None, 
+    def perform_augmentation(self, boxes, split_set, num_patches = 100, patch_size=256, updater = None, 
                                   do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
                                   do_random_brightness_contrast=True, do_random_gamma=False, do_color_jitter=False, do_elastic_transform=False, normalization_type='label'):
 
@@ -541,7 +549,7 @@ class DeepLearningProject:
         if not os.path.exists(patch_path):
             os.mkdir(patch_path)
 
-        for box in boxes:
+        for box, split_value in zip(boxes, split_set):
             z = int(box[0,0])
 
             # get rid of first column (z axis)
@@ -599,7 +607,7 @@ class DeepLearningProject:
             name = self.image_file_list[z].name.split('.')[0]
             
             uber_augmenter(im, labels, patch_path, name, patch_size, num_patches, do_vertical_flip, do_horizontal_flip, do_random_rotate90, do_random_sized_crop, do_random_brightness_contrast, 
-                                  do_random_gamma, do_color_jitter, do_elastic_transform, 1, **self.augmentation_parameters)
+                                  do_random_gamma, do_color_jitter, do_elastic_transform, 1, split=split_value, **self.augmentation_parameters)
        
     def perform_yolo_augmentation(self, boxes, objects, classes, num_patches_per_image, patch_size, updater=None,
                                   do_horizontal_flip=True, do_vertical_flip=True, do_random_rotate90=True, do_random_sized_crop=True, 
