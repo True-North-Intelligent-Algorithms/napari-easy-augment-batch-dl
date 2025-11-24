@@ -85,3 +85,7 @@ venv/
 
 # ignore pytorch models
 *.pt
+
+videos
+
+bn_windows_datalocations.py
