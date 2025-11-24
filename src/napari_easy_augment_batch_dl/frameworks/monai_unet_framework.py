@@ -2,6 +2,7 @@ import numpy as np
 from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, LoadMode
 from tifffile import imread
 import json
+import csv
 from napari_easy_augment_batch_dl.frameworks.pytorch_semantic_dataset import PyTorchSemanticDataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
@@ -76,8 +77,7 @@ class MonaiUNetFramework(BaseFramework):
     def create_callback(self, updater):
         self.updater = updater
     
-
-    def train_loop(self, train_loader, net, loss_fn, optimizer, dtype, num_epochs, device, steps_per_update=-1, sparse=False):
+    def train_loop(self, train_loader, net, loss_fn, optimizer, dtype, num_epochs, device, validation_loader=None, steps_per_update=-1, sparse=False):
 
         # set train flags, initialize step
         net.train() 
@@ -125,8 +125,31 @@ class MonaiUNetFramework(BaseFramework):
                     optimizer.step()
 
             # Compute the average loss over all steps
-            average_loss = total_loss / total_steps
-            pbar.write(f'training loss at epoch {epoch} is {average_loss}')
+            average_loss = total_loss / len(train_loader)
+            self.train_loss_list.append(average_loss)
+            
+            # Calculate validation loss
+            val_loss_str = ""
+            if validation_loader is not None:
+                net.eval()
+                total_val_loss = 0.0
+                with torch.no_grad():
+                    for val_feature, val_label in validation_loader:
+                        val_label = val_label.type(dtype)
+                        if sparse:
+                            val_label = val_label - 1
+                        val_label = val_label.to(device)
+                        val_feature = val_feature.to(device)
+                        val_predicted = net(val_feature)
+                        val_label = torch.squeeze(val_label, 1)
+                        val_loss_value = loss_fn(input=val_predicted, target=val_label)
+                        total_val_loss += val_loss_value.item()
+                average_val_loss = total_val_loss / len(validation_loader)
+                self.validation_loss_list.append(average_val_loss)
+                val_loss_str = f', validation loss: {average_val_loss:.4f}'
+                net.train()
+            
+            pbar.write(f'Epoch {epoch} - training loss: {average_loss:.4f}{val_loss_str}')
 
             if epoch % self.save_interval == 0 and epoch > 0:
                 # Insert 'checkpoint' before the file extension
@@ -136,8 +159,7 @@ class MonaiUNetFramework(BaseFramework):
         
             if self.updater is not None:
                 progress = int(epoch/self.num_epochs*100)
-
-                self.updater(f'training loss at epoch {epoch} is {average_loss}', progress)
+                self.updater(f'Epoch {epoch} - training loss: {average_loss:.4f}{val_loss_str}', progress)
                     
             epoch += 1
    
@@ -180,11 +202,15 @@ class MonaiUNetFramework(BaseFramework):
 
         assert patch_path.exists(), f"root directory with images and masks {patch_path} does not exist"
 
-        X = sorted(patch_path.rglob('**/input0/*.tif'))
+        train_input_str = 'input0'
+        train_ground_truth_str = 'ground truth'
 
-        Y = []
-        for i in range(num_truths):
-            Y.append(sorted(patch_path.rglob(f'**/ground truth{i}/*.tif')))
+        X, Y = self.get_image_label_files(patch_path, train_input_str, train_ground_truth_str, num_truths)
+
+        validation_input_str = 'input_validation0'
+        validation_ground_truth_str = 'ground truth_validation'
+
+        X_val, Y_val = self.get_image_label_files(patch_path, validation_input_str, validation_ground_truth_str, num_truths)
 
         train_data = PyTorchSemanticDataset(
             image_files=X,
@@ -197,6 +223,15 @@ class MonaiUNetFramework(BaseFramework):
         print(len(train_data))
 
         train_loader = DataLoader(train_data, batch_size=8, shuffle=True)
+
+        # Create validation dataset and loader
+        validation_data = PyTorchSemanticDataset(
+            image_files=X_val,
+            label_files_list=Y_val,
+            target_shape=target_shape
+        )
+        print(f'Validation data size: {len(validation_data)}')
+        validation_loader = DataLoader(validation_data, batch_size=8, shuffle=False)
 
         if self.num_classes_auto == True:
             if self.sparse:
@@ -253,9 +288,19 @@ class MonaiUNetFramework(BaseFramework):
         loss_function = torch.nn.CrossEntropyLoss(ignore_index=-1, weight=weights).to(device)
         dtype = torch.LongTensor
 
-        self.train_loop(train_loader, self.model, loss_function, optimizer, dtype, self.num_epochs, device, sparse=self.sparse)
+        self.train_loop(train_loader, self.model, loss_function, optimizer, dtype, self.num_epochs, device, validation_loader=validation_loader, sparse=self.sparse)
         
         torch.save(self.model, Path(self.model_path) / self.model_name)
+        
+        # Save training and validation losses to CSV
+        csv_name = Path(self.model_name).stem + '.csv'
+        csv_path = Path(self.model_path) / csv_name
+        with open(csv_path, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(['Epoch', 'Training Loss', 'Validation Loss'])
+            for epoch, (train_loss, val_loss) in enumerate(zip(self.train_loss_list, self.validation_loss_list)):
+                writer.writerow([epoch, train_loss, val_loss])
+        print(f'Saved loss history to {csv_path}')
 
     def predict(self, image):
         device = torch.device("cuda")

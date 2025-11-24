@@ -62,10 +62,37 @@ class BaseFramework:
 
         # builtins are models that are included with the framework (for example cyto3 in cellpose)
         self.builtin_names = []
+        
+        # loss tracking lists
+        self.train_loss_list = []
+        self.validation_loss_list = []
 
         # model dictionary stores all models including builtins and custom models
         self.model_dictionary = {}
         self.train_mode = TrainMode.Patches
+
+    def get_image_label_files(self, patch_path, input_str, ground_truth_str, num_truths):
+        """
+        Collect image and label files from patch directory.
+        
+        Args:
+            patch_path (Path): Path object pointing to the patch directory containing image and label subdirectories.
+            input_str (str): Name of the input image subdirectory (e.g., 'input0', 'input_validation0').
+            ground_truth_str (str): Base name of the ground truth label subdirectories (e.g., 'ground truth').
+                                   Numbers will be appended (ground truth0, ground truth1, etc.).
+            num_truths (int): Number of ground truth label classes to collect.
+        
+        Returns:
+            tuple: A tuple (X, Y) where:
+                - X (list): Sorted list of Path objects for all .tif files in the input directory.
+                - Y (list of lists): List where each element is a sorted list of Path objects for .tif files
+                                    in each ground truth directory (ground truth0, ground truth1, etc.).
+        """
+        X = sorted(patch_path.rglob(f'**/{input_str}/*.tif'))
+        Y = []
+        for i in range(num_truths):
+            Y.append(sorted(patch_path.rglob(f'**/{ground_truth_str}{i}/*.tif')))
+        return X, Y
 
     def train(self, updater=None):
         """
