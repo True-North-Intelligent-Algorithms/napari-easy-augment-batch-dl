@@ -1,0 +1,48 @@
+[project]
+name = "pytorch_monai"
+authors = ["bnorthan <bnorthan@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
+version = "0.1.0"
+
+[system-requirements]
+cuda = "12.4"
+
+[dependencies]
+python = "3.11.*"
+
+[pypi-dependencies]
+napari = "*"
+PyQt5 = "*"
+monai = "*"
+ipykernel = "*"
+albumentations = "*"
+matplotlib = "*"
+scipy = "*"
+tifffile = "*"
+czifile = "*"
+notebook = "*"
+
+# Use this to install from git
+#tnia-python = { git = "https://github.com/True-North-Intelligent-Algorithms/tnia-python.git" }
+# Use this to install from local folder in editable mode
+tnia-python = {path = "../../../tnia-python", editable = true}
+
+# Use this to install from git
+# napari-easy-augment-batch-dl = { git = "https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git" }
+# Use this to install from local folder in editable mode
+napari-easy-augment-batch-dl = { path = "../..", editable = true }
+
+[target.linux-64.dependencies]
+pytorch-gpu = "*"
+cudnn = "*"
+
+[target.win-64.dependencies]
+pytorch-gpu = "*"
+cudnn = "*"
+
+[target.osx-arm64.dependencies]
+pytorch = "*"  # CPU-only PyTorch for macOS
+
+[tasks]
+startup = "python startup.py"
