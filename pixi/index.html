@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../overview/">
+        <link rel="prev" href="../dependencies/">
       
       
-        <link rel="next" href="../dependencies/">
+        <link rel="next" href="../file_organization/">
       
       
         
@@ -23,7 +23,7 @@
     
     
       
-        <title>Support - Napari Easy Augment Batch DL</title>
+        <title>Pixi - Napari Easy Augment Batch DL</title>
       
     
     
@@ -72,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#support" class="md-skip">
+        <a href="#install-with-pixi" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Support
+              Pixi
             
           </span>
         </div>
@@ -279,19 +279,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../support/" class="md-nav__link">
         
   
   
@@ -307,7 +298,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -343,10 +333,37 @@
       
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../pixi/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pixi
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -362,6 +379,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-environment-in-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load environment in VS Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#make-pixi-environment-available-to-vs-code-notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make Pixi environment available to VS Code notebooks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -575,6 +656,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#load-environment-in-vs-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Load environment in VS Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#make-pixi-environment-available-to-vs-code-notebooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Make Pixi environment available to VS Code notebooks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -593,12 +726,44 @@
   
 
 
-<h1 id="support">Support</h1>
-<ol>
-<li>Post a question on <a href="https://forum.image.sc/">Image.sc</a></li>
-<li>Post a question on <a href="https://napari.zulipchat.com/">Napari Zulip</a> </li>
-<li>Post an issue in the <a href="https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/issues">Github repo</a></li>
-</ol>
+<h1 id="install-with-pixi">Install with Pixi</h1>
+<p>Pixi is a fast, reproducible environment manager. See the official docs: https://pixi.sh/latest/</p>
+<p>This repository includes ready-to-use Pixi environments:</p>
+<ul>
+<li><code>pixi/microsam_cellpose3</code>: micro_sam + cellpose + MONAI (+ PyTorch GPU on Linux/Windows when available; CPU-only on macOS arm64)</li>
+<li><code>pixi/stardist</code>: StarDist + TensorFlow + Napari</li>
+</ul>
+<h2 id="quick-start">Quick start</h2>
+<p>1) Install Pixi (follow the instructions at https://pixi.sh/latest/).
+2) Choose an environment folder and run:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>pixi/microsam_cellpose3<span class="w">   </span><span class="c1"># or: cd pixi/stardist</span>
+pixi<span class="w"> </span>install<span class="w">                 </span><span class="c1"># resolves and creates the environment</span>
+pixi<span class="w"> </span>run<span class="w"> </span>startup<span class="w">             </span><span class="c1"># launches the app in the configured environment</span>
+</code></pre></div>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>You can alternatively drop into the environment with <code>pixi shell</code> and run <code>python startup.py</code>.</li>
+<li>GPU/CPU targets are encoded in each <code>pixi.toml</code>; ensure your system drivers/toolkit match if you expect GPU.</li>
+<li>For folder contents and details, see: <a href="https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/microsam_cellpose3">microsam_cellpose3</a> and <a href="https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/stardist">stardist</a>.</li>
+<li>More Pixi environments will be added soon.</li>
+</ul>
+<h2 id="load-environment-in-vs-code">Load environment in VS Code</h2>
+<p>Use the Pixi-created interpreter for scripts launched from VS Code:</p>
+<p>1) Open the Command Palette: <code>Ctrl</code>+<code>Shift</code>+<code>P</code> → "Python: Select Interpreter" → "Enter Interpreter Path" → "Browse your file system".
+2) Navigate to the Pixi environment’s Python under the folder where you ran <code>pixi install</code> (Pixi shows the path via <code>pixi info</code>).
+3) Select that interpreter. VS Code will now run using the Pixi environment.</p>
+<p>Reference image:</p>
+<p><img alt="Select Python Interpreter" src="../images/pixi/selectpython.png" /></p>
+<h2 id="make-pixi-environment-available-to-vs-code-notebooks">Make Pixi environment available to VS Code notebooks</h2>
+<p>Register the environment as a Jupyter kernel so it appears in the notebook kernel selector:</p>
+<div class="highlight"><pre><span></span><code>pixi<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>ipykernel<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>--name<span class="o">=</span>appose_napari_ai<span class="w"> </span>--display-name<span class="w"> </span><span class="s2">&quot;Pixi (appose_napari_ai)&quot;</span>
+</code></pre></div>
+<p>Notes:
+- If you see "No module named ipykernel": add it first with <code>pixi add ipykernel</code>, then rerun the command above.
+- If kernels or DLL paths don’t load correctly (e.g., CUDA/CUDNN), start VS Code from an activated Pixi shell so it inherits environment variables:</p>
+<div class="highlight"><pre><span></span><code>pixi<span class="w"> </span>shell
+code<span class="w"> </span>.
+</code></pre></div>
 
 
 
