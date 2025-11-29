@@ -14,6 +14,7 @@ nav:
   - Overview: overview.md
   - Support: support.md
   - Dependencies: dependencies.md
+  - Pixi: pixi.md
   - File Organization: file_organization.md
   - Predict: predict.md
   - Load and Label: load_and_label.md

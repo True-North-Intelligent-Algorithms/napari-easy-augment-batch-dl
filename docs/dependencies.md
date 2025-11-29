@@ -12,9 +12,9 @@ Other frameworks can be added via our plugin mechanism (Documentation to come)
 
 Below are sets of suggested installation instructions for Linux, Mac M1, and Windows.  Not all dependencies are needed.  You need atleast one deep learning framework, but for example if you would like to work with Cellpose only you do not need Stardist or SAM. 
 
-# Pixi
+## Install with Pixi
 
-We are working on a pixi installer.  Please see [here](https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/microsam_cellpose3) for a ```micro_sam/cellpose/monai``` pixi example, and [here](https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl/tree/main/pixi/stardist) for a ```stardist``` pixi example.  
+For Pixi-based setup, see the dedicated page: [Pixi](pixi.md).
 
 # Conda/PIP instructions
 
