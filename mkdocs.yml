@@ -16,6 +16,7 @@ nav:
   - Dependencies: dependencies.md
   - Pixi: pixi.md
   - File Organization: file_organization.md
+  - Load: load.md
   - Predict: predict.md
   - Load and Label: load_and_label.md
   - Augment: augment.md
