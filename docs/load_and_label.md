@@ -38,4 +38,4 @@ Inspect the labels directory to verify labels you have drawn have been saved.
 ![Labels Directory](images/labels_dir.png)
 ---
 
-🔄 **Next:** [Configure Augmentations](configure_augmentations.md)
+🔄 **Next:** [Configure Augmentations](augment.md)
