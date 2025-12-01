@@ -414,6 +414,7 @@ class NapariEasyAugmentBatchDL(QWidget):
             edge_width=5,
             text={'string': '{split_set}', 'size': 15, 'color': 'green'},
         )
+        
         self.boxes_layer.events.data.connect(mark_dirty)
 
         try:
@@ -553,7 +554,6 @@ class NapariEasyAugmentBatchDL(QWidget):
             self.viewer.layers.remove('Object box')
             self.viewer.layers.remove('Predicted Object box')  
 
-        
         #TODO: integrate to new GUI approach
         '''
         for c in range(self.deep_learning_project.num_classes):
@@ -572,6 +572,9 @@ class NapariEasyAugmentBatchDL(QWidget):
             features = {'split_set': split_set} 
             self.boxes_layer.add(self.deep_learning_project.boxes)
             self.boxes_layer.features = features
+
+        # add boxes layer default for split set 
+        self.boxes_layer.feature_defaults['split_set'] = 'train'
 
         print("Adding object boxes")
         if self.deep_learning_project.object_boxes is not None:
