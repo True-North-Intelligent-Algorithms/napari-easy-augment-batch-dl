@@ -339,16 +339,6 @@ class NapariEasyAugmentBatchDL(QWidget):
     
     def load_image_directory(self, parent_path):
         self.parent_path = Path(parent_path)
-
-        files = list(self.parent_path.glob('*.jpg'))
-        files = files+list(self.parent_path.glob('*.jpeg'))
-        files = files+list(self.parent_path.glob('*.tif'))
-        files = files+list(self.parent_path.glob('*.tiff'))
-        files = files+list(self.parent_path.glob('*.png'))
-
-        if len(files) == 0:
-            QMessageBox.information(self, "Error", "No images found in the selected directory. Please select a directory with images.")
-            return
         
         # check if json exists
         
@@ -366,6 +356,11 @@ class NapariEasyAugmentBatchDL(QWidget):
             num_classes = 1
 
         self.deep_learning_project = DeepLearningProject(self.parent_path, num_classes)
+        
+        if len(self.deep_learning_project.image_file_list) == 0:
+            QMessageBox.information(self, "Error", "No images found in the selected directory. Please select a directory with images.")
+            return
+        
         self.deep_learning_widgets = {}
 
         # loop through the key and instance of all the deep learning frameworks
