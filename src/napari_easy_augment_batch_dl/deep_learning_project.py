@@ -100,7 +100,11 @@ class DeepLearningProject:
         # collect all images in the image path
         # Note: this code loads all images in the directory.  This could be a problem if there are a large number of images                    
 
-        self.image_file_list = collect_all_image_names(self.image_path)
+        self.image_file_list = collect_all_image_names(self.image_path, extensions=['tif', 'tiff', 'png', 'jpg', 'jpeg', 'bmp'])
+
+        if len(self.image_file_list) == 0:
+            self.image_file_list = []
+            return
 
         self.image_file_list = sorted(self.image_file_list)
         
@@ -605,7 +609,7 @@ class DeepLearningProject:
                     im = im[:,:,:3]
                 
             name = self.image_file_list[z].name.split('.')[0]
-            
+
             uber_augmenter(im, labels, patch_path, name, patch_size, num_patches, do_vertical_flip, do_horizontal_flip, do_random_rotate90, do_random_sized_crop, do_random_brightness_contrast, 
                                   do_random_gamma, do_color_jitter, do_elastic_transform, 1, split=split_value, **self.augmentation_parameters)
        
