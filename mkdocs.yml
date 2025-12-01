@@ -19,6 +19,7 @@ nav:
   - Load: load.md
   - Predict: predict.md
   - Load and Label: load_and_label.md
+  - Set Validation Labels: set_validation_labels.md
   - Augment: augment.md
   - Train and Predict: train_and_predict.md
   - FAQ: faq.md

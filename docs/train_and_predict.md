@@ -16,6 +16,12 @@ After hitting train a popup should appear which allows you to further adjust tra
 
 ![Training popup](images/train_cellpose.png)
 
+## Saved model and training data
+
+After training you should find a saved model in the ```models``` directory.   The exact format will depend on the frameworks used (for example in the screenshot below a monai pytorch model has been saved as a ```pth``` file, other frameworks may save in different formats).  Some frameworks also output training statistics.  In the below screenshot training statistics are saved in a ```.csv``` file. 
+
+![Saved Model](images/saved_model_and_csv.png)
+
 After training (or after loading or setting a model) choose ```Predict current image``` or ```Predict all images``` to predict.   The ```prediction``` layer should be populated with the predictions as shown in the below screen shot.  
 
 ![Prediction](images/predict.png)
