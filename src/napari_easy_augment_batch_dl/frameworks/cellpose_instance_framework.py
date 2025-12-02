@@ -22,7 +22,7 @@ class CellPoseInstanceFramework(BaseFramework):
     diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 500.0, 'default': 30.0, 'step': 1.0})
     bsize_pred: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 128, 'max': 2048, 'default': 224, 'step': 1})
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
-    flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
+    flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.4, 'step': 0.1})
     chan_segment: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
     chan2: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100, 'default': 0, 'step': 1})
     niter: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 100000, 'default': 200, 'step': 1, 'show_auto_checkbox':True})
@@ -57,10 +57,9 @@ class CellPoseInstanceFramework(BaseFramework):
             self.model = models.CellposeModel(gpu=True, model_type=None, pretrained_model=start_model)
 
         # set defaults for parameters
-        self.diameter = 30
         self.bsize_pred = 224
         self.prob_thresh = 0.0
-        self.flow_thresh = 0.0
+        self.flow_thresh = 0.4
         self.chan_segment = 0
         self.chan2 = 0
 
@@ -84,10 +83,12 @@ class CellPoseInstanceFramework(BaseFramework):
             self.model_names = ['cyto3', 'tissuenet_cp3']
             self.builtin_names = ['cyto3', 'tissuenet_cp3']
             self.set_builtin_model('cyto3')
+            self.diameter = 30
         else:
             self.model_names = ['cpsam']
             self.builtin_names = ['cpsam']
             self.set_builtin_model('cpsam')
+            self.diameter = 50
         
         # options for optimizers
         self.optimizers = ['adam', 'sgd']
