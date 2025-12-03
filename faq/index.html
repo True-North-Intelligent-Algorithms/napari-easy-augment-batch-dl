@@ -540,6 +540,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#when-i-try-to-train-the-model-there-is-a-freezecrash" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ When I try to train the model there is a freeze/crash?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#i-cant-find-my-training-and-validation-augmentations" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ I can't find my training and validation augmentations?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#have-a-question-let-us-know-and-we-add-it-to-the-faq" class="md-nav__link">
     <span class="md-ellipsis">
       ❓ Have a question ... let us know and we add it to the FAQ
@@ -605,6 +623,24 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#when-i-try-to-train-the-model-there-is-a-freezecrash" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ When I try to train the model there is a freeze/crash?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#i-cant-find-my-training-and-validation-augmentations" class="md-nav__link">
+    <span class="md-ellipsis">
+      ❓ I can't find my training and validation augmentations?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#have-a-question-let-us-know-and-we-add-it-to-the-faq" class="md-nav__link">
     <span class="md-ellipsis">
       ❓ Have a question ... let us know and we add it to the FAQ
@@ -633,6 +669,33 @@
 
 
 <h1 id="frequently-asked-questions-faq">Frequently Asked Questions (FAQ)</h1>
+<h2 id="when-i-try-to-train-the-model-there-is-a-freezecrash">❓ When I try to train the model there is a freeze/crash?</h2>
+<p>This can happen for several reasons, and we recommend posting on <a href="https://forum.image.sc/">image.sc</a> to get help troubleshooting deep learning dependencies and GPU drivers.</p>
+<p>One common issue we've noticed is that <strong>training with the wrong model type</strong> can lead to problems. For example, in the screenshot below, the labels are drawn for <strong>semantic segmentation</strong>, but issues can occur if you accidentally select an <strong>instance segmentation</strong> framework instead.</p>
+<p><img alt="Troubleshoot Models" src="../images/trouble_shoot_models.png" /></p>
+<p><strong>Solution:</strong> Make sure you choose the right framework for your specific problem! </p>
+<ul>
+<li><strong>Semantic Segmentation</strong>: Use frameworks like "Monai UNET Model" or "Pytorch Semantic Model"</li>
+<li><strong>Instance Segmentation</strong>: Use frameworks like "CellPose Instance Framework" or "Micro-sam Instance Framework"</li>
+</ul>
+<p>If the freeze/crash persists after verifying your framework choice, please share details about your setup on the forum, and the community will be happy to help! 😊</p>
+<h2 id="i-cant-find-my-training-and-validation-augmentations">❓ I can't find my training and validation augmentations?</h2>
+<p>Sometimes there's confusion between <strong>labels</strong> and <strong>patches</strong> (augmentations). Let's clarify the difference!</p>
+<p><img alt="Troubleshoot Patches" src="../images/trouble_shoot_patches.png" /></p>
+<p><strong>Labels:</strong>
+- These are the annotations you manually drew and marked with a bounding box
+- Saved in the <code>labels</code> directory
+- Validation labels won't be so indicated in the labels folder structure</p>
+<p><strong>Patches (Augmentations):</strong>
+- These are the hundreds of small, augmented images generated <strong>from</strong> your labels
+- Created when you run the augmentation step
+- Saved in the <code>patches</code> directory
+- when the validation labels are used to generate patches, those patches will have 'validation' appended to them. </p>
+<p><strong>Where to find validation data:</strong></p>
+<p>If you marked some labels as "validation" (by pressing the <code>v</code> key), they won't be marked as such in your labels directory structure. However, after you run augmentation, you'll find them marked 'validation' in the <strong>patches</strong> folder! Look for subdirectories like:
+- <code>input_validation0</code> for validation images
+- <code>ground truth_validation0</code> for validation labels</p>
+<p>The patches directory is where all your training <strong>and</strong> validation augmentations live, ready for the model to learn from! 🎉</p>
 <h2 id="have-a-question-let-us-know-and-we-add-it-to-the-faq">❓ Have a question ... let us know and we add it to the FAQ</h2>
 
 
