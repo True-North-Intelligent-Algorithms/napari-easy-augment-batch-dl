@@ -293,7 +293,8 @@ class MonaiUNetFramework(BaseFramework):
         torch.save(self.model, Path(self.model_path) / self.model_name)
         
         # Save training and validation losses to CSV
-        csv_name = Path(self.model_name).stem + '.csv'
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        csv_name = Path(self.model_name).stem + f'_{timestamp}.csv'
         csv_path = Path(self.model_path) / csv_name
         with open(csv_path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
