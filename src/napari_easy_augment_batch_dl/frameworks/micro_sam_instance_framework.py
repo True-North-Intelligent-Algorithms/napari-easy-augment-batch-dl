@@ -57,7 +57,7 @@ class MicroSamInstanceFramework(BaseFramework):
     # below are the parameters that are harvested for automatic GUI generation
 
     # first set of parameters have advanced False and training False and will be shown in the main dialog
-    tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 64, 'max': 2048, 'default': 384, 'step': 1})
+    tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 64, 'max': 50000, 'default': 384, 'step': 1})
     halo_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 8, 'max': 2048, 'default': 64, 'step': 1})
     prediction_channel: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10, 'default': 1, 'step': 1})
     
