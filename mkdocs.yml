@@ -24,6 +24,7 @@ nav:
   - Train and Predict: train_and_predict.md
   - FAQ: faq.md
   - About: about.md
+  - How to Make These Docs: how_to_make_these_docs.md
 
 markdown_extensions:
   - admonition  # Adds note/warning boxes
