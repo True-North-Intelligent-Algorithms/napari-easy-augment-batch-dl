@@ -41,7 +41,7 @@ class MonaiUNetFramework(BaseFramework):
     save_interval: int = field(default=10,metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 1, 'max': 10000, 'default': 10, 'step': 1})
     
     learning_rate: float = field(default=0.0001, metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0001, 'step': .001})
-    dropout: float = field(default=0.0,metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.0, 'step': .01})
+    dropout: float = field(default=0.2,metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 1., 'default': 0.2, 'step': .01})
     model_name: str = field(default='semantic', metadata={'type': 'str', 'harvest': True, 'advanced': False, 'training': True, 'default': 'semantic', 'step': 1})
         
     descriptor = "Monai UNET Model"
