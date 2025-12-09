@@ -5,7 +5,6 @@ import numpy as np
 from tnia.deeplearning.dl_helper import (
     generate_patch_names, 
     generate_next_patch_name, 
-    generate_next_name,
     zero_pad_index,
     make_label_directory, 
     quantile_normalization, 
@@ -20,7 +19,6 @@ from napari_easy_augment_batch_dl.bounding_box_util import (
     tltrblbr_to_normalized_xywh,
     x1y1x2y2_to_tltrblbr,
     yolotxt_to_naparibb,
-    tltrblbr_to_normalized_xywh,
     xyxy_to_tltrbrbl
 )
 
@@ -29,7 +27,7 @@ from napari_easy_augment_batch_dl.utility import num_channels
 import pandas as pd
 import yaml
 import glob 
-from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework, TrainMode
+from napari_easy_augment_batch_dl.frameworks.base_framework import BaseFramework
 from enum import Enum
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
