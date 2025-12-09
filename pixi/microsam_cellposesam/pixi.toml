@@ -1,5 +1,5 @@
 [project]
-name = "eabdl_microsam_cellpose3"
+name = "eabdl_microsam_cellposesam"
 authors = ["bnorthan <bnorthan@gmail.com>"]
 channels = ["conda-forge"]
 platforms = ["win-64", "linux-64", "osx-arm64"]
@@ -16,12 +16,16 @@ monai = "*"
 ipykernel = "*"
 
 [pypi-dependencies]
+stringzilla = "==4.3.*"
 tnia-python = { git = "https://github.com/True-North-Intelligent-Algorithms/tnia-python.git" }
 appose = "*"
 PyQt5 = "*"
+segment-everything = "*"
+
+mobile-sam = { git = "https://github.com/ChaoningZhang/MobileSAM.git"}
 
 # Use this to install from GitHub directly
-napari-easy-augment-batch-dl = { git = "https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git" }
+#napari-easy-augment-batch-dl = { git = "https://github.com/True-North-Intelligent-Algorithms/napari-easy-augment-batch-dl.git" }
 
 # for specific commit
 #napari-easy-augment-batch-dl = { 
@@ -30,7 +34,7 @@ napari-easy-augment-batch-dl = { git = "https://github.com/True-North-Intelligen
 #    }
 
 # Use this to install from local folder in editable mode
-#napari-easy-augment-batch-dl = { path = "../..", editable = true }
+napari-easy-augment-batch-dl = { path = "../..", editable = true }
 
 [target.linux-64.dependencies]
 pytorch-gpu = "*"
