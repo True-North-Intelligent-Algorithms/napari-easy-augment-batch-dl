@@ -59,7 +59,6 @@ class MicroSamInstanceFramework(BaseFramework):
     # first set of parameters have advanced False and training False and will be shown in the main dialog
     tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 64, 'max': 50000, 'default': 384, 'step': 1})
     halo_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 8, 'max': 2048, 'default': 64, 'step': 1})
-    prediction_channel: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 0, 'max': 10, 'default': 1, 'step': 1})
     
     foreground_threshold: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': True, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
     center_distance_threshold: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': True, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
@@ -98,7 +97,6 @@ class MicroSamInstanceFramework(BaseFramework):
 
         self.tile_size = 384  # the size of the tiles used for training
         self.halo_size = 64  # the size of the halo used for training
-        self.prediction_channel = 1  # the channel used for prediction
 
         self.foreground_threshold = 0.5  # the threshold for foreground pixels
         self.center_distance_threshold = 0.5  # the threshold for center distance
@@ -210,8 +208,6 @@ class MicroSamInstanceFramework(BaseFramework):
         finally:
             # Clean up the temporary directory
             shutil.rmtree(image_dir_255)
-
-
 
     def predict(self, img: np.ndarray):
         """
