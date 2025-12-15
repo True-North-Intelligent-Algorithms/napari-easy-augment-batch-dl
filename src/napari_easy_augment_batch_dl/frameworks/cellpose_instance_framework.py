@@ -19,7 +19,7 @@ class CellPoseInstanceFramework(BaseFramework):
     # below are the parameters that are harvested for automatic GUI generation
 
     # first set of parameters have advanced False and training False and will be shown in the main dialog
-    diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 500.0, 'default': 30.0, 'step': 1.0})
+    diameter: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': 0.0, 'max': 500.0, 'default': 30.0, 'step': 1.0, 'show_auto_checkbox':True})
     bsize_pred: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 128, 'max': 2048, 'default': 224, 'step': 1})
     prob_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.0, 'step': 0.1})
     flow_thresh: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': False, 'training': False, 'min': -10.0, 'max': 10.0, 'default': 0.4, 'step': 0.1})
@@ -89,6 +89,8 @@ class CellPoseInstanceFramework(BaseFramework):
             self.builtin_names = ['cpsam']
             self.set_builtin_model('cpsam')
             self.diameter = 50
+
+        self.diameter_auto = True
         
         # options for optimizers
         self.optimizers = ['adam', 'sgd']
@@ -97,8 +99,6 @@ class CellPoseInstanceFramework(BaseFramework):
         self.quantile_low = 0.01
         self.quantile_high = 0.998
 
-
-    
     def train(self, updater=None):
         """
         Train the CellPose model
@@ -187,11 +187,18 @@ class CellPoseInstanceFramework(BaseFramework):
             # use the default niter
             niter = None
 
+        if self.diameter_auto == 0:
+            diameter = self.diameter
+            print(f'diameter set to {diameter}')
+        else:
+            print('diameter auto (None)')
+            diameter = None
+
         # if major number is less than 4 use bsize, otherwise that parameter is not used
         if self.major_number < 4:
-            return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter, bsize=self.bsize_pred)[0]
+            return self.model.eval(img_normalized, diameter=diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter, bsize=self.bsize_pred)[0]
         else:
-            return self.model.eval(img_normalized, diameter=self.diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter)[0]
+            return self.model.eval(img_normalized, diameter=diameter, normalize=False, channels=[self.chan_segment, self.chan2], flow_threshold=self.flow_thresh, cellprob_threshold=self.prob_thresh, niter=niter)[0]
 
     def get_model_names(self):
         return self.model_names 
