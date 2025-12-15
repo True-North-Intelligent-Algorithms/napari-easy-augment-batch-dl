@@ -42,12 +42,13 @@ class DeepLearningWidget(QDialog):
 
             train = meta.get('training', False)
             
+            show_auto_checkbox = meta.get('show_auto_checkbox', False)
+            
             if meta['type'] == 'int':
                 min = meta.get('min', 0)
                 max = meta.get('max', 1)
                 default = meta.get('default', 0)
                 step = meta.get('step', 1)
-                show_auto_checkbox = meta.get('show_auto_checkbox', False)
                 field = LabeledSpinner(param_name, min, max, default, None, is_float=False, step=step, show_auto_checkbox=show_auto_checkbox)
                 field.spinner.valueChanged.connect(lambda value, name=param_name: setattr(self.framework, name, value))
 
@@ -59,8 +60,13 @@ class DeepLearningWidget(QDialog):
                 max = meta.get('max', 1)
                 default = meta.get('default', 0.5)
                 step = meta.get('step', 0.1)
-                field = LabeledSpinner(param_name, min, max, default, None, is_float=True, step=step)
+                field = LabeledSpinner(param_name, min, max, default, None, is_float=True, step=step, show_auto_checkbox=show_auto_checkbox)
                 field.spinner.valueChanged.connect(lambda value, name=param_name: setattr(self.framework, name, value))
+                
+                if show_auto_checkbox:
+                    # connect the auto checkbox to the spinner
+                    field.auto_checkbox.stateChanged.connect(lambda state, name=param_name: setattr(self.framework, name+'_auto', state))
+            
             elif meta['type'] == 'string':
                 field = QLineEdit()
                 field.setPlaceholderText("Enter a string")
