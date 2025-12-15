@@ -57,7 +57,13 @@ class MicroSamInstanceFramework(BaseFramework):
     # below are the parameters that are harvested for automatic GUI generation
 
     # first set of parameters have advanced False and training False and will be shown in the main dialog
-    tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 64, 'max': 50000, 'default': 384, 'step': 1})
+    tile_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 64, 'max': 50000, 'default': 384, 'step': 1, 'show_auto_checkbox':True})
+
+    # second set of parameters have advanced True and training False and will be shown in the advanced popup dialog
+    # None yet...
+
+    # third set of parameters have advanced False and training True and will be shown in the training popup dialog
+    num_epochs: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': True, 'min': 0, 'max': 100000, 'default': 100, 'step': 1})
     halo_size: int = field(metadata={'type': 'int', 'harvest': True, 'advanced': False, 'training': False, 'min': 8, 'max': 2048, 'default': 64, 'step': 1})
     
     foreground_threshold: float = field(metadata={'type': 'float', 'harvest': True, 'advanced': True, 'training': False, 'min': 0.0, 'max': 1.0, 'default': 0.5, 'step': 0.1})
@@ -96,6 +102,8 @@ class MicroSamInstanceFramework(BaseFramework):
         self.device = "cuda" if torch.cuda.is_available() else "cpu" # the device/GPU used for training
 
         self.tile_size = 384  # the size of the tiles used for training
+        self.tile_size_auto = True  # whether to automatically determine the tile size
+        
         self.halo_size = 64  # the size of the halo used for training
 
         self.foreground_threshold = 0.5  # the threshold for foreground pixels
@@ -241,6 +249,10 @@ class MicroSamInstanceFramework(BaseFramework):
         Returns:
             The instance segmentation.
         """
+
+        if self.tile_size_auto:
+            tile_shape = None
+
         # Step 1: Get the 'predictor' and 'segmenter' to perform automatic instance segmentation.
         predictor, segmenter = get_predictor_and_segmenter(
             model_type=model_type, # choice of the Segment Anything model
